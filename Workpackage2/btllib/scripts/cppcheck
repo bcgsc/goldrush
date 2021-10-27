@@ -9,5 +9,5 @@ set -e
 
 cd "${MESON_SOURCE_ROOT}"
 
-files=$(scripts/get_include_files)
-cppcheck $files --language=c++ --std=c++11 --error-exitcode=1
+files=$(scripts/get-include-files)
+cppcheck $files --language=c++ --std=c++11 --error-exitcode=1 --inline-suppr

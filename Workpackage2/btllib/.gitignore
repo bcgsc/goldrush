@@ -1,0 +1,8 @@
+*.class
+*.jar
+/python/
+!/extras/python/
+/java/
+!/extras/java/
+/Doxyfile.bak
+/external/sdsl-lite/installdir/

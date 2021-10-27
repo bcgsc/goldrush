@@ -18,6 +18,11 @@
 #include "multiLensfrHashIterator.hpp"
 
 #include <vector>
+#include <thread>
+#include <future>
+#include <algorithm>
+#include <memory>
+#include <functional>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -71,6 +76,75 @@ namespace opt {
     int help = 0;
     int ntcard = 0;
 
+}
+
+struct ReadHashes {
+    btllib::SeqReader::Record record;
+    std::vector<std::vector<uint64_t>> hashes;
+};
+
+static size_t hash_precompute(btllib::SeqReader& reader, btllib::OrderQueueMPMC<ReadHashes>& queue, size_t min_seq_len, const std::vector<std::string>& seed_string_vec) {
+    btllib::OrderQueueMPMC<btllib::SeqReader::Record>::Block record_block(btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
+    btllib::OrderQueueMPMC<ReadHashes>::Block block(btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
+    size_t last_block_num = 0;
+    while (true) {
+        record_block = reader.read_block();
+        if (record_block.count == 0) { break; }
+
+        for (auto record : record_block.data) {
+            const size_t len = record.seq.size();
+            const size_t num_tiles = len / opt::tile_length;
+
+            std::vector<std::vector<uint64_t>> hashed_values(num_tiles, std::vector<uint64_t>());
+            if (record.seq.size() >= min_seq_len) {
+                for (size_t i = 0; i < num_tiles; ++i) {
+                    std::string tile_seq = record.seq.substr(i * opt::tile_length, opt::tile_length + opt::kmer_size - 1);
+                    multiLensfrHashIterator itr(tile_seq, seed_string_vec); 
+                    while(itr != itr.end()){
+                        for (size_t curr_hash = 0; curr_hash < seed_string_vec.size(); ++curr_hash) {
+                            hashed_values[i].push_back((*itr)[curr_hash]);
+                        }
+                        ++itr;
+                    }
+                }
+            }
+
+            block.data[block.count++] = { std::move(record), std::move(hashed_values) };
+            if (block.count == block.data.size()) {
+                block.num = record_block.num;
+                last_block_num = block.num;
+                queue.write(block);
+                block.count = 0;
+                block.num = 0;
+            }
+        }
+    }
+    if (block.count > 0) {
+        block.num = last_block_num;
+        queue.write(block);
+        block.count = 0;
+        block.num = 0;
+    }
+    return last_block_num;
+}
+
+static void hash_precomputing(const std::string& input, btllib::OrderQueueMPMC<ReadHashes>& queue, size_t min_seq_len, const std::vector<std::string>& seed_string_vec, unsigned worker_num) {
+    (new std::thread([&] () {
+        btllib::SeqReader reader(input, btllib::SeqReader::Flag::LONG_MODE);
+        std::vector<std::future<size_t>> last_block_num_futures;
+        std::vector<size_t> last_block_nums;
+        for (unsigned i = 0; i < worker_num; i++) {
+            last_block_num_futures.push_back(std::async(hash_precompute, std::ref(reader), std::ref(queue), min_seq_len, std::cref(seed_string_vec)));
+        }
+        for (auto& f : last_block_num_futures) {
+            last_block_nums.push_back(f.get());
+        }
+        btllib::OrderQueueMPMC<ReadHashes>::Block dummy(btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
+        dummy.num = *(std::max_element(last_block_nums.begin(), last_block_nums.end())) + 1;
+        dummy.current = 0;
+        dummy.count = 0;
+        queue.write(dummy);
+    }))->detach();
 }
 
 static void
@@ -441,93 +515,87 @@ int main(int argc, char** argv) {
     std::cerr << "assigning tiles" << std::endl;
     sTime = omp_get_wtime();
 
-    btllib::SeqReader reader(opt::input, btllib::SeqReader::Flag::LONG_MODE);
-    for (const auto record : reader) {
-        if (record.seq.size() < min_seq_len) {
-                std::cerr << "too short" << std::endl;
-                std::cerr << "skipping: " << record.id << std::endl;
-                //wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping wood path output to reduce time
-                ++id;
-                continue;
+    btllib::OrderQueueMPMC<ReadHashes> precomputed_hash_queue(btllib::SeqReader::LONG_MODE_BUFFER_SIZE, btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
+    hash_precomputing(opt::input, precomputed_hash_queue, min_seq_len, seed_string_vec, 6);
 
-        }
-        if (id % 1000 == 0) {
-            std::cerr << "processed " << id << " reads" <<std::endl;
-        }
-        size_t len = record.seq.size();
-        size_t num_tiles = len / opt::tile_length;
-        
-        std::cerr << "name: " << record.id << std::endl;
-        std::cerr << "num tiles: " << num_tiles - 2 << std::endl;
+    while (true) {
+        decltype(precomputed_hash_queue)::Block block(btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
+        precomputed_hash_queue.read(block);
+        if (block.count == 0) { break; }
+        for (const auto& read_hashes : block.data) {
+            const auto& record = read_hashes.record;
+            const auto& hashed_values = read_hashes.hashes;
 
-        
-        bool assigned = true;
+            if (record.seq.size() < min_seq_len) {
+                    std::cerr << "too short" << std::endl;
+                    std::cerr << "skipping: " << record.id << std::endl;
+                    //wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping wood path output to reduce time
+                    ++id;
+                    continue;
 
-        //precompute hash to avoid rehashing
-        std::vector<std::vector<uint64_t>> hashed_values(num_tiles, std::vector<uint64_t>()); 
-#if _OPENMP
-#pragma omp parallel for
-#endif
-        for (size_t i = 0; i < num_tiles; ++i) {
-            std::string tile_seq = record.seq.substr(i * opt::tile_length, opt::tile_length + opt::kmer_size - 1);
-            multiLensfrHashIterator itr(tile_seq, seed_string_vec); 
-            while(itr != itr.end()){
-                for (size_t curr_hash = 0; curr_hash < seed_string_vec.size(); ++curr_hash) {
-                    hashed_values[i].push_back((*itr)[curr_hash]);
-                }
-                ++itr;
             }
-        }
-
-        for (size_t level = 0; level < opt::levels; ++level) {
-            auto& miBF = mibf_vec[level];
-            std::cerr << "current level : " << level << std::endl;
-
-            const size_t num_assigned_tiles = calc_num_assigned_tiles( miBF, hashed_values);
-            std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl;
-            size_t num_unassigned_tiles = num_tiles - 2 - num_assigned_tiles;
-            std::cerr << "num unassigned tiles: " << num_unassigned_tiles << std::endl;
+            if (id % 1000 == 0) {
+                std::cerr << "processed " << id << " reads" <<std::endl;
+            }
+            size_t len = record.seq.size();
+            size_t num_tiles = len / opt::tile_length;
             
-            // assignment logic
-            if (num_unassigned_tiles >= opt::unassigned_min && num_assigned_tiles <= opt::assigned_max) {
-                assigned = false;
-            }
+            std::cerr << "name: " << record.id << std::endl;
+            std::cerr << "num tiles: " << num_tiles - 2 << std::endl;
 
-            if (!assigned) {
-                std::cerr << "unassigned" << std::endl;
-                ++ids_inserted;
+            
+            bool assigned = true;
 
-#if _OPENMP
-#pragma omp parallel for
-#endif
-                for (size_t i = 0; i < num_tiles; ++i) {
-                    const auto& hashed_values_flat_array = hashed_values[i];
-                    miBFCS.insertMIBF(*miBF, hashed_values_flat_array, ids_inserted);//, non_singletons_bf_vec);
-                    //miBFCS.insertSaturation(*miBF, Hhashes, ids_inserted); // don't care about saturation atm so skipping for speed
-                        //}
-                    }
-                //output read to golden path
-                golden_path_vec[level] << ">" << record.id << '\n' << record.seq << std::endl;
-                break; //breaks the level loop
+            for (size_t level = 0; level < opt::levels; ++level) {
+                auto& miBF = mibf_vec[level];
+                std::cerr << "current level : " << level << std::endl;
+
+                const size_t num_assigned_tiles = calc_num_assigned_tiles( miBF, hashed_values);
+                std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl;
+                size_t num_unassigned_tiles = num_tiles - 2 - num_assigned_tiles;
+                std::cerr << "num unassigned tiles: " << num_unassigned_tiles << std::endl;
                 
-            } 
-        }
-        if (assigned) {
-            std::cerr << "assigned" << std::endl;
-            //output read to wood path
-            //wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping wood path output to reduce time
+                // assignment logic
+                if (num_unassigned_tiles >= opt::unassigned_min && num_assigned_tiles <= opt::assigned_max) {
+                    assigned = false;
+                }
+
+                if (!assigned) {
+                    std::cerr << "unassigned" << std::endl;
+                    ++ids_inserted;
+
+    #if _OPENMP
+    #pragma omp parallel for
+    #endif
+                    for (size_t i = 0; i < num_tiles; ++i) {
+                        const auto& hashed_values_flat_array = hashed_values[i];
+                        miBFCS.insertMIBF(*miBF, hashed_values_flat_array, ids_inserted);//, non_singletons_bf_vec);
+                        //miBFCS.insertSaturation(*miBF, Hhashes, ids_inserted); // don't care about saturation atm so skipping for speed
+                            //}
+                        }
+                    //output read to golden path
+                    golden_path_vec[level] << ">" << record.id << '\n' << record.seq << std::endl;
+                    break; //breaks the level loop
+                    
+                } 
+            }
+            if (assigned) {
+                std::cerr << "assigned" << std::endl;
+                //output read to wood path
+                //wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping wood path output to reduce time
+                
+            }
+            //tracking number of bases inserted at an id
+            std::cerr << "inserted: " << id << " ";
+            if (assigned) {
+                std::cerr << bases << std::endl;
+            } else {
+                bases += record.seq.size();
+                std::cerr << bases << std::endl;
+            }
             
+            ++id;
         }
-        //tracking number of bases inserted at an id
-        std::cerr << "inserted: " << id << " ";
-        if (assigned) {
-            std::cerr << bases << std::endl;
-        } else {
-            bases += record.seq.size();
-            std::cerr << bases << std::endl;
-        }
-        
-        ++id;
     }
     std::cerr << "assgined" << std::endl;
         	std::cerr << "in "<< setprecision(4) << fixed
