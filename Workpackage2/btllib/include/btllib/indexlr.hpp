@@ -22,8 +22,6 @@
 
 namespace btllib {
 
-// TODO: Allow multiple Indexlr objects to be instantiated (by assigning ID to
-// each instance / indexing static members based on ID)
 class Indexlr
 {
 
@@ -108,7 +106,10 @@ public:
     size_t readlen = 0;
     std::vector<Minimizer> minimizers;
 
-    operator bool() const { return !id.empty() || !barcode.empty(); }
+    operator bool() const
+    {
+      return !id.empty() || !barcode.empty() || !minimizers.empty();
+    }
   };
 
   Record get_minimizers();
@@ -183,8 +184,8 @@ private:
 
   static const BloomFilter& dummy_bf()
   {
-    static const BloomFilter VAR;
-    return VAR;
+    static const BloomFilter var;
+    return var;
   }
 
   const std::reference_wrapper<const BloomFilter> filter_in_bf;
@@ -372,14 +373,14 @@ r min = v[i] if (i != prev) { prev = i M <- M + m
 inline std::string
 Indexlr::extract_barcode(const std::string& id, const std::string& comment)
 {
-  const static std::string BARCODE_PREFIX = "BX:Z:";
-  if (starts_with(comment, BARCODE_PREFIX)) {
+  const static std::string barcode_prefix = "BX:Z:";
+  if (startswith(comment, barcode_prefix)) {
     const auto space_pos = comment.find(' ');
     if (space_pos != std::string::npos) {
-      return comment.substr(BARCODE_PREFIX.size(),
-                            space_pos - BARCODE_PREFIX.size());
+      return comment.substr(barcode_prefix.size(),
+                            space_pos - barcode_prefix.size());
     }
-    return comment.substr(BARCODE_PREFIX.size());
+    return comment.substr(barcode_prefix.size());
   }
   const auto pound_pos = id.find('#');
   if (pound_pos != std::string::npos) {
@@ -499,14 +500,17 @@ Indexlr::get_minimizers()
     ready_blocks_owners()[id % MAX_SIMULTANEOUS_INDEXLRS] = id;
   }
   auto& block = *(ready_blocks_array()[id % MAX_SIMULTANEOUS_INDEXLRS]);
-  if (block.count <= block.current) {
-    output_queue.read(block);
-    if (block.count <= block.current) {
+  if (block.count <= block.current) { // cppcheck-suppress danglingTempReference
+    output_queue.read(block);         // cppcheck-suppress danglingTempReference
+    if (block.count <=                // cppcheck-suppress danglingTempReference
+        block.current) {              // cppcheck-suppress danglingTempReference
       output_queue.close();
+      // cppcheck-suppress danglingTempReference
       block = decltype(output_queue)::Block(block_size);
       return Record();
     }
   }
+  // cppcheck-suppress danglingTempReference
   return std::move(block.data[block.current++]);
 }
 

@@ -36,25 +36,17 @@ public class NtHash {
     }
   }
 
-  public NtHash(String seq, long hash_num, long k, long pos) {
-    this(btllibJNI.new_NtHash__SWIG_0(seq, hash_num, k, pos), true);
-  }
-
-  public NtHash(String seq, long hash_num, long k) {
-    this(btllibJNI.new_NtHash__SWIG_1(seq, hash_num, k), true);
-  }
-
   public boolean roll() {
     return btllibJNI.NtHash_roll(swigCPtr, this);
   }
 
-  public void sub(SWIGTYPE_p_std__vectorT_unsigned_int_t positions, SWIGTYPE_p_std__vectorT_unsigned_char_t new_bases) {
-    btllibJNI.NtHash_sub(swigCPtr, this, SWIGTYPE_p_std__vectorT_unsigned_int_t.getCPtr(positions), SWIGTYPE_p_std__vectorT_unsigned_char_t.getCPtr(new_bases));
+  public void sub(VectorUnsigned positions, SWIGTYPE_p_std__vectorT_unsigned_char_t new_bases) {
+    btllibJNI.NtHash_sub(swigCPtr, this, VectorUnsigned.getCPtr(positions), positions, SWIGTYPE_p_std__vectorT_unsigned_char_t.getCPtr(new_bases));
   }
 
-  public SWIGTYPE_p_uint64_t hashes() {
+  public SWIGTYPE_p_unsigned_long_long hashes() {
     long cPtr = btllibJNI.NtHash_hashes(swigCPtr, this);
-    return (cPtr == 0) ? null : new SWIGTYPE_p_uint64_t(cPtr, false);
+    return (cPtr == 0) ? null : new SWIGTYPE_p_unsigned_long_long(cPtr, false);
   }
 
   public long get_pos() {
@@ -73,12 +65,20 @@ public class NtHash {
     return btllibJNI.NtHash_get_k(swigCPtr, this);
   }
 
-  public SWIGTYPE_p_uint64_t get_forward_hash() {
-    return new SWIGTYPE_p_uint64_t(btllibJNI.NtHash_get_forward_hash(swigCPtr, this), true);
+  public java.math.BigInteger get_forward_hash() {
+    return btllibJNI.NtHash_get_forward_hash(swigCPtr, this);
   }
 
-  public SWIGTYPE_p_uint64_t get_reverse_hash() {
-    return new SWIGTYPE_p_uint64_t(btllibJNI.NtHash_get_reverse_hash(swigCPtr, this), true);
+  public java.math.BigInteger get_reverse_hash() {
+    return btllibJNI.NtHash_get_reverse_hash(swigCPtr, this);
+  }
+
+  public NtHash(String seq, long hash_num, long k, long pos) {
+    this(btllibJNI.new_NtHash__SWIG_0(seq, hash_num, k, pos), true);
+  }
+
+  public NtHash(String seq, long hash_num, long k) {
+    this(btllibJNI.new_NtHash__SWIG_1(seq, hash_num, k), true);
   }
 
 }

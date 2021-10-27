@@ -275,4 +275,9 @@ public class SeqReader {
   }
 
   public final static long MAX_SIMULTANEOUS_SEQREADERS = btllibJNI.SeqReader_MAX_SIMULTANEOUS_SEQREADERS_get();
+  public final static long SHORT_MODE_BUFFER_SIZE = btllibJNI.SeqReader_SHORT_MODE_BUFFER_SIZE_get();
+  public final static long SHORT_MODE_BLOCK_SIZE = btllibJNI.SeqReader_SHORT_MODE_BLOCK_SIZE_get();
+  public final static long LONG_MODE_BUFFER_SIZE = btllibJNI.SeqReader_LONG_MODE_BUFFER_SIZE_get();
+  public final static long LONG_MODE_BLOCK_SIZE = btllibJNI.SeqReader_LONG_MODE_BLOCK_SIZE_get();
+  public final static long FORMAT_BUFFER_SIZE = btllibJNI.SeqReader_FORMAT_BUFFER_SIZE_get();
 }
