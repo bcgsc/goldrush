@@ -78,6 +78,8 @@ namespace opt {
 
 }
 
+static constexpr bool verbose = false;
+
 struct ReadHashes {
     btllib::SeqReader::Record record;
     std::vector<std::vector<uint64_t>> hashes;
@@ -321,11 +323,13 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
     }
 
     //print which id each tile is assigned to
-    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
-        std::cerr << tiles_assigned_id << "\t";
+    if (verbose) {
+        for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
+            std::cerr << tiles_assigned_id << "\t";
 
+        }
+        std::cerr << std::endl;
     }
-    std::cerr << std::endl;
 
     return num_assigned_tiles;
 }
@@ -527,33 +531,36 @@ int main(int argc, char** argv) {
             const auto& hashed_values = read_hashes.hashes;
 
             if (record.seq.size() < min_seq_len) {
+                if (verbose) {
                     std::cerr << "too short" << std::endl;
                     std::cerr << "skipping: " << record.id << std::endl;
+                }
                     //wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping wood path output to reduce time
                     ++id;
                     continue;
 
             }
-            if (id % 1000 == 0) {
+            if (id % 10000 == 0) {
                 std::cerr << "processed " << id << " reads" <<std::endl;
             }
             size_t len = record.seq.size();
             size_t num_tiles = len / opt::tile_length;
             
-            std::cerr << "name: " << record.id << std::endl;
-            std::cerr << "num tiles: " << num_tiles - 2 << std::endl;
-
+            if (verbose) {
+                std::cerr << "name: " << record.id << std::endl;
+                std::cerr << "num tiles: " << num_tiles - 2 << std::endl;
+            }
             
             bool assigned = true;
 
             for (size_t level = 0; level < opt::levels; ++level) {
                 auto& miBF = mibf_vec[level];
-                std::cerr << "current level : " << level << std::endl;
+                if (verbose) { std::cerr << "current level : " << level << std::endl; }
 
                 const size_t num_assigned_tiles = calc_num_assigned_tiles( miBF, hashed_values);
-                std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl;
+                if (verbose) { std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl; }
                 size_t num_unassigned_tiles = num_tiles - 2 - num_assigned_tiles;
-                std::cerr << "num unassigned tiles: " << num_unassigned_tiles << std::endl;
+                if (verbose) { std::cerr << "num unassigned tiles: " << num_unassigned_tiles << std::endl; }
                 
                 // assignment logic
                 if (num_unassigned_tiles >= opt::unassigned_min && num_assigned_tiles <= opt::assigned_max) {
@@ -561,7 +568,7 @@ int main(int argc, char** argv) {
                 }
 
                 if (!assigned) {
-                    std::cerr << "unassigned" << std::endl;
+                    if (verbose) { std::cerr << "unassigned" << std::endl; }
                     ++ids_inserted;
 
     #if _OPENMP
@@ -580,18 +587,18 @@ int main(int argc, char** argv) {
                 } 
             }
             if (assigned) {
-                std::cerr << "assigned" << std::endl;
+                if (verbose) { std::cerr << "assigned" << std::endl; }
                 //output read to wood path
                 //wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping wood path output to reduce time
                 
             }
             //tracking number of bases inserted at an id
-            std::cerr << "inserted: " << id << " ";
+            if (verbose) { std::cerr << "inserted: " << id << " "; }
             if (assigned) {
-                std::cerr << bases << std::endl;
+                if (verbose) { std::cerr << bases << std::endl; }
             } else {
                 bases += record.seq.size();
-                std::cerr << bases << std::endl;
+                if (verbose) { std::cerr << bases << std::endl; }
             }
             
             ++id;

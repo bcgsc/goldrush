@@ -24,7 +24,7 @@ AC_TYPE_SIZE_T
 
 # Set compiler flags. (TODO Probably doing some bad stuff here)
 AC_SUBST(CXXFLAGS,"-std=c++14 $CXXFLAGS")
-AC_SUBST(AM_CXXFLAGS, "-Wall -Wextra -Werror $AM_CXXFLAGS")
+AC_SUBST(AM_CXXFLAGS, "-Wall -Wextra $AM_CXXFLAGS")
 
 # Options to configure.
 # Boost
@@ -60,8 +60,8 @@ AC_CHECK_HEADERS([boost/property_tree/ptree.hpp])
 AC_CHECK_HEADERS([boost/property_tree/ini_parser.hpp])
 AC_CHECK_HEADERS([zlib.h])
 
-AC_CHECK_HEADERS([google/dense_hash_map])
-if test $ac_cv_header_google_dense_hash_map != yes; then
+AC_CHECK_HEADERS([sparsehash/dense_hash_map])
+if test $ac_cv_header_sparsehash_dense_hash_map != yes; then
 	AC_MSG_ERROR([Requires google sparsehash])
 fi
 
