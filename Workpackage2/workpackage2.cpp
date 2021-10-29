@@ -93,7 +93,8 @@ static size_t hash_precompute(btllib::SeqReader& reader, btllib::OrderQueueMPMC<
         record_block = reader.read_block();
         if (record_block.count == 0) { break; }
 
-        for (auto record : record_block.data) {
+        for (size_t idx = 0; idx < record_block.count; idx++) {
+            auto record = record_block.data[idx];
             const size_t len = record.seq.size();
             const size_t num_tiles = len / opt::tile_length;
 
