@@ -232,8 +232,10 @@ def filter_branches(graph, mx_info):
                 total_dist = abs(get_mx_pos(mx_info[source], time_seen=1) - get_mx_pos(mx_info[target], time_seen=1))
                 total_dist += abs(get_mx_pos(mx_info[source], time_seen=2) - get_mx_pos(mx_info[target], time_seen=2))
                 node_edges.append((edge, total_dist))
-        if node_edges > 2:
-            to_remove_edges.append(sorted(node_edges, key=lambda x:x[1], reverse=True)[0])
+        if len(node_edges) > 2:
+            print(node_edges)
+            to_remove_edges.append(sorted(node_edges, key=lambda x:x[1], reverse=True)[0][0])
+            print(to_remove_edges)
 
     new_graph = graph.copy()
     new_graph.delete_edges(to_remove_edges)
@@ -252,8 +254,9 @@ def detect_hairpins(args, seq_lengths):
             mx_info, mxs = filter_ordered_sketch(mx_line)
             graph = build_graph(mxs, mx_info)
             print_graph(graph, mx_info, "test_before")
-            graph = filter_branches(graph)
-            graph = filter_graph_global(graph, mx_info)
+            graph = filter_branches(graph, mx_info)
+            print_graph(graph, mx_info, "test_branch")
+            graph = filter_graph_global(graph)
             print_graph(graph, mx_info, "test")
             if is_graph_linear(graph): #!! TODO: add more sophisticated filter
                 #print("HERE - linear")
