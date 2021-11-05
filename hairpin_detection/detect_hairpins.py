@@ -232,11 +232,12 @@ def filter_branches(graph, mx_info):
                 total_dist = abs(get_mx_pos(mx_info[source], time_seen=1) - get_mx_pos(mx_info[target], time_seen=1))
                 total_dist += abs(get_mx_pos(mx_info[source], time_seen=2) - get_mx_pos(mx_info[target], time_seen=2))
                 node_edges.append((edge, total_dist))
+            else:
+                # source == target, if self edge
+                to_remove_edges.append(edge)
         if len(node_edges) > 2:
-            print(node_edges)
             add_remove_edges = sorted(node_edges, key=lambda x:x[1], reverse=True)[:-2]
             to_remove_edges.extend([rm_edge[0] for rm_edge in add_remove_edges])
-            print(to_remove_edges)
 
     new_graph = graph.copy()
     new_graph.delete_edges(to_remove_edges)
@@ -257,12 +258,13 @@ def detect_hairpins(args, seq_lengths):
             print_graph(graph, mx_info, "test_before")
             graph = filter_branches(graph, mx_info)
             print_graph(graph, mx_info, "test_branch")
-            graph = filter_graph_global(graph)
-            print_graph(graph, mx_info, "test")
+            #graph = filter_graph_global(graph)
+            #print_graph(graph, mx_info, "test")
             if is_graph_linear(graph): #!! TODO: add more sophisticated filter
                 #print("HERE - linear")
                 mapped_regions = find_paths(graph, mx_info)
                 max_covered = find_max_covered_mapped_regions(mapped_regions)
+                #print(max_covered)
                 if max_covered/seq_lengths[name]*100 >= args.perc:
                     print(name, "Hairpin", sep="\t", file=sys.stderr)
                     hairpins += 1
