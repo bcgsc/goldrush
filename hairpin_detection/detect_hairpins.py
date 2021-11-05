@@ -234,7 +234,8 @@ def filter_branches(graph, mx_info):
                 node_edges.append((edge, total_dist))
         if len(node_edges) > 2:
             print(node_edges)
-            to_remove_edges.append(sorted(node_edges, key=lambda x:x[1], reverse=True)[0][0])
+            add_remove_edges = sorted(node_edges, key=lambda x:x[1], reverse=True)[:-2]
+            to_remove_edges.extend([rm_edge[0] for rm_edge in add_remove_edges])
             print(to_remove_edges)
 
     new_graph = graph.copy()
