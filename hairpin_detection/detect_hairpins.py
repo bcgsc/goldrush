@@ -212,6 +212,33 @@ def print_graph(graph, list_mx_info, prefix): ## !! TODO: for troubleshooting
 
     outfile.write("}\n")
 
+def get_mx_pos(mx_data, time_seen=1):
+    "Return position of mx with desired time_seen"
+    for mx_info_el in mx_data:
+        if mx_info_el.time_seen == time_seen:
+            return mx_info_el.pos
+
+def filter_branches(graph, mx_info):
+    "For each branch node, only keep two edges most consistent in terms of positions"
+    branch_nodes = [node.index for node in graph.vs() if node.degree() > 2]
+    to_remove_edges = []
+    for node in branch_nodes:
+        node_edges = []
+        for edge in graph.incident(node):
+            source, target = graph.es()[edge].source, graph.es()[edge].target
+            source, target = ntlink_utils.vertex_name(graph, source), \
+                             ntlink_utils.vertex_name(graph, target)
+            if source != target:
+                total_dist = abs(get_mx_pos(mx_info[source], time_seen=1) - get_mx_pos(mx_info[target], time_seen=1))
+                total_dist += abs(get_mx_pos(mx_info[source], time_seen=2) - get_mx_pos(mx_info[target], time_seen=2))
+                node_edges.append((edge, total_dist))
+        if node_edges > 2:
+            to_remove_edges.append(sorted(node_edges, key=lambda x:x[1], reverse=True)[0])
+
+    new_graph = graph.copy()
+    new_graph.delete_edges(to_remove_edges)
+    return new_graph
+
 def detect_hairpins(args, seq_lengths):
     "Read through minimizers for each read, and determine whether it is a putative hairpin artifact"
     hairpins = 0
@@ -225,7 +252,8 @@ def detect_hairpins(args, seq_lengths):
             mx_info, mxs = filter_ordered_sketch(mx_line)
             graph = build_graph(mxs, mx_info)
             print_graph(graph, mx_info, "test_before")
-            graph = filter_graph_global(graph)
+            graph = filter_branches(graph)
+            graph = filter_graph_global(graph, mx_info)
             print_graph(graph, mx_info, "test")
             if is_graph_linear(graph): #!! TODO: add more sophisticated filter
                 #print("HERE - linear")
