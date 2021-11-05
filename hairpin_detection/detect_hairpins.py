@@ -47,8 +47,8 @@ def filter_ordered_sketch(mx_line):
 
         mx_info = {mx: mx_info[mx] for mx in mx_info if is_valid_mx(mx_info[mx])}
         mxs = [mx_pos_strand.split(":")[0] for mx_pos_strand in mx_pos_strands if mx_pos_strand.split(":")[0] in mx_info]
-    print(mx_info)
-    print(mxs)
+    #print(mx_info)
+    #print(mxs)
     return mx_info, mxs
 
 def set_edge_attributes(graph, edge_attributes): #!! TODO: from ntJoin code
@@ -158,9 +158,9 @@ def find_paths(graph, mx_info): #!! TODO Snippet adapted from ntJoin
         subcomponent_graph = graph.subgraph(subcomponent)
         source_nodes = [node.index for node in subcomponent_graph.vs() if node.degree() == 1]
         if len(source_nodes) == 2:
-            print(source_nodes)
+            #print(source_nodes)
             source, target = determine_source_vertex(source_nodes, subcomponent_graph, mx_info)
-            print(source, target)
+            #print(source, target)
             path = subcomponent_graph.get_shortest_paths(source, target)[0]
             num_edges = len(path) - 1
             if len(path) == len(subcomponent_graph.vs()) and \
@@ -169,18 +169,18 @@ def find_paths(graph, mx_info): #!! TODO Snippet adapted from ntJoin
                 mx_regions = parse_mx_path(path, mx_info, subcomponent_graph)
                 if mx_regions is not None:
                     mapped_regions.append(mx_regions)
-    print(mapped_regions)
+    #print(mapped_regions)
     return mapped_regions
 
 def find_max_covered_mapped_regions(mapped_regions):
     "Given mapped regions, return the maximum bases covered by a pair"
     max_bp = 0
-    print(mapped_regions)
+    #print(mapped_regions)
     for region_sets in mapped_regions:
         bp_covered = sum([region[1] - region[0] for region in region_sets])
         if bp_covered > max_bp:
             max_bp = bp_covered
-    print(max_bp)
+    #print(max_bp)
     return max_bp
 
 def print_graph(graph, list_mx_info, prefix): ## !! TODO: for troubleshooting
@@ -216,20 +216,26 @@ def detect_hairpins(args, seq_lengths):
     "Read through minimizers for each read, and determine whether it is a putative hairpin artifact"
     hairpins = 0
     total_reads = 0
+
+    print("Name", "Status", sep="\t", file=sys.stderr)   
+
     with open(args.MX, 'r') as mx_in:
         for mx_line in mx_in:
             name, _ = mx_line.strip().split("\t")
             mx_info, mxs = filter_ordered_sketch(mx_line)
             graph = build_graph(mxs, mx_info)
+            print_graph(graph, mx_info, "test_before")
             graph = filter_graph_global(graph)
             print_graph(graph, mx_info, "test")
             if is_graph_linear(graph): #!! TODO: add more sophisticated filter
-                print("HERE - linear")
+                #print("HERE - linear")
                 mapped_regions = find_paths(graph, mx_info)
                 max_covered = find_max_covered_mapped_regions(mapped_regions)
                 if max_covered/seq_lengths[name]*100 >= args.perc:
-                    print(name, file=sys.stderr)
+                    print(name, "Hairpin", sep="\t", file=sys.stderr)
                     hairpins += 1
+                else:
+                    print(name, "Non-hairpin", sep="\t", file=sys.stderr)
             total_reads += 1
     return hairpins, total_reads
 
@@ -241,6 +247,8 @@ def main():
     parser.add_argument("-i", "--index", help="samtools faidx index for input reads", required=True, type=str)
     parser.add_argument("--perc", help="Percentage of read", type=float, default=90)
     args = parser.parse_args()
+
+    args.MX = "/dev/stdin" if args.MX == "-" else args.MX
 
     seq_lengths = tally_sequence_lengths(args.index)
     hairpins, total_reads = detect_hairpins(args, seq_lengths)
