@@ -45,12 +45,14 @@ def filter_ordered_sketch(mx_line):
                 mx_info[mx] = [MinimizerInfo(int(pos), strand, 1)] #!! TODO: change numbers?
             else:
                 mx_info[mx].append(MinimizerInfo(int(pos), strand, 2))
-            assert len(mx_info[mx]) < 3
 
         mx_info = {mx: mx_info[mx] for mx in mx_info if is_valid_mx(mx_info[mx])}
         mxs = [mx_pos_strand.split(":")[0] for mx_pos_strand in mx_pos_strands
                if mx_pos_strand.split(":")[0] in mx_info]
-        assert len(mxs)*2 == len(mx_info.keys())
+        for mx in mx_info:
+            assert len(mx_info[mx]) == 2
+        print(len(mxs), len(mx_info.keys()))
+        assert len(mxs) == len(mx_info.keys())*2
     #print(mx_info)
     #print(mxs)
     return mx_info, mxs

@@ -2,7 +2,7 @@
 '''
 Computing statistics on minimizers  from reads
 '''
-import statsmodels as sm
+import statsmodels.api as sm
 import pandas as pd
 import scipy.stats as sci
 
@@ -30,7 +30,7 @@ def robust_linear_regression(df):
 
     p = rlm_results.params
 
-    return p.const, p.pos1
+    return p.const, p.position1
 
 def compute_read_statistics(mx_info):
     "Compute various statistics on the given minmizer sketch of the read"
