@@ -268,7 +268,7 @@ def detect_hairpins(args, seq_lengths):
 
             pearson_corr, spearman_corr, yint, slope = 0, 0, 0, 0
 
-            if len(mxs) >= 2:
+            if len(mx_info) >= 2:
                 pearson_corr, spearman_corr, yint, slope = calculate_hairpin_stats.compute_read_statistics(mx_info)
 
             print(name, seq_lengths[name], pearson_corr, spearman_corr, yint, slope, sep="\t", file=sys.stderr)

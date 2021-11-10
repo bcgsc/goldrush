@@ -14,11 +14,11 @@ def make_dataframe(mx_info):
 
 def pearson_correlation_coefficient(df):
     "Return Pearson correlation coefficient of dataframe columns"
-    return sci.pearsonr(df["position1"], df["position2"])
+    return sci.pearsonr(df["position1"], df["position2"])[0]
 
 def spearman_correlation_coefficient(df):
     "Return Spearman correlation coefficient of dataframe columns"
-    return sci.spearmanr(df["position1"], df["position2"])
+    return sci.spearmanr(df["position1"], df["position2"]).correlation
 
 def robust_linear_regression(df):
     "Perform robust linear regression on dataframe columns"
