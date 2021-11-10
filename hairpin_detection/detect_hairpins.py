@@ -7,6 +7,7 @@ from collections import defaultdict, namedtuple, Counter
 import igraph as ig
 import ntlink_utils
 import sys
+import calculate_hairpin_stats
 
 MinimizerInfo = namedtuple("MinimizerInfo", ["pos", "strand", "time_seen"])
 
@@ -44,9 +45,12 @@ def filter_ordered_sketch(mx_line):
                 mx_info[mx] = [MinimizerInfo(int(pos), strand, 1)] #!! TODO: change numbers?
             else:
                 mx_info[mx].append(MinimizerInfo(int(pos), strand, 2))
+            assert len(mx_info[mx]) < 3
 
         mx_info = {mx: mx_info[mx] for mx in mx_info if is_valid_mx(mx_info[mx])}
-        mxs = [mx_pos_strand.split(":")[0] for mx_pos_strand in mx_pos_strands if mx_pos_strand.split(":")[0] in mx_info]
+        mxs = [mx_pos_strand.split(":")[0] for mx_pos_strand in mx_pos_strands
+               if mx_pos_strand.split(":")[0] in mx_info]
+        assert len(mxs)*2 == len(mx_info.keys())
     #print(mx_info)
     #print(mxs)
     return mx_info, mxs
@@ -253,30 +257,35 @@ def detect_hairpins(args, seq_lengths):
     hairpins = 0
     total_reads = 0
 
-    print("Name", "Status", sep="\t", file=sys.stderr)   
+    print("Name", "Length", "Pearson_corr", "Spearman_corr", "yintercept", "slope", sep="\t", file=sys.stderr)
 
     with open(args.MX, 'r') as mx_in:
         for mx_line in mx_in:
             name, _ = mx_line.strip().split("\t")
             mx_info, mxs = filter_ordered_sketch(mx_line)
-            graph = build_graph(mxs, mx_info)
-            print_graph(graph, mx_info, "test_before")
-            graph = filter_branches(graph, mx_info)
-            print_graph(graph, mx_info, "test_branch")
+
+            pearson_corr, spearman_corr, yint, slope = calculate_hairpin_stats.compute_read_statistics(mx_info)
+
+            print(name, seq_lengths[name], pearson_corr, spearman_corr, yint, slope, sep="\t", file=sys.stderr)
+
+            #graph = build_graph(mxs, mx_info)
+            #print_graph(graph, mx_info, "test_before")
+            #graph = filter_branches(graph, mx_info)
+            #print_graph(graph, mx_info, "test_branch")
             #graph = filter_graph_global(graph)
             #print_graph(graph, mx_info, "test")
-            if is_graph_linear(graph): #!! TODO: add more sophisticated filter
-                #print("HERE - linear")
-                mapped_regions = find_paths(graph, mx_info)
-                max_covered = find_max_covered_mapped_regions(mapped_regions)
-                #print(max_covered)
-                if max_covered/seq_lengths[name]*100 >= args.perc:
-                    print(name, "Hairpin", sep="\t", file=sys.stderr)
-                    hairpins += 1
-                else:
-                    print(name, "Non-hairpin", sep="\t", file=sys.stderr)
-            total_reads += 1
-    return hairpins, total_reads
+            # if is_graph_linear(graph): #!! TODO: add more sophisticated filter
+            #     #print("HERE - linear")
+            #     mapped_regions = find_paths(graph, mx_info)
+            #     max_covered = find_max_covered_mapped_regions(mapped_regions)
+            #     #print(max_covered)
+            #     if max_covered/seq_lengths[name]*100 >= args.perc:
+            #         print(name, "Hairpin", sep="\t", file=sys.stderr)
+            #         hairpins += 1
+            #     else:
+            #         print(name, "Non-hairpin", sep="\t", file=sys.stderr)
+            # total_reads += 1
+    #return hairpins, total_reads
 
 
 def main():
@@ -290,9 +299,9 @@ def main():
     args.MX = "/dev/stdin" if args.MX == "-" else args.MX
 
     seq_lengths = tally_sequence_lengths(args.index)
-    hairpins, total_reads = detect_hairpins(args, seq_lengths)
-    print("Total reads analyzed:", total_reads)
-    print("Total hairpins identified:", hairpins)
+    detect_hairpins(args, seq_lengths)
+    # print("Total reads analyzed:", total_reads)
+    # print("Total hairpins identified:", hairpins)
 
 if __name__ == "__main__":
     main()
