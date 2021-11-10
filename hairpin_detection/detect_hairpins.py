@@ -30,8 +30,14 @@ def is_valid_mx(list_mx_info):
         return False
     return True
 
+def is_valid_position(pos, end_length, seq_length):
+    "Return True if position falls within prescribed end lengths"
+    if pos <= end_length or pos >= (seq_length - end_length):
+        return True
+    return False
 
-def filter_ordered_sketch(mx_line):
+
+def filter_ordered_sketch(mx_line, args, seq_length):
     "Given a line of a indexlr file, parse and only keep minimizers with multiplicity of 2, strictly on different strands"
 
     mx_info = defaultdict()  # mx -> [Minimizer info]
@@ -41,6 +47,8 @@ def filter_ordered_sketch(mx_line):
         mx_pos_strands = mxs_all.split(" ")
         for mx_pos_strand in mx_pos_strands:
             mx, pos, strand = mx_pos_strand.split(":")
+            if not is_valid_position(pos, args.e, seq_length):
+                continue
             if mx not in mx_info:
                 mx_info[mx] = [MinimizerInfo(int(pos), strand, 1)] #!! TODO: change numbers?
             else:
@@ -263,7 +271,7 @@ def detect_hairpins(args, seq_lengths):
     with open(args.MX, 'r') as mx_in:
         for mx_line in mx_in:
             name, _ = mx_line.strip().split("\t")
-            mx_info, mxs = filter_ordered_sketch(mx_line)
+            mx_info, mxs = filter_ordered_sketch(mx_line, args, seq_lengths[name])
 
             pearson_corr, spearman_corr, yint, slope = 0, 0, 0, 0
             if len(mx_info) >= 3:
@@ -297,6 +305,7 @@ def main():
     parser.add_argument("MX", help="Input minimizers TSV file, or '-' if piping to standard in")
     parser.add_argument("-i", "--index", help="samtools faidx index for input reads", required=True, type=str)
     parser.add_argument("--perc", help="Percentage of read", type=float, default=90)
+    parser.add_argument("-e", help="Length of ends to consider", type=int, default=5000)
     args = parser.parse_args()
 
     args.MX = "/dev/stdin" if args.MX == "-" else args.MX
