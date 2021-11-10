@@ -51,7 +51,6 @@ def filter_ordered_sketch(mx_line):
                if mx_pos_strand.split(":")[0] in mx_info]
         for mx in mx_info:
             assert len(mx_info[mx]) == 2
-        print(len(mxs), len(mx_info.keys()))
         assert len(mxs) == len(mx_info.keys())*2
     #print(mx_info)
     #print(mxs)
@@ -259,7 +258,7 @@ def detect_hairpins(args, seq_lengths):
     hairpins = 0
     total_reads = 0
 
-    print("Name", "Length", "Pearson_corr", "Spearman_corr", "yintercept", "slope", sep="\t", file=sys.stderr)
+    print("Name", "Length", "Pearson_corr", "Spearman_corr", "yintercept", "slope", sep="\t")
 
     with open(args.MX, 'r') as mx_in:
         for mx_line in mx_in:
@@ -267,11 +266,10 @@ def detect_hairpins(args, seq_lengths):
             mx_info, mxs = filter_ordered_sketch(mx_line)
 
             pearson_corr, spearman_corr, yint, slope = 0, 0, 0, 0
-
-            if len(mx_info) >= 2:
+            if len(mx_info) >= 3:
                 pearson_corr, spearman_corr, yint, slope = calculate_hairpin_stats.compute_read_statistics(mx_info)
 
-            print(name, seq_lengths[name], pearson_corr, spearman_corr, yint, slope, sep="\t", file=sys.stderr)
+            print(name, seq_lengths[name], pearson_corr, spearman_corr, yint, slope, sep="\t")
 
             #graph = build_graph(mxs, mx_info)
             #print_graph(graph, mx_info, "test_before")
