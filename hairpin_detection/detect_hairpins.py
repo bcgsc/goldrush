@@ -122,16 +122,19 @@ def get_positions(path, mx_info, graph, time_seen):
 def paths_largely_increasing_or_decreasing(paths):
     "Return true if the positions in the paths are largely increasing or decreasing"
     consistent_positions = True
+    print(paths)
     for time_seen in paths:
         path = paths[time_seen]
         if all(x < y for x, y in zip(path, path[1:])):
             continue
         if all(x > y for x, y in zip(path, path[1:])):
             continue
+        print([x < y for x, y in zip(path, path[1:])])
         tally = Counter([x < y for x, y in zip(path, path[1:])])
         positive_perc = tally[True] / float(len(path) - 1) * 100
         negative_perc = 100 - positive_perc
-        if positive_perc >= 90 or negative_perc >= 90: #!! TODO: magic number
+        print(path, positive_perc)
+        if positive_perc >= 95 or negative_perc >= 95: #!! TODO: magic number
             continue
         consistent_positions = False  # If make it here, none of criteria were met
 
@@ -175,12 +178,14 @@ def find_paths(graph, mx_info): #!! TODO Snippet adapted from ntJoin
 def find_max_covered_mapped_regions(mapped_regions):
     "Given mapped regions, return the maximum bases covered by a pair"
     max_bp = 0
-    #print(mapped_regions)
+    print(mapped_regions)
+    total_bases_covered = sum(region[1] - region[0] for regions in mapped_regions for region in regions)
+    print(total_bases_covered)
     for region_sets in mapped_regions:
         bp_covered = sum([region[1] - region[0] for region in region_sets])
         if bp_covered > max_bp:
             max_bp = bp_covered
-    #print(max_bp)
+    print(max_bp)
     return max_bp
 
 def print_graph(graph, list_mx_info, prefix): ## !! TODO: for troubleshooting
