@@ -53,7 +53,7 @@ def filter_ordered_sketch(mx_line, args, seq_length):
         mx_pos_strands = mxs_all.split(" ")
         for mx_pos_strand in mx_pos_strands:
             mx, pos, strand = mx_pos_strand.split(":")
-            # if not is_valid_position(pos, args.e, seq_length):
+            # if not is_valid_position(int(pos), args.e, seq_length):
             #     continue
             if mx not in mx_info:
                 mx_info[mx] = [MinimizerInfo(int(pos), strand, 1)] #!! TODO: change numbers?
