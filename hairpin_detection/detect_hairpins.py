@@ -36,6 +36,12 @@ def is_valid_position(pos, end_length, seq_length):
         return True
     return False
 
+def has_valid_positions(minimizer_info, args, length):
+    "Return True if both instances of minimizer have valid positions"
+    assert len(minimizer_info) == 2
+    return is_valid_position(minimizer_info[0].pos, args.e, length) and \
+           is_valid_position(minimizer_info[1].pos, args.e, length)
+
 
 def filter_ordered_sketch(mx_line, args, seq_length):
     "Given a line of a indexlr file, parse and only keep minimizers with multiplicity of 2, strictly on different strands"
@@ -47,14 +53,15 @@ def filter_ordered_sketch(mx_line, args, seq_length):
         mx_pos_strands = mxs_all.split(" ")
         for mx_pos_strand in mx_pos_strands:
             mx, pos, strand = mx_pos_strand.split(":")
-            if not is_valid_position(pos, args.e, seq_length):
-                continue
+            # if not is_valid_position(pos, args.e, seq_length):
+            #     continue
             if mx not in mx_info:
                 mx_info[mx] = [MinimizerInfo(int(pos), strand, 1)] #!! TODO: change numbers?
             else:
                 mx_info[mx].append(MinimizerInfo(int(pos), strand, 2))
 
-        mx_info = {mx: mx_info[mx] for mx in mx_info if is_valid_mx(mx_info[mx])}
+        mx_info = {mx: mx_info[mx] for mx in mx_info if is_valid_mx(mx_info[mx]) and
+                   has_valid_positions(mx_info[mx], args, seq_length[name])}
         mxs = [mx_pos_strand.split(":")[0] for mx_pos_strand in mx_pos_strands
                if mx_pos_strand.split(":")[0] in mx_info]
         for mx in mx_info:
