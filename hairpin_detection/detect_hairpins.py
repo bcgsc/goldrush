@@ -61,7 +61,7 @@ def filter_ordered_sketch(mx_line, args, seq_length):
                 mx_info[mx].append(MinimizerInfo(int(pos), strand, 2))
 
         mx_info = {mx: mx_info[mx] for mx in mx_info if is_valid_mx(mx_info[mx]) and
-                   has_valid_positions(mx_info[mx], args, seq_length[name])}
+                   has_valid_positions(mx_info[mx], args, seq_length)}
         mxs = [mx_pos_strand.split(":")[0] for mx_pos_strand in mx_pos_strands
                if mx_pos_strand.split(":")[0] in mx_info]
         for mx in mx_info:
