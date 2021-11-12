@@ -32,11 +32,16 @@ def robust_linear_regression(df):
 
     return p.const, p.position1
 
-def compute_read_statistics(mx_info):
+def find_correlation_coefficient(mx_df, correlation_arg):
+    if correlation_arg == "pearson":
+        return pearson_correlation_coefficient(mx_df)
+    else:
+        return spearman_correlation_coefficient(mx_df)
+
+def compute_read_statistics(mx_info, correlation_arg):
     "Compute various statistics on the given minmizer sketch of the read"
     mx_df = make_dataframe(mx_info)
-    pearson_corr = pearson_correlation_coefficient(mx_df)
-    spearman_corr = spearman_correlation_coefficient(mx_df)
+    corr = find_correlation_coefficient(mx_df, correlation_arg)
     yintercept, slope = robust_linear_regression(mx_df)
 
-    return pearson_corr, spearman_corr, yintercept, slope
+    return corr, yintercept, slope

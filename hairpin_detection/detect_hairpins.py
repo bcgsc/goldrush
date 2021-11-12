@@ -267,42 +267,56 @@ def filter_branches(graph, mx_info):
     new_graph.delete_edges(to_remove_edges)
     return new_graph
 
+def is_hairpin(mx_info, correlation, yintercept, slope, seq_length, args):
+    "Return true if fits the threshold for a hairpin"
+    if len(mx_info) < 3:
+        return False
+    if correlation > args.c:
+        return False
+    if slope > args.upper_slope or slope < args.lower_slope:
+        return False
+    if yintercept > seq_length*1.10 or yintercept < seq_length*0.9:
+        return False
+    return True
+
 def detect_hairpins(args, seq_lengths):
     "Read through minimizers for each read, and determine whether it is a putative hairpin artifact"
     hairpins = 0
     total_reads = 0
 
-    print("Name", "Length", "Pearson_corr", "Spearman_corr", "yintercept", "slope", "num_mx", sep="\t")
+    print("Name", "Length", "Correlation_coefficient", "yintercept", "slope", "num_mx", "is_hairpin_pred", sep="\t")
 
     with open(args.MX, 'r') as mx_in:
         for mx_line in mx_in:
             name, _ = mx_line.strip().split("\t")
             mx_info, mxs = filter_ordered_sketch(mx_line, args, seq_lengths[name])
 
-            pearson_corr, spearman_corr, yint, slope = 0, 0, 0, 0
+            correlation, yint, slope = 0, 0, 0
             if len(mx_info) >= 3:
-                pearson_corr, spearman_corr, yint, slope = calculate_hairpin_stats.compute_read_statistics(mx_info)
+                correlation, yint, slope = calculate_hairpin_stats.compute_read_statistics(mx_info, args.corr)
 
-            print(name, seq_lengths[name], pearson_corr, spearman_corr, yint, slope, len(mxs), sep="\t")
+            print(name, seq_lengths[name], correlation, yint, slope, len(mxs), sep="\t", file=sys.stderr)
 
-            #graph = build_graph(mxs, mx_info)
-            #print_graph(graph, mx_info, "test_before")
-            #graph = filter_branches(graph, mx_info)
-            #print_graph(graph, mx_info, "test_branch")
-            #graph = filter_graph_global(graph)
-            #print_graph(graph, mx_info, "test")
-            # if is_graph_linear(graph): #!! TODO: add more sophisticated filter
-            #     #print("HERE - linear")
-            #     mapped_regions = find_paths(graph, mx_info)
-            #     max_covered = find_max_covered_mapped_regions(mapped_regions)
-            #     #print(max_covered)
-            #     if max_covered/seq_lengths[name]*100 >= args.perc:
-            #         print(name, "Hairpin", sep="\t", file=sys.stderr)
-            #         hairpins += 1
-            #     else:
-            #         print(name, "Non-hairpin", sep="\t", file=sys.stderr)
-            # total_reads += 1
-    #return hairpins, total_reads
+            if is_hairpin(mx_info, correlation, yint, slope, seq_lengths[name], args):
+                hairpins += 1
+                print(name, seq_lengths[name], correlation, yint, slope, len(mxs), "Hairpin", sep="\t", file=sys.stderr)
+            else:
+                print(name, seq_lengths[name], correlation, yint, slope, len(mxs), "Non-hairpin", sep="\t", file=sys.stderr)
+
+            total_reads += 1
+
+
+def print_args(args):
+    "Print the values of the arguments"
+    print("Hairpin detection parameters:")
+    print("MX", args.MX, sep="\t")
+    print("-i", args.i, sep="\t")
+    print("--perc", args.perc, sep="\t")
+    print("-e", args.e, sep="\t")
+    print("--upper_slope", args.upper_slope, sep="\t")
+    print("--lower_slope", args.lower_slope, sep="\t")
+    print("-c", args.c, sep="\t")
+    print("--corr", args.corr, sep="\t")
 
 
 def main():
@@ -310,16 +324,25 @@ def main():
     parser = argparse.ArgumentParser(description="Detect hairpin artifacts in nanopore reads")
     parser.add_argument("MX", help="Input minimizers TSV file, or '-' if piping to standard in")
     parser.add_argument("-i", "--index", help="samtools faidx index for input reads", required=True, type=str)
-    parser.add_argument("--perc", help="Percentage of read", type=float, default=90)
+    parser.add_argument("--perc", help="Percentage error allowed for yintercept", type=float, default=10)
     parser.add_argument("-e", help="Length of ends to consider", type=int, default=5000)
+    parser.add_argument("--upper_slope", help="Upper threshold for slope", type=float, default=-0.75)
+    parser.add_argument("--lower_slope", help="Lower threshold for slope", type=float, default=-1.25)
+    parser.add_argument("-c", help="Threshold for correlation", type=float, default=-0.75)
+    parser.add_argument("--corr", help="Correlation coefficient to use. Valid values are pearson or spearman",
+                        default="spearman", type=str)
     args = parser.parse_args()
+
+    print_args(args)
+
+    if args.corr not in ["pearson", "spearman"]:
+        raise ValueError("--corr must be set to pearson or spearman. ", args.corr, "supplied.")
 
     args.MX = "/dev/stdin" if args.MX == "-" else args.MX
 
     seq_lengths = tally_sequence_lengths(args.index)
     detect_hairpins(args, seq_lengths)
-    # print("Total reads analyzed:", total_reads)
-    # print("Total hairpins identified:", hairpins)
+
 
 if __name__ == "__main__":
     main()
