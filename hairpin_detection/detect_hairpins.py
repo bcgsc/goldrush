@@ -284,7 +284,10 @@ def detect_hairpins(args, seq_lengths):
     hairpins = 0
     total_reads = 0
 
-    print("Name", "Length", "Correlation_coefficient", "yintercept", "slope", "num_mx", "is_hairpin_pred", sep="\t")
+    fout = open(args.o, 'w')
+    fout.write("Name\tLength\tCorrelation_coefficient\tyintercept\tslope\tnum_mx\tis_hairpin_pred\n")
+
+    format_str = ("{}\t"*7).strip() + "\n"
 
     with open(args.MX, 'r') as mx_in:
         for mx_line in mx_in:
@@ -295,28 +298,29 @@ def detect_hairpins(args, seq_lengths):
             if len(mx_info) >= 3:
                 correlation, yint, slope = calculate_hairpin_stats.compute_read_statistics(mx_info, args.corr)
 
-            print(name, seq_lengths[name], correlation, yint, slope, len(mxs), sep="\t", file=sys.stderr)
-
             if is_hairpin(mx_info, correlation, yint, slope, seq_lengths[name], args):
                 hairpins += 1
-                print(name, seq_lengths[name], correlation, yint, slope, len(mxs), "Hairpin", sep="\t", file=sys.stderr)
+                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope, len(mxs), "Hairpin"))
             else:
-                print(name, seq_lengths[name], correlation, yint, slope, len(mxs), "Non-hairpin", sep="\t", file=sys.stderr)
+                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope, len(mxs), "Non-hairpin"))
 
             total_reads += 1
+
+    fout.close()
+    return hairpins, total_reads
 
 
 def print_args(args):
     "Print the values of the arguments"
-    print("Hairpin detection parameters:")
-    print("MX", args.MX, sep="\t")
-    print("-i", args.i, sep="\t")
-    print("--perc", args.perc, sep="\t")
-    print("-e", args.e, sep="\t")
-    print("--upper_slope", args.upper_slope, sep="\t")
-    print("--lower_slope", args.lower_slope, sep="\t")
-    print("-c", args.c, sep="\t")
-    print("--corr", args.corr, sep="\t")
+    print("\nHairpin detection parameters:")
+    print("\tMX", args.MX)
+    print("\t-i", args.index)
+    print("\t--perc", args.perc)
+    print("\t-e", args.e)
+    print("\t--upper_slope", args.upper_slope)
+    print("\t--lower_slope", args.lower_slope)
+    print("\t-c", args.c)
+    print("\t--corr", args.corr)
 
 
 def main():
@@ -331,7 +335,10 @@ def main():
     parser.add_argument("-c", help="Threshold for correlation", type=float, default=-0.75)
     parser.add_argument("--corr", help="Correlation coefficient to use. Valid values are pearson or spearman",
                         default="spearman", type=str)
+    parser.add_argument("-o", help="Output file for hairpin classifications [stdout]", type=str, default=sys.stdout)
     args = parser.parse_args()
+
+    print("Running hairpin detection...")
 
     print_args(args)
 
@@ -341,7 +348,11 @@ def main():
     args.MX = "/dev/stdin" if args.MX == "-" else args.MX
 
     seq_lengths = tally_sequence_lengths(args.index)
-    detect_hairpins(args, seq_lengths)
+    hairpins, total_reads = detect_hairpins(args, seq_lengths)
+    print("Total reads analyzed:", total_reads)
+    print("Total hairpins detected:", hairpins)
+
+    print("DONE!")
 
 
 if __name__ == "__main__":
