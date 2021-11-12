@@ -67,8 +67,7 @@ def filter_ordered_sketch(mx_line, args, seq_length):
         for mx in mx_info:
             assert len(mx_info[mx]) == 2
         assert len(mxs) == len(mx_info.keys())*2
-    #print(mx_info)
-    #print(mxs)
+
     return mx_info, mxs
 
 def set_edge_attributes(graph, edge_attributes): #!! TODO: from ntJoin code
@@ -273,7 +272,7 @@ def detect_hairpins(args, seq_lengths):
     hairpins = 0
     total_reads = 0
 
-    print("Name", "Length", "Pearson_corr", "Spearman_corr", "yintercept", "slope", sep="\t")
+    print("Name", "Length", "Pearson_corr", "Spearman_corr", "yintercept", "slope", "num_mx", sep="\t")
 
     with open(args.MX, 'r') as mx_in:
         for mx_line in mx_in:
@@ -284,7 +283,7 @@ def detect_hairpins(args, seq_lengths):
             if len(mx_info) >= 3:
                 pearson_corr, spearman_corr, yint, slope = calculate_hairpin_stats.compute_read_statistics(mx_info)
 
-            print(name, seq_lengths[name], pearson_corr, spearman_corr, yint, slope, sep="\t")
+            print(name, seq_lengths[name], pearson_corr, spearman_corr, yint, slope, len(mxs), sep="\t")
 
             #graph = build_graph(mxs, mx_info)
             #print_graph(graph, mx_info, "test_before")
