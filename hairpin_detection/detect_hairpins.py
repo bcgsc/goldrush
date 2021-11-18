@@ -98,6 +98,9 @@ def detect_hairpins(args, seq_lengths):
             name, _ = mx_line.strip().split("\t")
             mx_info, mxs = filter_ordered_sketch(mx_line, args, seq_lengths[name])
 
+            if args.v:
+                print(name, mx_info)
+
             correlation, yint, slope = 0, 0, 0
             if len(mx_info) >= 3:
                 correlation, yint, slope = calculate_hairpin_stats.compute_read_statistics(mx_info, args.corr)
@@ -140,6 +143,7 @@ def main():
     parser.add_argument("--corr", help="Correlation coefficient to use. Valid values are pearson or spearman",
                         default="spearman", type=str)
     parser.add_argument("-o", help="Output file for hairpin classifications [stdout]", type=str, default=sys.stdout)
+    parser.add_argument("-v", action="store_true", help="Verbose logging of filtered minimizers")
     args = parser.parse_args()
 
     print("Running hairpin detection...")
