@@ -99,7 +99,12 @@ def detect_hairpins(args, seq_lengths):
             mx_info, mxs = filter_ordered_sketch(mx_line, args, seq_lengths[name])
 
             if args.v:
-                print(name, mx_info)
+                print("Name", "Minimizer1", "Minimizer2", sep="\t", file=sys.stderr)
+                for mx in mx_info:
+                    assert len(mx_info[mx]) == 2
+                    mx_list = mx_info[mx]
+                    assert mx_list[0].pos < mx_list[1].pos
+                    print(name, mx_list[0].pos, mx_list[1].pos, sep="\t", file=sys.stderr)
 
             correlation, yint, slope = 0, 0, 0
             if len(mx_info) >= 3:
