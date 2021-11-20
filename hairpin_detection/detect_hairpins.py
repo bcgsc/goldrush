@@ -62,13 +62,13 @@ def filter_ordered_sketch(mx_line, args, seq_length):
 
         mx_info = {mx: mx_info[mx] for mx in mx_info if is_valid_mx(mx_info[mx]) and
                    has_valid_positions(mx_info[mx], args, seq_length)}
-        mxs = [mx_pos_strand.split(":")[0] for mx_pos_strand in mx_pos_strands
-               if mx_pos_strand.split(":")[0] in mx_info]
+        # mxs = [mx_pos_strand.split(":")[0] for mx_pos_strand in mx_pos_strands
+        #        if mx_pos_strand.split(":")[0] in mx_info]
         for mx in mx_info:
             assert len(mx_info[mx]) == 2
-        assert len(mxs) == len(mx_info.keys())*2
+        #assert len(mxs) == len(mx_info.keys())*2
 
-    return mx_info, mxs
+    return mx_info
 
 
 def is_hairpin(mx_info, correlation, yintercept, slope, seq_length, args):
@@ -96,7 +96,7 @@ def detect_hairpins(args, seq_lengths):
     with open(args.MX, 'r') as mx_in:
         for mx_line in mx_in:
             name, _ = mx_line.strip().split("\t")
-            mx_info, mxs = filter_ordered_sketch(mx_line, args, seq_lengths[name])
+            mx_info = filter_ordered_sketch(mx_line, args, seq_lengths[name])
 
             if args.v:
                 print("Name", "Minimizer1", "Minimizer2", sep="\t", file=sys.stderr)
@@ -112,9 +112,9 @@ def detect_hairpins(args, seq_lengths):
 
             if is_hairpin(mx_info, correlation, yint, slope, seq_lengths[name], args):
                 hairpins += 1
-                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope, len(mxs), "Hairpin"))
+                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope, len(mx_info), "Hairpin"))
             else:
-                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope, len(mxs), "Non-hairpin"))
+                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope, len(mx_info), "Non-hairpin"))
 
             total_reads += 1
 
