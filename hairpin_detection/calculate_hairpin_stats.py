@@ -2,6 +2,8 @@
 '''
 Computing statistics on minimizers  from reads
 '''
+from collections import Counter
+from scipy.stats import entropy
 import statsmodels.api as sm
 import pandas as pd
 import scipy.stats as sci
@@ -38,10 +40,20 @@ def find_correlation_coefficient(mx_df, correlation_arg):
     else:
         return spearman_correlation_coefficient(mx_df)
 
-def compute_read_statistics(mx_info, correlation_arg):
-    "Compute various statistics on the given minmizer sketch of the read"
+def compute_entropy(mx_df, read_len):
+    interval_range = pd.IntervalIndex.from_arrays([i for i in range(0, read_len/2, int(read_len/2 / 10))],
+                                                  [i + int(read_len/2 / 10) for i in range(0, read_len/2, int(read_len/2 / 10))])
+    max_entropy = entropy([1/10]*10, base=2)
+    counts_bins = Counter(pd.cut(mx_df["position1"], bins=interval_range)) # TODO: magic number
+    all_rows = len(mx_df)
+    entropy_hairpin = entropy([counts_bins[int_bin]/all_rows for int_bin in counts_bins], base=2)
+    return entropy_hairpin/max_entropy # TODO How to have empty bins? Divide the read in half?
+
+def compute_read_statistics(mx_info, correlation_arg, read_len):
+    "Compute various statistics on the given minimizer sketch of the read"
     mx_df = make_dataframe(mx_info)
     corr = find_correlation_coefficient(mx_df, correlation_arg)
     yintercept, slope = robust_linear_regression(mx_df)
+    entropy_calc = compute_entropy(mx_df, read_len)
 
-    return corr, yintercept, slope
+    return corr, yintercept, slope, entropy_calc
