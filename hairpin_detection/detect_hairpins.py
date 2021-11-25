@@ -93,7 +93,7 @@ def detect_hairpins(args, seq_lengths):
     fout = open(args.o, 'w')
     fout.write("Name\tLength\tCorrelation_coefficient\tyintercept\tslope\tnum_mx\tentropy\tis_hairpin_pred\n")
 
-    format_str = ("{}\t"*7).strip() + "\n"
+    format_str = ("{}\t"*8).strip() + "\n"
 
     with open(args.MX, 'r') as mx_in:
         for mx_line in mx_in:

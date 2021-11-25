@@ -41,8 +41,8 @@ def find_correlation_coefficient(mx_df, correlation_arg):
         return spearman_correlation_coefficient(mx_df)
 
 def compute_entropy(mx_df, read_len):
-    interval_range = pd.IntervalIndex.from_arrays([i for i in range(0, read_len/2, int(read_len/2 / 10))],
-                                                  [i + int(read_len/2 / 10) for i in range(0, read_len/2, int(read_len/2 / 10))])
+    interval_range = pd.IntervalIndex.from_arrays([i for i in range(0, int(read_len/2), int(read_len/2 / 10))],
+                                                  [i + int(read_len/2 / 10) for i in range(0, int(read_len/2), int(read_len/2 / 10))])
     max_entropy = entropy([1/10]*10, base=2)
     counts_bins = Counter(pd.cut(mx_df["position1"], bins=interval_range)) # TODO: magic number
     all_rows = len(mx_df)
