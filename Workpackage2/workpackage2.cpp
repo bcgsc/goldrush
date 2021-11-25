@@ -41,8 +41,8 @@
 
 #include "Common/Options.h"
 
-#include "tsl/robin_map.h"
-#include "tsl/robin_set.h"
+//#include "tsl/robin_map.h"
+//#include "tsl/robin_set.h"
 #include "ntcard.hpp"
 
 #include <tuple>
@@ -245,39 +245,37 @@ const std::vector<std::string> make_seed_pattern () {
 }
 
 
-size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& miBF, const std::vector<std::vector<uint64_t>> hashed_values) {
+size_t calc_num_assigned_tiles (const MIBloomFilter<uint32_t>& miBF, const std::vector<std::vector<uint64_t>>& hashed_values) {
 
     size_t num_tiles = hashed_values.size();
     size_t num_assigned_tiles = 0;
-    std::vector<uint32_t> tiles_assigned_id_vec (num_tiles, 0);
 
+    static std::unique_ptr<uint32_t[]> tiles_assigned_id_array;
+    if (verbose) {
+        tiles_assigned_id_array = std::make_unique<uint32_t[]>(num_tiles);
+        std::memset(tiles_assigned_id_array.get(), 0, num_tiles * sizeof(uint32_t));
+    }
 
 #if _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for reduction(+:num_assigned_tiles)
 #endif
     for (size_t i = 1; i < num_tiles - 1; ++i) { // for each tile except first and last tiles. We consider them erroneous and not used in tile assignment.
-
-        tsl::robin_map<uint32_t, std::pair<uint32_t, uint32_t>> id_counts; // store counts of ids
+        std::unordered_map<uint32_t, uint32_t> id_counts;
 
         // Reusable vector for ranks 
-        vector<uint64_t> m_rank_pos(miBF->getHashNum());
+        vector<uint64_t> m_rank_pos(miBF.getHashNum());
         // Reusable vector for IDs 
-        vector<uint32_t> m_data(miBF->getHashNum());
+        vector<uint32_t> m_data(miBF.getHashNum());
         
         const auto& hashed_values_flat_array = hashed_values[i];
-        std::vector<uint64_t> hashes(opt::hash_num, 0);
         for (size_t curr_frame = 0; curr_frame < (hashed_values_flat_array.size() / opt::hash_num); ++curr_frame) {
-            
-            for (size_t curr_hash = 0; curr_hash < opt::hash_num; ++curr_hash) {
-                hashes[curr_hash] = hashed_values_flat_array[curr_frame * opt::hash_num + curr_hash];
-            }
 
-            tsl::robin_set<uint32_t> unique_ids;
-            if (miBF->atRank(hashes, m_rank_pos)) {                      // if its a hit
-                m_data = miBF->getData(m_rank_pos);                 // m_data has ID's
-                for(unsigned m = 0; m < miBF->getHashNum(); m++){   // iterate over ID's
-                    if(m_data[m] > miBF->s_mask){                     // if ID is saturated
-                        uint32_t new_id = m_data[m] & miBF->s_antiMask;
+            std::unordered_set<uint32_t> unique_ids;
+            if (miBF.atRank(hashed_values_flat_array.data() + curr_frame * opt::hash_num, m_rank_pos)) {                      // if its a hit
+                m_data = miBF.getData(m_rank_pos);                 // m_data has ID's
+                for(unsigned m = 0; m < miBF.getHashNum(); m++){   // iterate over ID's
+                    if(m_data[m] > miBF.s_mask){                     // if ID is saturated
+                        const uint32_t new_id = m_data[m] & miBF.s_antiMask;
                         if (new_id == 0) {
                             continue;
                         }                                
@@ -293,10 +291,11 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
             }
 
             for (const auto& unique_id : unique_ids) { // tabulate all unique ids to count table
-                if (id_counts.find(unique_id) != id_counts.end()) {
-                    ++id_counts[unique_id].second;
+                auto id_counts_it = id_counts.find(unique_id);
+                if (id_counts_it != id_counts.end()) {
+                    ++(id_counts_it->second);
                 } else {
-                    id_counts[unique_id] = std::make_pair(unique_id, 1);
+                    id_counts[unique_id] = 1;
                 }
             }
 
@@ -306,28 +305,25 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
         uint32_t curr_id_count = 0;
 
         for (auto id_counts_it = id_counts.begin(); id_counts_it != id_counts.end(); ++id_counts_it) { //find id with highest count in a tile
-            if (id_counts_it->second.second > curr_id_count) {
+            if (id_counts_it->second > curr_id_count) {
                 curr_id = id_counts_it->first;
-                curr_id_count = id_counts_it->second.second;
+                curr_id_count = id_counts_it->second;
             }
         }
 
         if (curr_id_count > opt::threshold) {
-#if _OPENMP
-#pragma omp atomic
-#endif
-            num_assigned_tiles += 1;
+            num_assigned_tiles++;
         }
 
-        tiles_assigned_id_vec[i] = curr_id;
-        
+        if (verbose) {
+          tiles_assigned_id_array[i] = curr_id;
+        }
     }
 
     //print which id each tile is assigned to
     if (verbose) {
-        for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
-            std::cerr << tiles_assigned_id << "\t";
-
+        for (size_t t = 0; t < num_tiles; t++) {
+            std::cerr << tiles_assigned_id_array[t] << "\t";
         }
         std::cerr << std::endl;
     }
@@ -527,7 +523,8 @@ int main(int argc, char** argv) {
         decltype(precomputed_hash_queue)::Block block(btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
         precomputed_hash_queue.read(block);
         if (block.count == 0) { break; }
-        for (const auto& read_hashes : block.data) {
+        for (size_t idx = 0; idx < block.count; idx++) {
+            const auto& read_hashes = block.data[idx];
             const auto& record = read_hashes.record;
             const auto& hashed_values = read_hashes.hashes;
 
@@ -558,17 +555,14 @@ int main(int argc, char** argv) {
                 auto& miBF = mibf_vec[level];
                 if (verbose) { std::cerr << "current level : " << level << std::endl; }
 
-                const size_t num_assigned_tiles = calc_num_assigned_tiles( miBF, hashed_values);
+                const size_t num_assigned_tiles = calc_num_assigned_tiles( *miBF, hashed_values);
                 if (verbose) { std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl; }
-                size_t num_unassigned_tiles = num_tiles - 2 - num_assigned_tiles;
+                const size_t num_unassigned_tiles = num_tiles - 2 - num_assigned_tiles;
                 if (verbose) { std::cerr << "num unassigned tiles: " << num_unassigned_tiles << std::endl; }
                 
                 // assignment logic
                 if (num_unassigned_tiles >= opt::unassigned_min && num_assigned_tiles <= opt::assigned_max) {
                     assigned = false;
-                }
-
-                if (!assigned) {
                     if (verbose) { std::cerr << "unassigned" << std::endl; }
                     ++ids_inserted;
 
@@ -576,13 +570,12 @@ int main(int argc, char** argv) {
     #pragma omp parallel for
     #endif
                     for (size_t i = 0; i < num_tiles; ++i) {
-                        const auto& hashed_values_flat_array = hashed_values[i];
-                        miBFCS.insertMIBF(*miBF, hashed_values_flat_array, ids_inserted);//, non_singletons_bf_vec);
+                        miBFCS.insertMIBF(*miBF, hashed_values[i], ids_inserted);//, non_singletons_bf_vec);
                         //miBFCS.insertSaturation(*miBF, Hhashes, ids_inserted); // don't care about saturation atm so skipping for speed
                             //}
                         }
                     //output read to golden path
-                    golden_path_vec[level] << ">" << record.id << '\n' << record.seq << std::endl;
+                    golden_path_vec[level] << '>' << record.id << '\n' << record.seq << '\n';
                     break; //breaks the level loop
                     
                 } 
