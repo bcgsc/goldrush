@@ -32,6 +32,8 @@ def is_valid_mx(list_mx_info):
 
 def is_valid_position(pos, end_length, seq_length):
     "Return True if position falls within prescribed end lengths"
+    if 2*end_length > seq_length:
+        end_length = int(seq_length/2)
     if pos <= end_length or pos >= (seq_length - end_length):
         return True
     return False
