@@ -30,19 +30,33 @@ def is_valid_mx(list_mx_info):
         return False
     return True
 
-def is_valid_position(pos, end_length, seq_length):
+# def is_valid_position(pos, end_length, seq_length):
+#     "Return True if position falls within prescribed end lengths"
+#     if 2*end_length > seq_length:
+#         end_length = int(seq_length/2)
+#     if pos <= end_length or pos >= (seq_length - end_length):
+#         return True
+#     return False
+
+def is_valid_position(mx_info, args, seq_length):
     "Return True if position falls within prescribed end lengths"
-    if 2*end_length > seq_length:
+    if 2*args.e > seq_length:
         end_length = int(seq_length/2)
-    if pos <= end_length or pos >= (seq_length - end_length):
-        return True
-    return False
+    for mi in mx_info:
+        if mi.time_seen == 1:
+            if mi.pos > end_length:
+                return False
+        elif mi.time_seen == 2:
+            if mi.pos < (seq_length - end_length):
+                return False
+        else:
+            raise ValueError("time_seen should be 1 or 2")
+    return True
 
 def has_valid_positions(minimizer_info, args, length):
     "Return True if both instances of minimizer have valid positions"
     assert len(minimizer_info) == 2
-    return is_valid_position(minimizer_info[0].pos, args.e, length) and \
-           is_valid_position(minimizer_info[1].pos, args.e, length)
+    return is_valid_position(minimizer_info, args, length)
 
 
 def filter_ordered_sketch(mx_line, args, seq_length):
