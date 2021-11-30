@@ -42,6 +42,8 @@ def is_valid_position(mx_info, args, seq_length):
     "Return True if position falls within prescribed end lengths"
     if 2*args.e > seq_length:
         end_length = int(seq_length/2)
+    else:
+        end_length = args.e
     for mi in mx_info:
         if mi.time_seen == 1:
             if mi.pos > end_length:
