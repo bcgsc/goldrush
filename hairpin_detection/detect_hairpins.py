@@ -107,9 +107,9 @@ def detect_hairpins(args, seq_lengths):
     total_reads = 0
 
     fout = open(args.o, 'w')
-    fout.write("Name\tLength\tCorrelation_coefficient\tyintercept\tslope\tnum_mx\tentropy\tis_hairpin_pred\tchi_1\tchi_2\n")
+    fout.write("Name\tLength\tCorrelation_coefficient\tyintercept\tslope\tnum_mx\tentropy\tchi_1\tchi_2\tmapped_bins\tis_hairpin_pred\n")
 
-    format_str = ("{}\t"*8).strip() + "\n"
+    format_str = ("{}\t"*11).strip() + "\n"
 
     with open(args.MX, 'r') as mx_in:
         for mx_line in mx_in:
@@ -124,15 +124,15 @@ def detect_hairpins(args, seq_lengths):
                     assert mx_list[0].pos < mx_list[1].pos
                     print(name, mx_list[0].pos, mx_list[1].pos, sep="\t", file=sys.stderr)
 
-            correlation, yint, slope, entropy, chi1, chi2 = 0, 0, 0, None, None, None
+            correlation, yint, slope, entropy, chi1, chi2, mapped_bins = 0, 0, 0, None, None, None, 0
             if len(mx_info) >= 3:
                 correlation, yint, slope,entropy, chi1, chi2 = calculate_hairpin_stats.compute_read_statistics(mx_info, args, seq_lengths[name])
 
             if is_hairpin(mx_info, correlation, yint, slope, seq_lengths[name], args):
                 hairpins += 1
-                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope, len(mx_info), entropy, chi1, chi2, "Hairpin"))
+                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope, len(mx_info), entropy, chi1, chi2, mapped_bins, "Hairpin"))
             else:
-                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope, len(mx_info), entropy, chi1, chi2, "Non-hairpin"))
+                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope, len(mx_info), entropy, chi1, chi2, mapped_bins, "Non-hairpin"))
 
             total_reads += 1
 

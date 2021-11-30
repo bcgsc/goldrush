@@ -45,9 +45,10 @@ def compute_entropy(mx_df, read_len, end_len):
     end_len = int(read_len/2) if 2*end_len > read_len else end_len
     bins = pd.cut(range(0, end_len+1), bins=10, retbins=True)[1]
     max_entropy = entropy([1/10]*10, base=2)
-    cut_bins = pd.cut(mx_df["position1"], bins=bins)
+    cut_bins = pd.cut(mx_df["position1"], bins=bins, retbins=True)
     counts_bins = Counter(cut_bins[0]) # TODO: magic number
     cut_bins_bins = counts_bins[0].categories
+    num_mapped_bins = len(counts_bins)
     for bin_int in cut_bins_bins:
         if bin_int not in counts_bins:
             counts_bins[bin_int] = 0
@@ -58,13 +59,13 @@ def compute_entropy(mx_df, read_len, end_len):
     chi_test = sci.chisquare([counts_bins[int_bin] for int_bin in counts_bins]).pvalue
     chi_test_expected = sci.chisquare([counts_bins[int_bin] for int_bin in counts_bins], [int(all_rows/10)]*10).pvalue
 
-    return entropy_hairpin/max_entropy, chi_test, chi_test_expected # TODO How to have empty bins? Divide the read in half?
+    return entropy_hairpin/max_entropy, chi_test, chi_test_expected, num_mapped_bins # TODO How to have empty bins? Divide the read in half?
 
 def compute_read_statistics(mx_info, args, read_len):
     "Compute various statistics on the given minimizer sketch of the read"
     mx_df = make_dataframe(mx_info)
     corr = find_correlation_coefficient(mx_df, args.corr)
     yintercept, slope = robust_linear_regression(mx_df)
-    entropy_calc, chi1, chi2 = compute_entropy(mx_df, read_len, args.e)
+    entropy_calc, chi1, chi2, mapped_bins = compute_entropy(mx_df, read_len, args.e)
 
-    return corr, yintercept, slope, entropy_calc, chi1, chi2
+    return corr, yintercept, slope, entropy_calc, chi1, chi2, mapped_bins
