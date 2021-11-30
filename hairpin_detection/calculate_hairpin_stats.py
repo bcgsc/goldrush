@@ -44,9 +44,14 @@ def find_correlation_coefficient(mx_df, correlation_arg):
 def compute_entropy(mx_df, read_len, end_len):
     end_len = int(read_len/2) if 2*end_len > read_len else end_len
     interval_range = pd.IntervalIndex.from_arrays([i for i in range(0, end_len, int(end_len / 10))],
-                                                  [i + int(end_len / 10) for i in range(0, end_len, int(end_len / 10))])
+                                                  [i + int(end_len / 10) for i in range(0, end_len, int(end_len / 10))],
+                                                  closed="both")
     max_entropy = entropy([1/10]*10, base=2)
     counts_bins = Counter(pd.cut(mx_df["position1"], bins=interval_range)) # TODO: magic number
+    for bin_int in interval_range:
+        if bin_int not in counts_bins:
+            counts_bins[bin_int] = 0
+
     all_rows = len(mx_df)
     entropy_hairpin = entropy([counts_bins[int_bin]/all_rows for int_bin in counts_bins], base=2)
 
