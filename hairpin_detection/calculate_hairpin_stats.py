@@ -8,6 +8,7 @@ import statsmodels.api as sm
 import pandas as pd
 import scipy.stats as sci
 
+
 def make_dataframe(mx_info):
     "Given a dictionary of mx -> [MinimizerInfo], generate a pandas dataframe"
     formatted_data = [(mx_info[mx][0].pos, mx_info[mx][1].pos) for mx in mx_info]
@@ -48,13 +49,17 @@ def compute_entropy(mx_df, read_len, end_len):
     counts_bins = Counter(pd.cut(mx_df["position1"], bins=interval_range)) # TODO: magic number
     all_rows = len(mx_df)
     entropy_hairpin = entropy([counts_bins[int_bin]/all_rows for int_bin in counts_bins], base=2)
-    return entropy_hairpin/max_entropy # TODO How to have empty bins? Divide the read in half?
+
+    chi_test = sci.chisquare([counts_bins[int_bin] for int_bin in counts_bins]).pvalue
+    chi_test_expected = sci.chisquare([counts_bins[int_bin] for int_bin in counts_bins], [int(all_rows/10)]*10).pvalue
+
+    return entropy_hairpin/max_entropy, chi_test, chi_test_expected # TODO How to have empty bins? Divide the read in half?
 
 def compute_read_statistics(mx_info, args, read_len):
     "Compute various statistics on the given minimizer sketch of the read"
     mx_df = make_dataframe(mx_info)
     corr = find_correlation_coefficient(mx_df, args.corr)
     yintercept, slope = robust_linear_regression(mx_df)
-    entropy_calc = compute_entropy(mx_df, read_len, args.e)
+    entropy_calc, chi1, chi2 = compute_entropy(mx_df, read_len, args.e)
 
-    return corr, yintercept, slope, entropy_calc
+    return corr, yintercept, slope, entropy_calc, chi1, chi2
