@@ -89,7 +89,7 @@ def filter_ordered_sketch(mx_line, args, seq_length):
     return mx_info
 
 
-def is_hairpin(mx_info, correlation, yintercept, slope, seq_length, args):
+def is_hairpin(mx_info, correlation, yintercept, slope, mapped_bins, seq_length, args):
     "Return true if fits the threshold for a hairpin"
     if len(mx_info) < 3:
         return False
@@ -99,6 +99,8 @@ def is_hairpin(mx_info, correlation, yintercept, slope, seq_length, args):
         return False
     if yintercept > seq_length*1.10 or yintercept < seq_length*0.9:
         return False
+    if mapped_bins < args.mapped_bin_threshold:
+        return False
     return True
 
 def detect_hairpins(args, seq_lengths):
@@ -107,9 +109,9 @@ def detect_hairpins(args, seq_lengths):
     total_reads = 0
 
     fout = open(args.o, 'w')
-    fout.write("Name\tLength\tCorrelation_coefficient\tyintercept\tslope\tnum_mx\tentropy\tchi_1\tchi_2\tmapped_bins\tis_hairpin_pred\n")
+    fout.write("Name\tLength\tCorrelation_coefficient\tyintercept\tslope\tnum_mx\tentropy\tmapped_bins\tis_hairpin_pred\n")
 
-    format_str = ("{}\t"*11).strip() + "\n"
+    format_str = ("{}\t"*9).strip() + "\n"
 
     with open(args.MX, 'r') as mx_in:
         for mx_line in mx_in:
@@ -124,15 +126,16 @@ def detect_hairpins(args, seq_lengths):
                     assert mx_list[0].pos < mx_list[1].pos
                     print(name, mx_list[0].pos, mx_list[1].pos, sep="\t", file=sys.stderr)
 
-            correlation, yint, slope, entropy, chi1, chi2, mapped_bins = 0, 0, 0, None, None, None, 0
+            correlation, yint, slope, entropy, mapped_bins = 0, 0, 0, None, 0
             if len(mx_info) >= 3:
-                correlation, yint, slope,entropy, chi1, chi2, mapped_bins = calculate_hairpin_stats.compute_read_statistics(mx_info, args, seq_lengths[name])
+                correlation, yint, slope, entropy, mapped_bins = calculate_hairpin_stats.compute_read_statistics(mx_info, args,
+                                                                                                                seq_lengths[name])
 
-            if is_hairpin(mx_info, correlation, yint, slope, seq_lengths[name], args):
+            if is_hairpin(mx_info, correlation, yint, slope, mapped_bins, seq_lengths[name], args):
                 hairpins += 1
-                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope, len(mx_info), entropy, chi1, chi2, mapped_bins, "Hairpin"))
+                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope, len(mx_info), entropy, mapped_bins, "Hairpin"))
             else:
-                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope, len(mx_info), entropy, chi1, chi2, mapped_bins, "Non-hairpin"))
+                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope, len(mx_info), entropy, mapped_bins, "Non-hairpin"))
 
             total_reads += 1
 
@@ -150,6 +153,8 @@ def print_args(args):
     print("\t--upper_slope", args.upper_slope)
     print("\t--lower_slope", args.lower_slope)
     print("\t-c", args.c)
+    print("\t-b", args.bins)
+    print("\t-m", args.mapped_bin_threshold)
     print("\t--corr", args.corr)
 
 
@@ -165,6 +170,9 @@ def main():
     parser.add_argument("-c", help="Threshold for correlation", type=float, default=-0.75)
     parser.add_argument("--corr", help="Correlation coefficient to use. Valid values are pearson or spearman",
                         default="spearman", type=str)
+    parser.add_argument("-b", "--bins", help="Number of bins for minimizer distribution check", type=int, default=10)
+    parser.add_argument("-m", "--mapped-bin-threshold", help="Threshold number of bins with mapped minimizers",
+                        type=int, default=5)
     parser.add_argument("-o", help="Output file for hairpin classifications [stdout]", type=str, default=sys.stdout)
     parser.add_argument("-v", action="store_true", help="Verbose logging of filtered minimizers")
     args = parser.parse_args()
