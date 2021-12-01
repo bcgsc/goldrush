@@ -5,8 +5,11 @@ Computing statistics on minimizers  from reads
 from collections import Counter
 from scipy.stats import entropy
 import statsmodels.api as sm
+import statsmodels.tools.sm_exceptions as sm_except
 import pandas as pd
 import scipy.stats as sci
+import warnings
+warnings.simplefilter(action='ignore', category=sm_except.ConvergenceWarning)
 
 
 def make_dataframe(mx_info):

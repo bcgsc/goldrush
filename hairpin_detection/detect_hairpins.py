@@ -3,9 +3,7 @@
 Detect hairpin structure artifacts in oxford nanopore reads
 '''
 import argparse
-from collections import defaultdict, namedtuple, Counter
-import igraph as ig
-import ntlink_utils
+from collections import defaultdict, namedtuple
 import sys
 import calculate_hairpin_stats
 
