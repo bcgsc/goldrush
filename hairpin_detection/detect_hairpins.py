@@ -20,7 +20,7 @@ def tally_sequence_lengths(index_filename):
     return lengths
 
 def is_valid_mx(list_mx_info):
-    "Return true if the given minimizer has a multiplicity of 2 and those are found from different strands"
+    "Return true if the given minimizer has a multiplicity of 2, from different strands"
     if len(list_mx_info) != 2:
         return False
     info1, info2 = list_mx_info
@@ -28,13 +28,6 @@ def is_valid_mx(list_mx_info):
         return False
     return True
 
-# def is_valid_position(pos, end_length, seq_length):
-#     "Return True if position falls within prescribed end lengths"
-#     if 2*end_length > seq_length:
-#         end_length = int(seq_length/2)
-#     if pos <= end_length or pos >= (seq_length - end_length):
-#         return True
-#     return False
 
 def is_valid_position(mx_info, args, seq_length):
     "Return True if position falls within prescribed end lengths"
@@ -60,17 +53,15 @@ def has_valid_positions(minimizer_info, args, length):
 
 
 def filter_ordered_sketch(mx_line, args, seq_length):
-    "Given a line of a indexlr file, parse and only keep minimizers with multiplicity of 2, strictly on different strands"
+    "Given minimizer sketch, parse and keep minimizers with multiplicity of 2 on different strands"
 
     mx_info = defaultdict()  # mx -> [Minimizer info]
     line = mx_line.strip().split("\t")
     if len(line) > 1:
-        name, mxs_all = line
+        _, mxs_all = line
         mx_pos_strands = mxs_all.split(" ")
         for mx_pos_strand in mx_pos_strands:
             mx, pos, strand = mx_pos_strand.split(":")
-            # if not is_valid_position(int(pos), args.e, seq_length):
-            #     continue
             if mx not in mx_info:
                 mx_info[mx] = [MinimizerInfo(int(pos), strand, 1)] #!! TODO: change numbers?
             else:
@@ -78,11 +69,8 @@ def filter_ordered_sketch(mx_line, args, seq_length):
 
         mx_info = {mx: mx_info[mx] for mx in mx_info if is_valid_mx(mx_info[mx]) and
                    has_valid_positions(mx_info[mx], args, seq_length)}
-        # mxs = [mx_pos_strand.split(":")[0] for mx_pos_strand in mx_pos_strands
-        #        if mx_pos_strand.split(":")[0] in mx_info]
         for mx in mx_info:
             assert len(mx_info[mx]) == 2
-        #assert len(mxs) == len(mx_info.keys())*2
 
     return mx_info
 
@@ -107,7 +95,8 @@ def detect_hairpins(args, seq_lengths):
     total_reads = 0
 
     fout = open(args.o, 'w')
-    fout.write("Name\tLength\tCorrelation_coefficient\tyintercept\tslope\tnum_mx\tentropy\tmapped_bins\tis_hairpin_pred\n")
+    fout.write("Name\tLength\tCorrelation_coefficient\tyintercept\tslope\tnum_mx"
+               "\tentropy\tmapped_bins\tis_hairpin_pred\n")
 
     format_str = ("{}\t"*9).strip() + "\n"
 
@@ -126,14 +115,17 @@ def detect_hairpins(args, seq_lengths):
 
             correlation, yint, slope, entropy, mapped_bins = 0, 0, 0, None, 0
             if len(mx_info) >= 3:
-                correlation, yint, slope, entropy, mapped_bins = calculate_hairpin_stats.compute_read_statistics(mx_info, args,
-                                                                                                                seq_lengths[name])
+                correlation, yint, slope, entropy, mapped_bins = \
+                    calculate_hairpin_stats.compute_read_statistics(mx_info, args,
+                                                                    seq_lengths[name])
 
             if is_hairpin(mx_info, correlation, yint, slope, mapped_bins, seq_lengths[name], args):
                 hairpins += 1
-                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope, len(mx_info), entropy, mapped_bins, "Hairpin"))
+                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope,
+                                             len(mx_info), entropy, mapped_bins, "Hairpin"))
             else:
-                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope, len(mx_info), entropy, mapped_bins, "Non-hairpin"))
+                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope,
+                                             len(mx_info), entropy, mapped_bins, "Non-hairpin"))
 
             total_reads += 1
 
@@ -160,18 +152,27 @@ def main():
     "Detect hairpin structures in input nanopore reads from minimizer sketches"
     parser = argparse.ArgumentParser(description="Detect hairpin artifacts in nanopore reads")
     parser.add_argument("MX", help="Input minimizers TSV file, or '-' if piping to standard in")
-    parser.add_argument("-i", "--index", help="samtools faidx index for input reads", required=True, type=str)
-    parser.add_argument("--perc", help="Percentage error allowed for yintercept", type=float, default=10)
+    parser.add_argument("-i", "--index", help="samtools faidx index for input reads",
+                        required=True, type=str)
+    parser.add_argument("--perc", help="Percentage error allowed for yintercept",
+                        type=float, default=10)
     parser.add_argument("-e", help="Length of ends to consider", type=int, default=5000)
-    parser.add_argument("--upper_slope", help="Upper threshold for slope", type=float, default=-0.75)
-    parser.add_argument("--lower_slope", help="Lower threshold for slope", type=float, default=-1.25)
-    parser.add_argument("-c", help="Threshold for correlation", type=float, default=-0.75)
-    parser.add_argument("--corr", help="Correlation coefficient to use. Valid values are pearson or spearman",
+    parser.add_argument("--upper_slope", help="Upper threshold for slope", type=float,
+                        default=-0.75)
+    parser.add_argument("--lower_slope", help="Lower threshold for slope", type=float,
+                        default=-1.25)
+    parser.add_argument("-c", help="Threshold for correlation", type=float,
+                        default=-0.75)
+    parser.add_argument("--corr", help="Correlation coefficient to use. "
+                                       "Valid values are pearson or spearman",
                         default="spearman", type=str)
-    parser.add_argument("-b", "--bins", help="Number of bins for minimizer distribution check", type=int, default=10)
-    parser.add_argument("-m", "--mapped-bin-threshold", help="Threshold number of bins with mapped minimizers",
+    parser.add_argument("-b", "--bins", help="Number of bins for minimizer distribution check",
+                        type=int, default=10)
+    parser.add_argument("-m", "--mapped-bin-threshold",
+                        help="Threshold number of bins with mapped minimizers",
                         type=int, default=5)
-    parser.add_argument("-o", help="Output file for hairpin classifications [stdout]", type=str, default=sys.stdout)
+    parser.add_argument("-o", help="Output file for hairpin classifications [stdout]",
+                        type=str, default=sys.stdout)
     parser.add_argument("-v", action="store_true", help="Verbose logging of filtered minimizers")
     args = parser.parse_args()
 

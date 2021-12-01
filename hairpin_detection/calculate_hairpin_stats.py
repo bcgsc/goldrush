@@ -3,12 +3,12 @@
 Computing statistics on minimizers  from reads
 '''
 from collections import Counter
+import warnings
 from scipy.stats import entropy
 import statsmodels.api as sm
 import statsmodels.tools.sm_exceptions as sm_except
 import pandas as pd
 import scipy.stats as sci
-import warnings
 warnings.simplefilter(action='ignore', category=sm_except.ConvergenceWarning)
 
 
@@ -39,12 +39,13 @@ def robust_linear_regression(df):
     return p.const, p.position1
 
 def find_correlation_coefficient(mx_df, correlation_arg):
+    "Returns specified correlation coefficient"
     if correlation_arg == "pearson":
         return pearson_correlation_coefficient(mx_df)
-    else:
-        return spearman_correlation_coefficient(mx_df)
+    return spearman_correlation_coefficient(mx_df)
 
 def compute_entropy(mx_df, read_len, end_len, num_bins=10):
+    "Compute entropy stats"
     end_len = int(read_len/2) if 2*end_len > read_len else end_len
     bins = pd.cut(range(0, end_len+1), bins=num_bins, retbins=True)[1]
     max_entropy = entropy([1/num_bins]*num_bins, base=2)
@@ -59,7 +60,7 @@ def compute_entropy(mx_df, read_len, end_len, num_bins=10):
     all_rows = len(mx_df)
     entropy_hairpin = entropy([counts_bins[int_bin]/all_rows for int_bin in counts_bins], base=2)
 
-    return entropy_hairpin/max_entropy, num_mapped_bins # TODO How to have empty bins? Divide the read in half?
+    return entropy_hairpin/max_entropy, num_mapped_bins
 
 def compute_read_statistics(mx_info, args, read_len):
     "Compute various statistics on the given minimizer sketch of the read"
