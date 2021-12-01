@@ -47,7 +47,7 @@ def compute_entropy(mx_df, read_len, end_len):
     max_entropy = entropy([1/10]*10, base=2)
     cut_bins = pd.cut(mx_df["position1"], bins=bins, retbins=True)
     counts_bins = Counter(cut_bins[0]) # TODO: magic number
-    cut_bins_bins = counts_bins[0].cat.categories
+    cut_bins_bins = cut_bins[0].cat.categories
     num_mapped_bins = len(counts_bins)
     for bin_int in cut_bins_bins:
         if bin_int not in counts_bins:

@@ -126,7 +126,7 @@ def detect_hairpins(args, seq_lengths):
 
             correlation, yint, slope, entropy, chi1, chi2, mapped_bins = 0, 0, 0, None, None, None, 0
             if len(mx_info) >= 3:
-                correlation, yint, slope,entropy, chi1, chi2 = calculate_hairpin_stats.compute_read_statistics(mx_info, args, seq_lengths[name])
+                correlation, yint, slope,entropy, chi1, chi2, mapped_bins = calculate_hairpin_stats.compute_read_statistics(mx_info, args, seq_lengths[name])
 
             if is_hairpin(mx_info, correlation, yint, slope, seq_lengths[name], args):
                 hairpins += 1
