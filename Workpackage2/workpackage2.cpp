@@ -85,7 +85,7 @@ namespace opt {
 
 }
 
-static constexpr bool verbose = false;
+static constexpr bool verbose = true;
 
 struct ReadHashes {
     btllib::SeqReader::Record record;
@@ -258,19 +258,11 @@ const std::vector<std::string> make_seed_pattern () {
 }
 
 
-<<<<<<< HEAD
-size_t calc_num_assigned_tiles (const MIBloomFilter<uint32_t>& miBF, const std::vector<std::vector<uint64_t>>& hashed_values) {
-=======
-size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& miBF, const std::vector<std::vector<uint64_t>> hashed_values, std::vector<uint32_t>& tiles_assigned_id_vec, std::vector<bool>& tiles_assigned_bool_vec) {
->>>>>>> 9b792d0... trim+new mode
+size_t calc_num_assigned_tiles (const MIBloomFilter<uint32_t>& miBF, const std::vector<std::vector<uint64_t>> hashed_values, std::vector<uint32_t>& tiles_assigned_id_vec, std::vector<bool>& tiles_assigned_bool_vec) {
 
-    
     size_t num_assigned_tiles = 0;
-<<<<<<< HEAD
-=======
     size_t num_tiles = hashed_values.size();
     //std::vector<uint32_t> tiles_assigned_id_vec (num_tiles, 0);
->>>>>>> 9b792d0... trim+new mode
 
     static std::unique_ptr<uint32_t[]> tiles_assigned_id_array;
     if (verbose) {
@@ -281,14 +273,8 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
 #if _OPENMP
 #pragma omp parallel for reduction(+:num_assigned_tiles)
 #endif
-<<<<<<< HEAD
     for (size_t i = 1; i < num_tiles - 1; ++i) { // for each tile except first and last tiles. We consider them erroneous and not used in tile assignment.
         std::unordered_map<uint32_t, uint32_t> id_counts;
-=======
-    for (size_t i = 0; i < num_tiles; ++i) { // for each tile except first and last tiles. We consider them erroneous and not used in tile assignment.
-
-        tsl::robin_map<uint32_t, std::pair<uint32_t, uint32_t>> id_counts; // store counts of ids
->>>>>>> 9b792d0... trim+new mode
 
         // Reusable vector for ranks 
         vector<uint64_t> m_rank_pos(miBF.getHashNum());
@@ -340,15 +326,8 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
         }
 
         if (curr_id_count > opt::threshold) {
-<<<<<<< HEAD
             num_assigned_tiles++;
-=======
-#if _OPENMP
-#pragma omp atomic
-#endif
-            num_assigned_tiles += 1;
             tiles_assigned_bool_vec[i] = true;
->>>>>>> 9b792d0... trim+new mode
         }
 
         if (verbose) {
@@ -357,13 +336,6 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
     }
 
     //print which id each tile is assigned to
-<<<<<<< HEAD
-    if (verbose) {
-        for (size_t t = 0; t < num_tiles; t++) {
-            std::cerr << tiles_assigned_id_array[t] << "\t";
-        }
-        std::cerr << std::endl;
-=======
     for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
         std::cerr << tiles_assigned_id << "\t";
 
@@ -532,9 +504,6 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
 
     for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
         std::cerr << tiles_assigned_bool << "\t";
-
-
->>>>>>> 9b792d0... trim+new mode
     }
 
     std::cerr << std::endl;
@@ -711,7 +680,6 @@ int main(int argc, char** argv) {
     std::cerr << "opening: " << opt::input << std::endl;
 
     uint32_t ids_inserted = 0;
-    uint64_t bases = 0;
 
 
     std::cerr << "inserting bit vector" << std::endl;
@@ -748,19 +716,21 @@ int main(int argc, char** argv) {
     uint64_t inserted_bases = 0;
     uint64_t target_bases = opt::ratio * opt::target_size;
     uint64_t curr_path = 1;
-
+    std::cerr << "checkpoint1" << std::endl;
     btllib::OrderQueueMPMC<ReadHashes> precomputed_hash_queue(btllib::SeqReader::LONG_MODE_BUFFER_SIZE, btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
     hash_precomputing(opt::input, precomputed_hash_queue, min_seq_len, seed_string_vec, 6);
-
+    std::cerr << "checkpoint2" << std::endl;
     while (true) {
+        std::cerr << "checkpoint3" << std::endl;
         decltype(precomputed_hash_queue)::Block block(btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
+        std::cerr << "checkpoint4" << std::endl;
         precomputed_hash_queue.read(block);
+        std::cerr << "checkpoint5" << std::endl;
         if (block.count == 0) { break; }
         for (size_t idx = 0; idx < block.count; idx++) {
             const auto& read_hashes = block.data[idx];
             const auto& record = read_hashes.record;
             const auto& hashed_values = read_hashes.hashes;
-
             if (record.seq.size() < min_seq_len) {
                 if (verbose) {
                     std::cerr << "too short" << std::endl;
@@ -770,35 +740,37 @@ int main(int argc, char** argv) {
                     ++id;
                     continue;
 
-<<<<<<< HEAD
             }
+            std::cerr << "checkpoint6" << std::endl;
             if (id % 10000 == 0) {
                 std::cerr << "processed " << id << " reads" <<std::endl;
             }
             size_t len = record.seq.size();
             size_t num_tiles = len / opt::tile_length;
-=======
-        for (size_t level = 0; level < opt::levels; ++level) {
-            auto& miBF = mibf_vec[level];
-            std::cerr << "current level : " << level << std::endl;
-            size_t num_tiles = hashed_values.size();
-            std::vector<uint32_t> tiles_assigned_id_vec (num_tiles, 0);
-            std::vector<bool> tiles_assigned_bool_vec (num_tiles, false);
-
-            const size_t num_assigned_tiles = calc_num_assigned_tiles( miBF, hashed_values, tiles_assigned_id_vec, tiles_assigned_bool_vec);
-            std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl;
-            size_t num_unassigned_tiles = num_tiles - num_assigned_tiles;
-            std::cerr << "num unassigned tiles: " << num_unassigned_tiles << std::endl;
->>>>>>> 9b792d0... trim+new mode
             
             if (verbose) {
                 std::cerr << "name: " << record.id << std::endl;
                 std::cerr << "num tiles: " << num_tiles - 2 << std::endl;
             }
-<<<<<<< HEAD
             
             bool assigned = true;
-=======
+
+            for (size_t level = 0; level < opt::levels; ++level) {
+                auto& miBF = mibf_vec[level];
+                if (verbose) { std::cerr << "current level : " << level << std::endl; }
+
+                std::vector<uint32_t> tiles_assigned_id_vec (num_tiles, 0);
+                std::vector<bool> tiles_assigned_bool_vec (num_tiles, false);
+                const size_t num_assigned_tiles = calc_num_assigned_tiles( *miBF, hashed_values, tiles_assigned_id_vec, tiles_assigned_bool_vec);
+                if (verbose) { std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl; }
+                const size_t num_unassigned_tiles = num_tiles - 2 - num_assigned_tiles;
+                if (verbose) { std::cerr << "num unassigned tiles: " << num_unassigned_tiles << std::endl; }
+
+                
+            // assignment logic
+            if (num_unassigned_tiles >= opt::unassigned_min && num_assigned_tiles <= opt::assigned_max) {
+                assigned = false;
+            }
             if (opt::second_pass) {
                 if (num_assigned_tiles == num_tiles) {
                     assigned = true;
@@ -806,53 +778,11 @@ int main(int argc, char** argv) {
                     assigned = false;
                 }
             }
->>>>>>> 9b792d0... trim+new mode
 
-            for (size_t level = 0; level < opt::levels; ++level) {
-                auto& miBF = mibf_vec[level];
-                if (verbose) { std::cerr << "current level : " << level << std::endl; }
+            if (!assigned) {
+                std::cerr << "unassigned" << std::endl;
+                ++ids_inserted;
 
-<<<<<<< HEAD
-                const size_t num_assigned_tiles = calc_num_assigned_tiles( *miBF, hashed_values);
-                if (verbose) { std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl; }
-                const size_t num_unassigned_tiles = num_tiles - 2 - num_assigned_tiles;
-                if (verbose) { std::cerr << "num unassigned tiles: " << num_unassigned_tiles << std::endl; }
-                
-                // assignment logic
-                if (num_unassigned_tiles >= opt::unassigned_min && num_assigned_tiles <= opt::assigned_max) {
-                    assigned = false;
-                    if (verbose) { std::cerr << "unassigned" << std::endl; }
-                    ++ids_inserted;
-
-    #if _OPENMP
-    #pragma omp parallel for
-    #endif
-                    for (size_t i = 0; i < num_tiles; ++i) {
-                        miBFCS.insertMIBF(*miBF, hashed_values[i], ids_inserted);//, non_singletons_bf_vec);
-                        //miBFCS.insertSaturation(*miBF, Hhashes, ids_inserted); // don't care about saturation atm so skipping for speed
-                            //}
-                        }
-                    //output read to golden path
-                    golden_path_vec[level] << '>' << record.id << '\n' << record.seq << '\n';
-                    break; //breaks the level loop
-                    
-                } 
-            }
-            if (assigned) {
-                if (verbose) { std::cerr << "assigned" << std::endl; }
-                //output read to wood path
-                //wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping wood path output to reduce time
-                
-            }
-            //tracking number of bases inserted at an id
-            if (verbose) { std::cerr << "inserted: " << id << " "; }
-            if (assigned) {
-                if (verbose) { std::cerr << bases << std::endl; }
-            } else {
-                bases += record.seq.size();
-                if (verbose) { std::cerr << bases << std::endl; }
-            }
-=======
 #if _OPENMP
 #pragma omp parallel for
 #endif
@@ -863,6 +793,7 @@ int main(int argc, char** argv) {
                     //miBFCS.insertSaturation(*miBF, Hhashes, ids_inserted); // don't care about saturation atm so skipping for speed
                         //}
                 }
+
                 ids_inserted = ids_inserted + uint32_t(record.seq.size() / 10000);
                 //output read to golden path
 
@@ -1139,13 +1070,13 @@ int main(int argc, char** argv) {
             }
 
         }
-        if (assigned) {
-            std::cerr << "assigned" << std::endl;
-            //output read to wood path
-            //wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping wood path output to reduce time
->>>>>>> 9b792d0... trim+new mode
-            
-            ++id;
+            if (assigned) {
+                std::cerr << "assigned" << std::endl;
+                //output read to wood path
+                //wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping wood path output to reduce time
+                
+                ++id;
+            }
         }
     }
     std::cerr << "assgined" << std::endl;
