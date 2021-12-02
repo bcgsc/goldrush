@@ -23,8 +23,8 @@ AC_CHECK_LIB([dl], [dlopen])
 AC_TYPE_SIZE_T
 
 # Set compiler flags. (TODO Probably doing some bad stuff here)
-AC_SUBST(CXXFLAGS,"-std=c++14 $CXXFLAGS")
-AC_SUBST(AM_CXXFLAGS, "-Wall -Wextra $AM_CXXFLAGS")
+AC_SUBST(CXXFLAGS,"-std=c++20 $CXXFLAGS")
+AC_SUBST(AM_CXXFLAGS, "-Wall -Wextra -Werror $AM_CXXFLAGS")
 
 # Options to configure.
 # Boost
