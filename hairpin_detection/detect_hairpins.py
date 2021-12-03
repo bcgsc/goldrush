@@ -6,6 +6,7 @@ import argparse
 from collections import defaultdict, namedtuple
 import sys
 import calculate_hairpin_stats
+from joblib import load
 
 MinimizerInfo = namedtuple("MinimizerInfo", ["pos", "strand", "time_seen"])
 
@@ -96,9 +97,13 @@ def detect_hairpins(args, seq_lengths):
 
     fout = open(args.o, 'w')
     fout.write("Name\tLength\tCorrelation_coefficient\tyintercept\tslope\tnum_mx"
-               "\tentropy\tmapped_bins\tis_hairpin_pred\n")
+               "\tentropy\tmapped_bins\tis_hairpin_pred\trf_pred\n")
 
-    format_str = ("{}\t"*9).strip() + "\n"
+    format_str = ("{}\t"*10).strip() + "\n"
+
+    # Load models for random forest
+    classifier = load(args.r + "_random_forest_classifier")
+    scaler = load(args.r + "_standard_scaler")
 
     with open(args.MX, 'r') as mx_in:
         for mx_line in mx_in:
@@ -114,18 +119,22 @@ def detect_hairpins(args, seq_lengths):
                     print(name, mx_list[0].pos, mx_list[1].pos, sep="\t", file=sys.stderr)
 
             correlation, yint, slope, entropy, mapped_bins = 0, 0, 0, None, 0
+            random_forest_classification = "Non-hairpin"
             if len(mx_info) >= 3:
                 correlation, yint, slope, entropy, mapped_bins = \
                     calculate_hairpin_stats.compute_read_statistics(mx_info, args,
                                                                     seq_lengths[name])
+                random_forest_classification = calculate_hairpin_stats.random_forest(correlation, slope, len(mx_info),
+                                                             entropy, mapped_bins, seq_lengths[name]/yint,
+                                                                                     classifier, scaler)
 
             if is_hairpin(mx_info, correlation, yint, slope, mapped_bins, seq_lengths[name], args):
                 hairpins += 1
                 fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope,
-                                             len(mx_info), entropy, mapped_bins, "Hairpin"))
+                                             len(mx_info), entropy, mapped_bins, "Hairpin", random_forest_classification))
             else:
                 fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope,
-                                             len(mx_info), entropy, mapped_bins, "Non-hairpin"))
+                                             len(mx_info), entropy, mapped_bins, "Non-hairpin", random_forest_classification))
 
             total_reads += 1
 
@@ -173,6 +182,7 @@ def main():
                         type=int, default=5)
     parser.add_argument("-o", help="Output file for hairpin classifications [stdout]",
                         type=str, default=sys.stdout)
+    parser.add_argument("-r", help="Path to random forest models", required=True)
     parser.add_argument("-v", action="store_true", help="Verbose logging of filtered minimizers")
     args = parser.parse_args()
 

@@ -25,7 +25,7 @@ def main():
 
     df = df.replace(to_replace=float("inf"), value=0)
 
-    X = df.loc[:, ["Correlation_coefficient", "yintercept", "slope", "num_mx",
+    X = df.loc[:, ["Correlation_coefficient", "slope", "num_mx",
                     "entropy", "mapped_bins", "length_over_yintercept"]].values
 
     # Feature Scaling

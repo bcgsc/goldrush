@@ -9,6 +9,7 @@ import statsmodels.api as sm
 import statsmodels.tools.sm_exceptions as sm_except
 import pandas as pd
 import scipy.stats as sci
+import numpy as np
 warnings.simplefilter(action='ignore', category=sm_except.ConvergenceWarning)
 
 
@@ -70,3 +71,11 @@ def compute_read_statistics(mx_info, args, read_len):
     entropy_calc, mapped_bins = compute_entropy(mx_df, read_len, args.e, num_bins=args.bins)
 
     return corr, yintercept, slope, entropy_calc, mapped_bins
+
+def random_forest(corr, slope, num_mx, entropy, mapped_bins, len_over_yint, classifier, scaler):
+    "Classify using random forest"
+    X = np.ndarray(shape=(1, 6), buffer=np.array(list(map(float, [corr, slope, num_mx, entropy, mapped_bins, len_over_yint]))),
+                   dtype=float)
+    X = scaler.transform(X)
+    prediction = classifier.predict(X)[0]
+    return prediction
