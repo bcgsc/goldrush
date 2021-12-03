@@ -108,7 +108,7 @@ def detect_hairpins(args, seq_lengths):
 
     with open(args.MX, 'r') as mx_in:
         for mx_line in mx_in:
-            name, _ = mx_line.strip().split("\t")
+            name = mx_line.strip().split("\t")[0]
             mx_info = filter_ordered_sketch(mx_line, args, seq_lengths[name])
 
             if args.v:

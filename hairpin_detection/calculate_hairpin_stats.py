@@ -11,7 +11,7 @@ import pandas as pd
 import scipy.stats as sci
 import numpy as np
 warnings.simplefilter(action='ignore', category=sm_except.ConvergenceWarning)
-
+warnings.simplefilter(action='ignore', category=RuntimeWarning)
 
 def make_dataframe(mx_info):
     "Given a dictionary of mx -> [MinimizerInfo], generate a pandas dataframe"
