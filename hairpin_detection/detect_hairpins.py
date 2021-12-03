@@ -119,14 +119,19 @@ def detect_hairpins(args, seq_lengths):
                     print(name, mx_list[0].pos, mx_list[1].pos, sep="\t", file=sys.stderr)
 
             correlation, yint, slope, entropy, mapped_bins = 0, 0, 0, None, 0
-            random_forest_classification = "Non-hairpin"
+            if args.r:
+                random_forest_classification = "Non-hairpin"
+            else:
+                random_forest_classification = "N/A"
+
             if len(mx_info) >= 3:
                 correlation, yint, slope, entropy, mapped_bins = \
                     calculate_hairpin_stats.compute_read_statistics(mx_info, args,
                                                                     seq_lengths[name])
-                random_forest_classification = calculate_hairpin_stats.random_forest(correlation, slope, len(mx_info),
-                                                             entropy, mapped_bins, seq_lengths[name]/yint,
-                                                                                     classifier, scaler)
+                if args.r:
+                    random_forest_classification = calculate_hairpin_stats.random_forest(correlation, slope, len(mx_info),
+                                                                                         entropy, mapped_bins, seq_lengths[name]/yint,
+                                                                                         classifier, scaler)
 
             if is_hairpin(mx_info, correlation, yint, slope, mapped_bins, seq_lengths[name], args):
                 hairpins += 1
@@ -182,7 +187,7 @@ def main():
                         type=int, default=5)
     parser.add_argument("-o", help="Output file for hairpin classifications [stdout]",
                         type=str, default=sys.stdout)
-    parser.add_argument("-r", help="Path to random forest models", required=True)
+    parser.add_argument("-r", help="Path to random forest models", required=False)
     parser.add_argument("-v", action="store_true", help="Verbose logging of filtered minimizers")
     args = parser.parse_args()
 
