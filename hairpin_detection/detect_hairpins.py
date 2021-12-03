@@ -102,8 +102,9 @@ def detect_hairpins(args, seq_lengths):
     format_str = ("{}\t"*10).strip() + "\n"
 
     # Load models for random forest
-    classifier = load(args.r + "_random_forest_classifier")
-    scaler = load(args.r + "_standard_scaler")
+    if args.r:
+        classifier = load(args.r + "_random_forest_classifier")
+        scaler = load(args.r + "_standard_scaler")
 
     with open(args.MX, 'r') as mx_in:
         for mx_line in mx_in:
