@@ -7,6 +7,7 @@ from collections import defaultdict, namedtuple
 import sys
 import calculate_hairpin_stats
 from joblib import load
+import btllib
 
 MinimizerInfo = namedtuple("MinimizerInfo", ["pos", "strand", "time_seen"])
 
@@ -53,16 +54,16 @@ def has_valid_positions(minimizer_info, args, length):
     return is_valid_position(minimizer_info, args, length)
 
 
-def filter_ordered_sketch(mx_line, args, seq_length):
+def filter_ordered_sketch(mxs, args, seq_length):
     "Given minimizer sketch, parse and keep minimizers with multiplicity of 2 on different strands"
 
     mx_info = defaultdict()  # mx -> [Minimizer info]
-    line = mx_line.strip().split("\t")
-    if len(line) > 1:
-        _, mxs_all = line
-        mx_pos_strands = mxs_all.split(" ")
-        for mx_pos_strand in mx_pos_strands:
-            mx, pos, strand = mx_pos_strand.split(":")
+    #line = mxs.strip().split("\t")
+    if len(mxs) > 1:
+        #_, mxs_all = line
+        #mx_pos_strands = mxs_all.split(" ")
+        for mx_pos_strand in mxs:
+            mx, pos, strand = mx_pos_strand.out_hash, mx_pos_strand.pos, mx_pos_strand.forward
             if mx not in mx_info:
                 mx_info[mx] = [MinimizerInfo(int(pos), strand, 1)] #!! TODO: change numbers?
             else:
@@ -106,10 +107,10 @@ def detect_hairpins(args, seq_lengths):
         classifier = load(args.r + "_random_forest_classifier")
         scaler = load(args.r + "_standard_scaler")
 
-    with open(args.MX, 'r') as mx_in:
-        for mx_line in mx_in:
-            name = mx_line.strip().split("\t")[0]
-            mx_info = filter_ordered_sketch(mx_line, args, seq_lengths[name])
+    with btllib.Indexlr("test.fa", args.k, args.w, btllib.IndexlrFlag.LONG_MODE, 2) as minimizers:
+        for mx_entry in minimizers:
+            name = mx_entry.id
+            mx_info = filter_ordered_sketch(mx_entry.minimizers, args, seq_lengths[name])
 
             if args.v:
                 print("Name", "Minimizer1", "Minimizer2", sep="\t", file=sys.stderr)
@@ -166,7 +167,7 @@ def print_args(args):
 def main():
     "Detect hairpin structures in input nanopore reads from minimizer sketches"
     parser = argparse.ArgumentParser(description="Detect hairpin artifacts in nanopore reads")
-    parser.add_argument("MX", help="Input minimizers TSV file, or '-' if piping to standard in")
+    parser.add_argument("MX", help="Input fasta file, or '-' if piping to standard in")
     parser.add_argument("-i", "--index", help="samtools faidx index for input reads",
                         required=True, type=str)
     parser.add_argument("--perc", help="Percentage error allowed for yintercept",
@@ -190,6 +191,8 @@ def main():
                         type=str, default=sys.stdout)
     parser.add_argument("-r", help="Path to random forest models", required=False)
     parser.add_argument("-v", action="store_true", help="Verbose logging of filtered minimizers")
+    parser.add_argument("-k", help="Kmer size", required=True, type=int)
+    parser.add_argument("-w", help="Window size", required=True, type=int)
     args = parser.parse_args()
 
     print("Running hairpin detection...")
