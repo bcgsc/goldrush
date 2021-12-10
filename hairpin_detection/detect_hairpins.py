@@ -104,10 +104,10 @@ def detect_hairpins(args, seq_lengths):
 
     # Load models for random forest
     if args.r:
-        classifier = load(args.r + "_random_forest_classifier")
-        scaler = load(args.r + "_standard_scaler")
+        classifier = load(args.r + "/random_forest_classifier")
+        scaler = load(args.r + "/scaler")
 
-    with btllib.Indexlr("test.fa", args.k, args.w, btllib.IndexlrFlag.LONG_MODE, 2) as minimizers:
+    with btllib.Indexlr(args.MX, args.k, args.w, btllib.IndexlrFlag.LONG_MODE, 2) as minimizers:
         for mx_entry in minimizers:
             name = mx_entry.id
             mx_info = filter_ordered_sketch(mx_entry.minimizers, args, seq_lengths[name])
