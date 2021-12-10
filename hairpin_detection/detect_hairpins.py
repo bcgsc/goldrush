@@ -58,16 +58,18 @@ def filter_ordered_sketch(mxs, args, seq_length):
     "Given minimizer sketch, parse and keep minimizers with multiplicity of 2 on different strands"
 
     mx_info = defaultdict()  # mx -> [Minimizer info]
+    mx_track = defaultdict() # mx -> MinimizerInfo
     #line = mxs.strip().split("\t")
     if len(mxs) > 1:
         #_, mxs_all = line
         #mx_pos_strands = mxs_all.split(" ")
         for mx_pos_strand in mxs:
             mx, pos, strand = mx_pos_strand.out_hash, mx_pos_strand.pos, mx_pos_strand.forward
-            if mx not in mx_info:
-                mx_info[mx] = [MinimizerInfo(int(pos), strand, 1)] #!! TODO: change numbers?
+            if mx not in mx_track:
+                mx_track[mx] = MinimizerInfo(int(pos), strand, 1)
+#                mx_info[mx] = [MinimizerInfo(int(pos), strand, 1)] #!! TODO: change numbers?
             else:
-                mx_info[mx].append(MinimizerInfo(int(pos), strand, 2))
+                mx_info[mx] = [mx_track[mx], (MinimizerInfo(int(pos), strand, 2))]
 
         mx_info = {mx: mx_info[mx] for mx in mx_info if is_valid_mx(mx_info[mx]) and
                    has_valid_positions(mx_info[mx], args, seq_length)}
