@@ -9,6 +9,7 @@ Uses minimizers to identify and flag putative hairpin artifact reads in Nanopore
 * [statsmodels](https://www.statsmodels.org/stable/index.html)
 * scipy
 * numpy
+* pandas
 
 ## Usage
 
