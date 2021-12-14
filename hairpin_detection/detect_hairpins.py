@@ -98,9 +98,9 @@ def detect_hairpins(args, seq_lengths):
 
     fout = open(args.o, 'w')
     fout.write("Name\tLength\tCorrelation_coefficient\tyintercept\tslope\tnum_mx"
-               "\tentropy\tmapped_bins\tis_hairpin_pred\trf_pred\n")
+               "\tmapped_bins\tis_hairpin_pred\trf_pred\n")
 
-    format_str = ("{}\t"*10).strip() + "\n"
+    format_str = ("{}\t"*9).strip() + "\n"
 
     # Load models for random forest
     if args.r:
@@ -120,31 +120,30 @@ def detect_hairpins(args, seq_lengths):
                     assert mx_list[0].pos < mx_list[1].pos
                     print(name, mx_list[0].pos, mx_list[1].pos, sep="\t", file=sys.stderr)
 
-            correlation, yint, slope, entropy, mapped_bins = 0, 0, 0, None, 0
+            correlation, yint, slope, mapped_bins = 0, 0, 0, 0
             if args.r:
                 random_forest_classification = "Non-hairpin"
             else:
                 random_forest_classification = "N/A"
 
             if len(mx_info) >= args.mapped_bin_threshold:
-                correlation, yint, slope, entropy, mapped_bins = \
+                correlation, yint, slope, mapped_bins = \
                     calculate_hairpin_stats.compute_read_statistics(mx_info, args,
                                                                     seq_lengths[name])
                 if args.r:
                     random_forest_classification = \
                         calculate_hairpin_stats.random_forest(correlation, slope, len(mx_info),
-                                                              entropy, mapped_bins,
-                                                              seq_lengths[name]/yint,
+                                                              mapped_bins, seq_lengths[name]/yint,
                                                               classifier, scaler)
 
             if is_hairpin(mx_info, correlation, yint, slope, mapped_bins, seq_lengths[name], args):
                 hairpins += 1
                 fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope,
-                                             len(mx_info), entropy, mapped_bins, "Hairpin",
+                                             len(mx_info), mapped_bins, "Hairpin",
                                              random_forest_classification))
             else:
                 fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope,
-                                             len(mx_info), entropy, mapped_bins, "Non-hairpin",
+                                             len(mx_info), mapped_bins, "Non-hairpin",
                                              random_forest_classification))
 
             total_reads += 1

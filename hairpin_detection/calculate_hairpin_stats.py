@@ -4,7 +4,6 @@ Computing statistics on minimizers from reads
 '''
 from collections import Counter
 import warnings
-from scipy.stats import entropy
 import statsmodels.api as sm
 import statsmodels.tools.sm_exceptions as sm_except
 import pandas as pd
@@ -47,37 +46,28 @@ def find_correlation_coefficient(mx_df, correlation_arg):
         return spearman_correlation_coefficient(mx_df)
     raise ValueError("correlation_arg must be pearson or spearman, ", correlation_arg, "supplied.")
 
-def compute_entropy(mx_df, read_len, end_len, num_bins=10):
+def compute_mapped_bins(mx_df, read_len, end_len, num_bins=10):
     "Compute entropy stats"
     end_len = int(read_len/2) if 2*end_len > read_len else end_len
     bins = pd.cut(range(0, end_len+1), bins=num_bins, retbins=True)[1]
-    max_entropy = entropy([1/num_bins]*num_bins, base=2)
     cut_bins = pd.cut(mx_df["position1"], bins=bins, retbins=True)
     counts_bins = Counter(cut_bins[0])
     num_mapped_bins = len(counts_bins)
 
-    cut_bins_bins = cut_bins[0].cat.categories
-    for bin_int in cut_bins_bins:
-        if bin_int not in counts_bins:
-            counts_bins[bin_int] = 0
-
-    all_rows = len(mx_df)
-    entropy_hairpin = entropy([counts_bins[int_bin]/all_rows for int_bin in counts_bins], base=2)
-
-    return entropy_hairpin/max_entropy, num_mapped_bins
+    return num_mapped_bins
 
 def compute_read_statistics(mx_info, args, read_len):
     "Compute various statistics on the given minimizer sketch of the read"
     mx_df = make_dataframe(mx_info)
     corr = find_correlation_coefficient(mx_df, args.corr)
     yintercept, slope = robust_linear_regression(mx_df)
-    entropy_calc, mapped_bins = compute_entropy(mx_df, read_len, args.e, num_bins=args.bins)
+    mapped_bins = compute_mapped_bins(mx_df, read_len, args.e, num_bins=args.bins)
 
-    return corr, yintercept, slope, entropy_calc, mapped_bins
+    return corr, yintercept, slope, mapped_bins
 
-def random_forest(corr, slope, num_mx, entropy, mapped_bins, len_over_yint, classifier, scaler):
+def random_forest(corr, slope, num_mx, mapped_bins, len_over_yint, classifier, scaler):
     "Classify using random forest"
-    X = np.ndarray(shape=(1, 6), buffer=np.array(list(map(float, [corr, slope, num_mx, entropy,
+    X = np.ndarray(shape=(1, 5), buffer=np.array(list(map(float, [corr, slope, num_mx,
                                                                   mapped_bins, len_over_yint]))),
                    dtype=float)
     X = scaler.transform(X)
