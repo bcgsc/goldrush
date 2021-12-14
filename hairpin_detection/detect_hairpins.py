@@ -173,29 +173,30 @@ def main():
     parser.add_argument("FA", help="Input fasta file, or '-' if piping to standard in")
     parser.add_argument("-i", "--index", help="samtools faidx index for input reads",
                         required=True, type=str)
-    parser.add_argument("--perc", help="Percentage error allowed for yintercept",
+    parser.add_argument("-k", help="Kmer size", required=True, type=int)
+    parser.add_argument("-w", help="Window size", required=True, type=int)
+    parser.add_argument("--perc", help="Percentage error allowed for yintercept [10]",
                         type=float, default=10)
-    parser.add_argument("-e", help="Length of ends to consider", type=int, default=5000)
-    parser.add_argument("--upper_slope", help="Upper threshold for slope", type=float,
+    parser.add_argument("-e", help="Length of ends to consider [5000]", type=int, default=5000)
+    parser.add_argument("--upper_slope", help="Upper threshold for slope [-0.75]", type=float,
                         default=-0.75)
-    parser.add_argument("--lower_slope", help="Lower threshold for slope", type=float,
+    parser.add_argument("--lower_slope", help="Lower threshold for slope [-1.25]", type=float,
                         default=-1.25)
-    parser.add_argument("-c", help="Threshold for correlation", type=float,
+    parser.add_argument("-c", help="Threshold for correlation [-0.75]", type=float,
                         default=-0.75)
     parser.add_argument("--corr", help="Correlation coefficient to use. "
-                                       "Valid values are pearson or spearman",
+                                       "Valid values are pearson or spearman [spearman]",
                         default="spearman", type=str)
-    parser.add_argument("-b", "--bins", help="Number of bins for minimizer distribution check",
+    parser.add_argument("-b", "--bins", help="Number of bins for minimizer distribution check [10]",
                         type=int, default=10)
     parser.add_argument("-m", "--mapped-bin-threshold",
-                        help="Threshold number of bins with mapped minimizers",
+                        help="Threshold number of bins with mapped minimizers [5]",
                         type=int, default=5)
     parser.add_argument("-o", help="Output file for hairpin classifications [stdout]",
                         type=str, default=sys.stdout)
     parser.add_argument("-r", help="Path to random forest models", required=False)
     parser.add_argument("-v", action="store_true", help="Verbose logging of filtered minimizers")
-    parser.add_argument("-k", help="Kmer size", required=True, type=int)
-    parser.add_argument("-w", help="Window size", required=True, type=int)
+
     args = parser.parse_args()
 
     print("Running hairpin detection...")
