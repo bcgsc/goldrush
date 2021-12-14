@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''
-Computing statistics on minimizers  from reads
+Computing statistics on minimizers from reads
 '''
 from collections import Counter
 import warnings
@@ -43,7 +43,9 @@ def find_correlation_coefficient(mx_df, correlation_arg):
     "Returns specified correlation coefficient"
     if correlation_arg == "pearson":
         return pearson_correlation_coefficient(mx_df)
-    return spearman_correlation_coefficient(mx_df)
+    if correlation_arg == "spearman":
+        return spearman_correlation_coefficient(mx_df)
+    raise ValueError("correlation_arg must be pearson or spearman, ", correlation_arg, "supplied.")
 
 def compute_entropy(mx_df, read_len, end_len, num_bins=10):
     "Compute entropy stats"
@@ -52,8 +54,9 @@ def compute_entropy(mx_df, read_len, end_len, num_bins=10):
     max_entropy = entropy([1/num_bins]*num_bins, base=2)
     cut_bins = pd.cut(mx_df["position1"], bins=bins, retbins=True)
     counts_bins = Counter(cut_bins[0])
-    cut_bins_bins = cut_bins[0].cat.categories
     num_mapped_bins = len(counts_bins)
+
+    cut_bins_bins = cut_bins[0].cat.categories
     for bin_int in cut_bins_bins:
         if bin_int not in counts_bins:
             counts_bins[bin_int] = 0
@@ -74,7 +77,8 @@ def compute_read_statistics(mx_info, args, read_len):
 
 def random_forest(corr, slope, num_mx, entropy, mapped_bins, len_over_yint, classifier, scaler):
     "Classify using random forest"
-    X = np.ndarray(shape=(1, 6), buffer=np.array(list(map(float, [corr, slope, num_mx, entropy, mapped_bins, len_over_yint]))),
+    X = np.ndarray(shape=(1, 6), buffer=np.array(list(map(float, [corr, slope, num_mx, entropy,
+                                                                  mapped_bins, len_over_yint]))),
                    dtype=float)
     X = scaler.transform(X)
     prediction = classifier.predict(X)[0]

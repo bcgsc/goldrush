@@ -5,12 +5,11 @@ Detect hairpin structure artifacts in oxford nanopore reads
 import argparse
 from collections import defaultdict, namedtuple
 import sys
-import calculate_hairpin_stats
 from joblib import load
 import btllib
+import calculate_hairpin_stats
 
 MinimizerInfo = namedtuple("MinimizerInfo", ["pos", "strand", "time_seen"])
-
 
 def tally_sequence_lengths(index_filename):
     "Tally the sequence lengths from the faidx index file"
@@ -48,10 +47,11 @@ def is_valid_position(mx_info, args, seq_length):
             raise ValueError("time_seen should be 1 or 2")
     return True
 
-def has_valid_positions(minimizer_info, args, length):
+
+def has_valid_positions(minimizer_info, args, seq_length):
     "Return True if both instances of minimizer have valid positions"
     assert len(minimizer_info) == 2
-    return is_valid_position(minimizer_info, args, length)
+    return is_valid_position(minimizer_info, args, seq_length)
 
 
 def filter_ordered_sketch(mxs, args, seq_length):
@@ -59,17 +59,15 @@ def filter_ordered_sketch(mxs, args, seq_length):
 
     mx_info = defaultdict()  # mx -> [Minimizer info]
     mx_track = defaultdict() # mx -> MinimizerInfo
-    #line = mxs.strip().split("\t")
     if len(mxs) > 1:
-        #_, mxs_all = line
-        #mx_pos_strands = mxs_all.split(" ")
         for mx_pos_strand in mxs:
             mx, pos, strand = mx_pos_strand.out_hash, mx_pos_strand.pos, mx_pos_strand.forward
             if mx not in mx_track:
                 mx_track[mx] = MinimizerInfo(int(pos), strand, 1)
-#                mx_info[mx] = [MinimizerInfo(int(pos), strand, 1)] #!! TODO: change numbers?
             else:
-                mx_info[mx] = [mx_track[mx], (MinimizerInfo(int(pos), strand, 2))]
+                if mx not in mx_info:
+                    mx_info[mx] = [mx_track[mx]]
+                mx_info.append(MinimizerInfo(int(pos), strand, 2))
 
         mx_info = {mx: mx_info[mx] for mx in mx_info if is_valid_mx(mx_info[mx]) and
                    has_valid_positions(mx_info[mx], args, seq_length)}
@@ -81,7 +79,7 @@ def filter_ordered_sketch(mxs, args, seq_length):
 
 def is_hairpin(mx_info, correlation, yintercept, slope, mapped_bins, seq_length, args):
     "Return true if fits the threshold for a hairpin"
-    if len(mx_info) < 3:
+    if len(mx_info) < args.mapped_bin_threshold:
         return False
     if correlation > args.c:
         return False
@@ -109,7 +107,7 @@ def detect_hairpins(args, seq_lengths):
         classifier = load(args.r + "/random_forest_classifier")
         scaler = load(args.r + "/scaler")
 
-    with btllib.Indexlr(args.MX, args.k, args.w, btllib.IndexlrFlag.LONG_MODE, 2) as minimizers:
+    with btllib.Indexlr(args.FA, args.k, args.w, btllib.IndexlrFlag.LONG_MODE, 2) as minimizers: # !! TODO: specify flags when bug fixed
         for mx_entry in minimizers:
             name = mx_entry.id
             mx_info = filter_ordered_sketch(mx_entry.minimizers, args, seq_lengths[name])
@@ -128,22 +126,26 @@ def detect_hairpins(args, seq_lengths):
             else:
                 random_forest_classification = "N/A"
 
-            if len(mx_info) >= 3:
+            if len(mx_info) >= args.mapped_bin_threshold:
                 correlation, yint, slope, entropy, mapped_bins = \
                     calculate_hairpin_stats.compute_read_statistics(mx_info, args,
                                                                     seq_lengths[name])
                 if args.r:
-                    random_forest_classification = calculate_hairpin_stats.random_forest(correlation, slope, len(mx_info),
-                                                                                         entropy, mapped_bins, seq_lengths[name]/yint,
-                                                                                         classifier, scaler)
+                    random_forest_classification = \
+                        calculate_hairpin_stats.random_forest(correlation, slope, len(mx_info),
+                                                              entropy, mapped_bins,
+                                                              seq_lengths[name]/yint,
+                                                              classifier, scaler)
 
             if is_hairpin(mx_info, correlation, yint, slope, mapped_bins, seq_lengths[name], args):
                 hairpins += 1
                 fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope,
-                                             len(mx_info), entropy, mapped_bins, "Hairpin", random_forest_classification))
+                                             len(mx_info), entropy, mapped_bins, "Hairpin",
+                                             random_forest_classification))
             else:
                 fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope,
-                                             len(mx_info), entropy, mapped_bins, "Non-hairpin", random_forest_classification))
+                                             len(mx_info), entropy, mapped_bins, "Non-hairpin",
+                                             random_forest_classification))
 
             total_reads += 1
 
@@ -154,7 +156,7 @@ def detect_hairpins(args, seq_lengths):
 def print_args(args):
     "Print the values of the arguments"
     print("\nHairpin detection parameters:")
-    print("\tMX", args.MX)
+    print("\tFA", args.FA)
     print("\t-i", args.index)
     print("\t--perc", args.perc)
     print("\t-e", args.e)
@@ -169,7 +171,7 @@ def print_args(args):
 def main():
     "Detect hairpin structures in input nanopore reads from minimizer sketches"
     parser = argparse.ArgumentParser(description="Detect hairpin artifacts in nanopore reads")
-    parser.add_argument("MX", help="Input fasta file, or '-' if piping to standard in")
+    parser.add_argument("FA", help="Input fasta file, or '-' if piping to standard in")
     parser.add_argument("-i", "--index", help="samtools faidx index for input reads",
                         required=True, type=str)
     parser.add_argument("--perc", help="Percentage error allowed for yintercept",
@@ -204,7 +206,7 @@ def main():
     if args.corr not in ["pearson", "spearman"]:
         raise ValueError("--corr must be set to pearson or spearman. ", args.corr, "supplied.")
 
-    args.MX = "/dev/stdin" if args.MX == "-" else args.MX
+    args.FA = "/dev/stdin" if args.FA == "-" else args.FA
 
     seq_lengths = tally_sequence_lengths(args.index)
     hairpins, total_reads = detect_hairpins(args, seq_lengths)
