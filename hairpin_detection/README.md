@@ -29,7 +29,7 @@ optional arguments:
   -k K                  Kmer size
   -w W                  Window size
   --perc PERC           Percentage error allowed for yintercept [10]
-  -e E                  Length of ends to consider [5000]
+  -e E                  Length of ends to consider (bp) [5000]
   --upper_slope UPPER_SLOPE
                         Upper threshold for slope [-0.75]
   --lower_slope LOWER_SLOPE

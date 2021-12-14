@@ -177,7 +177,7 @@ def main():
     parser.add_argument("-w", help="Window size", required=True, type=int)
     parser.add_argument("--perc", help="Percentage error allowed for yintercept [10]",
                         type=float, default=10)
-    parser.add_argument("-e", help="Length of ends to consider [5000]", type=int, default=5000)
+    parser.add_argument("-e", help="Length of ends to consider (bp) [5000]", type=int, default=5000)
     parser.add_argument("--upper_slope", help="Upper threshold for slope [-0.75]", type=float,
                         default=-0.75)
     parser.add_argument("--lower_slope", help="Lower threshold for slope [-1.25]", type=float,
