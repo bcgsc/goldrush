@@ -67,7 +67,7 @@ def filter_ordered_sketch(mxs, args, seq_length):
             else:
                 if mx not in mx_info:
                     mx_info[mx] = [mx_track[mx]]
-                mx_info.append(MinimizerInfo(int(pos), strand, 2))
+                mx_info[mx].append(MinimizerInfo(int(pos), strand, 2))
 
         mx_info = {mx: mx_info[mx] for mx in mx_info if is_valid_mx(mx_info[mx]) and
                    has_valid_positions(mx_info[mx], args, seq_length)}
