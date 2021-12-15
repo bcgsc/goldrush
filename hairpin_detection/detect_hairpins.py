@@ -85,7 +85,7 @@ def is_hairpin(mx_info, correlation, yintercept, slope, mapped_bins, seq_length,
         return False
     if slope > args.upper_slope or slope < args.lower_slope:
         return False
-    if yintercept > seq_length*1.10 or yintercept < seq_length*0.9:
+    if yintercept > seq_length*(1 + (args.perc/100)) or yintercept < seq_length*(1 - (args.perc/100)):
         return False
     if mapped_bins < args.mapped_bin_threshold:
         return False
