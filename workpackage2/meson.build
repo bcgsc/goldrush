@@ -1,7 +1,7 @@
 src_files = [ 'workpackage2.cpp', 'Options.cpp' ]
-deps = [ btllib_dep, threads_dep, openmp_dep, tcmalloc_dep, sdsl_dep, zlib_dep ]
+deps = [ btllib_dep, threads_dep, openmp_dep, tcmalloc_dep, divsufsort_dep, divsufsort64_dep, sdsl_dep, zlib_dep ]
 inc_dirs = [ 'Common' ]
-link_args = [ '-ltcmalloc' ]
+link_args = [ '-ltcmalloc', '-lsdsl', '-ldivsufsort', '-ldivsufsort64', '-lz' ]
 
 executable('workpackage2',
     src_files,

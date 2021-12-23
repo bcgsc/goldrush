@@ -7,8 +7,12 @@ btllib_dep = declare_dependency(include_directories : 'external/btllib/include')
 
 threads_dep = dependency('threads')
 openmp_dep = dependency('openmp')
-tcmalloc_dep = meson.get_compiler('cpp').find_library('tcmalloc')
-sdsl_dep = dependency('sdsl-lite')
-zlib_dep = dependency('zlib')
+
+compiler = meson.get_compiler('cpp')
+tcmalloc_dep = compiler.find_library('tcmalloc')
+divsufsort_dep = compiler.find_library('divsufsort')
+divsufsort64_dep = compiler.find_library('divsufsort64')
+sdsl_dep = compiler.find_library('sdsl')
+zlib_dep = compiler.find_library('z')
 
 subdir('workpackage2')
