@@ -1,7 +1,0 @@
-.gitattributes export-ignore
-.gitignore export-ignore
-/azure-pipelines.yml export-ignore
-/docs/ export-ignore
-/Doxyfile export-ignore
-*.i export-ignore
-/examples/ export-ignore
