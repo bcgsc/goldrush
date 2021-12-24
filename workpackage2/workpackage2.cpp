@@ -887,7 +887,7 @@ int main(int argc, char** argv) {
                     bool good_left_flank = false;
                     std::unordered_map<size_t, size_t> left_flank;
                     for (ssize_t i = longest_start_idx - 1; i >= 0; --i ){
-                        if (left_flank.contains(tiles_assigned_id_vec[i])) {
+                        if (left_flank.find(tiles_assigned_id_vec[i]) != left_flank.end()) {
                             ++left_flank[tiles_assigned_id_vec[i]];
                         } else {
                             left_flank[tiles_assigned_id_vec[i]] = 1;
@@ -921,7 +921,7 @@ int main(int argc, char** argv) {
                     }
                     std::unordered_map<size_t, size_t> right_flank;
                     for (ssize_t i = longest_end_idx + 1; i < (ssize_t)num_tiles; ++i ){
-                        if (right_flank.contains(tiles_assigned_id_vec[i])) {
+                        if (right_flank.find(tiles_assigned_id_vec[i]) != right_flank.end()) {
                             ++right_flank[tiles_assigned_id_vec[i]];
                         } else {
                             right_flank[tiles_assigned_id_vec[i]] = 1;
@@ -961,7 +961,7 @@ int main(int argc, char** argv) {
                     if (longest_start_idx - 5 >= 1 ) {
                         std::unordered_map<size_t, size_t> left_flank;
                         for (ssize_t i = longest_start_idx - 5; i < longest_start_idx; ++i ){
-                            if (left_flank.contains(tiles_assigned_id_vec[i])) {
+                            if (left_flank.find(tiles_assigned_id_vec[i]) != left_flank.end()) {
                                 ++left_flank[tiles_assigned_id_vec[i]];
                             } else {
                                 left_flank[tiles_assigned_id_vec[i]] = 1;
@@ -993,7 +993,7 @@ int main(int argc, char** argv) {
                     if (longest_end_idx + 5 < (ssize_t)num_tiles - 1 ) {
                         std::unordered_map<size_t, size_t> right_flank;
                         for (ssize_t i = longest_end_idx + 5; i > longest_end_idx; --i ){
-                            if (right_flank.contains(tiles_assigned_id_vec[i])) {
+                            if (right_flank.find(tiles_assigned_id_vec[i]) != right_flank.end()) {
                                 ++right_flank[tiles_assigned_id_vec[i]];
                             } else {
                                 right_flank[tiles_assigned_id_vec[i]] = 1;
