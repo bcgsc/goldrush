@@ -113,7 +113,10 @@ stRead(const string& seq, std::vector<std::vector<uint16_t>>& t_Counters, std::v
 void
 compEst(const std::vector<uint16_t>& t_Counter, double& F0Mean, double fMean[])
 {
-	unsigned p[nts::nSamp][65536];
+	unsigned **p = new unsigned*[nts::nSamp];
+	for (size_t i = 0; i < nts::nSamp; i++) {
+		p[i] = new unsigned[65536];
+	}
 	for (size_t i = 0; i < nts::nSamp; i++)
 		for (size_t j = 0; j < 65536; j++)
 			p[i][j] = 0;
