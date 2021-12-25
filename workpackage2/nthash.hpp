@@ -535,8 +535,6 @@ ntf64(const char* kmer_seq, const unsigned k)
   return h_val;
 }
 
-
-
 // reverse-strand hash value of the base kmer, i.e. rhval(kmer_0)
 inline uint64_t
 ntr64(const char* kmer_seq, const unsigned k)
@@ -1254,49 +1252,73 @@ ntmsm64(const char* kmer_seq,
   }
 }
 
-inline bool NTSFR64(const char *kmerSeq, const std::vector<unsigned>& seedSeq, const unsigned k, uint64_t& fhVal, uint64_t& rhVal, unsigned& locN, uint64_t* hVal) {
-    fhVal=rhVal=0;
-    locN=0;
-    for(int i=k-1; i>=0; i--) {
-        if(SEED_TAB[(unsigned char)kmerSeq[i]]==SEED_N) {
-            locN=i;
-            return false;
-        }
-        fhVal = rol1(fhVal);
-        fhVal = swapbits033(fhVal);
-        fhVal ^= SEED_TAB[(unsigned char)kmerSeq[k-1-i]];
-        
-        rhVal = rol1(rhVal);
-        rhVal = swapbits033(rhVal);
-        rhVal ^= SEED_TAB[(unsigned char)kmerSeq[i]&CP_OFF];
+inline bool
+NTSFR64(const char* kmerSeq,
+        const std::vector<unsigned>& seedSeq,
+        const unsigned k,
+        uint64_t& fhVal,
+        uint64_t& rhVal,
+        unsigned& locN,
+        uint64_t* hVal)
+{
+  fhVal = rhVal = 0;
+  locN = 0;
+  for (int i = k - 1; i >= 0; i--) {
+    if (SEED_TAB[(unsigned char)kmerSeq[i]] == SEED_N) {
+      locN = i;
+      return false;
     }
-    
-    uint64_t fsVal=fhVal, rsVal=rhVal;
-    for(std::vector<unsigned>::const_iterator i=seedSeq.begin(); i!=seedSeq.end(); ++i) {
-        fsVal ^= (MS_TAB_31L[(unsigned char)kmerSeq[*i]][(k-1-*i)%31] | MS_TAB_33R[(unsigned char)kmerSeq[*i]][(k-1-*i)%33]);
-        rsVal ^= (MS_TAB_31L[(unsigned char)kmerSeq[*i]&CP_OFF][*i%31] | MS_TAB_33R[(unsigned char)kmerSeq[*i]&CP_OFF][*i%33]);
-    }
-    hVal[0] = fsVal;
-    hVal[1] = rsVal;
-    return true;
+    fhVal = rol1(fhVal);
+    fhVal = swapbits033(fhVal);
+    fhVal ^= SEED_TAB[(unsigned char)kmerSeq[k - 1 - i]];
+
+    rhVal = rol1(rhVal);
+    rhVal = swapbits033(rhVal);
+    rhVal ^= SEED_TAB[(unsigned char)kmerSeq[i] & CP_OFF];
+  }
+
+  uint64_t fsVal = fhVal, rsVal = rhVal;
+  for (std::vector<unsigned>::const_iterator i = seedSeq.begin();
+       i != seedSeq.end();
+       ++i) {
+    fsVal ^= (MS_TAB_31L[(unsigned char)kmerSeq[*i]][(k - 1 - *i) % 31] |
+              MS_TAB_33R[(unsigned char)kmerSeq[*i]][(k - 1 - *i) % 33]);
+    rsVal ^= (MS_TAB_31L[(unsigned char)kmerSeq[*i] & CP_OFF][*i % 31] |
+              MS_TAB_33R[(unsigned char)kmerSeq[*i] & CP_OFF][*i % 33]);
+  }
+  hVal[0] = fsVal;
+  hVal[1] = rsVal;
+  return true;
 }
 
 // strand-aware multihash spaced seed ntHash for sliding k-mers
-inline void NTSFR64(const char *kmerSeq, const std::vector<unsigned>& seedSeq, const unsigned char charOut, const unsigned char charIn, const unsigned k, uint64_t& fhVal, uint64_t& rhVal, uint64_t *hVal) {
-    fhVal = ntf64(fhVal,k,charOut,charIn);
-    rhVal = ntr64(rhVal,k,charOut,charIn);
-        uint64_t fsVal=fhVal, rsVal=rhVal;
-    for(std::vector<unsigned>::const_iterator i=seedSeq.begin(); i!=seedSeq.end(); ++i) {
-        fsVal ^= (MS_TAB_31L[(unsigned char)kmerSeq[*i]][(k-1-*i)%31] |  MS_TAB_33R[(unsigned char)kmerSeq[*i]][(k-1-*i)%33]);
-        rsVal ^= (MS_TAB_31L[(unsigned char)kmerSeq[*i]&CP_OFF][*i%31] | MS_TAB_33R[(unsigned char)kmerSeq[*i]&CP_OFF][*i%33]);;
-    }
-        if (fsVal < rsVal) {
-            hVal[0] = fsVal;
-        } else {
-            hVal[0] = rsVal;
-        }
-
-
+inline void
+NTSFR64(const char* kmerSeq,
+        const std::vector<unsigned>& seedSeq,
+        const unsigned char charOut,
+        const unsigned char charIn,
+        const unsigned k,
+        uint64_t& fhVal,
+        uint64_t& rhVal,
+        uint64_t* hVal)
+{
+  fhVal = ntf64(fhVal, k, charOut, charIn);
+  rhVal = ntr64(rhVal, k, charOut, charIn);
+  uint64_t fsVal = fhVal, rsVal = rhVal;
+  for (std::vector<unsigned>::const_iterator i = seedSeq.begin();
+       i != seedSeq.end();
+       ++i) {
+    fsVal ^= (MS_TAB_31L[(unsigned char)kmerSeq[*i]][(k - 1 - *i) % 31] |
+              MS_TAB_33R[(unsigned char)kmerSeq[*i]][(k - 1 - *i) % 33]);
+    rsVal ^= (MS_TAB_31L[(unsigned char)kmerSeq[*i] & CP_OFF][*i % 31] |
+              MS_TAB_33R[(unsigned char)kmerSeq[*i] & CP_OFF][*i % 33]);
+    ;
+  }
+  if (fsVal < rsVal) {
+    hVal[0] = fsVal;
+  } else {
+    hVal[0] = rsVal;
+  }
 }
 
 class NtHash;

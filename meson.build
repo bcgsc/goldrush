@@ -13,6 +13,12 @@ tcmalloc_dep = compiler.find_library('tcmalloc')
 divsufsort_dep = compiler.find_library('divsufsort')
 divsufsort64_dep = compiler.find_library('divsufsort64')
 sdsl_dep = compiler.find_library('sdsl')
-zlib_dep = compiler.find_library('z')
 
 subdir('workpackage2')
+
+rootpath = meson.source_root()
+
+clang_format = find_program('clang-format', required : false)
+if clang_format.found()
+  run_target('format', command: join_paths(rootpath, 'scripts/format'))
+endif

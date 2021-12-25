@@ -35,5 +35,3 @@ unsigned frameMatches = 1;
 
 bool hitOnly = false;
 }
-
-

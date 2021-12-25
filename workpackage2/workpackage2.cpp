@@ -1,30 +1,26 @@
+#include "opt.hpp"
+#include "read_hashing.hpp"
+
+#include "Common/Options.h"
+#include "MIBFConstructSupport.hpp"
+#include "MIBloomFilter.hpp"
+#include "multiLensfrHashIterator.hpp"
+
 #include "btllib/bloom_filter.hpp"
 #include "btllib/seq_reader.hpp"
 #include "btllib/seq_writer.hpp"
 #include "btllib/util.hpp"
-
-#include <algorithm>
-#include <fstream>
-#include <getopt.h>
-#include <iostream>
-#include <sstream>
-#include <vector>
-
-#include <unordered_set>
+#include "ntcard.hpp"
+#include <sdsl/int_vector.hpp>
 
 #if _OPENMP
 #include <omp.h>
 #endif
 
-#include "multiLensfrHashIterator.hpp"
-
-#include "Common/Options.h"
-#include "MIBFConstructSupport.hpp"
-#include "MIBloomFilter.hpp"
 #include <algorithm>
+#include <cstdio>
 #include <fstream>
 #include <functional>
-#include <future>
 #include <getopt.h>
 #include <iostream>
 #include <memory>
@@ -33,213 +29,14 @@
 #include <string>
 #include <sys/stat.h>
 #include <thread>
-#include <vector>
-//#include "btl_bloomfilter/vendor/stHashIterator.hpp"
-//#include "Common/sntHashIterator.hpp"
-
-//#include "btl_bloomfilter/BloomFilter.hpp"
-
-#include "Common/Options.h"
-
-//#include "tsl/robin_map.h"
-//#include "tsl/robin_set.h"
-#include "ntcard.hpp"
-
-#include <google/dense_hash_map>
-#include <google/dense_hash_set>
-#include <google/sparse_hash_map>
-#include <sdsl/int_vector.hpp>
 #include <tuple>
-//#include "Common/sntHashIterator.hpp"
-#include "MIBFConstructSupport.hpp"
-
-#include <stdio.h>
-#include <zlib.h>
-
-namespace opt {
-size_t assigned_max = 5;
-size_t unassigned_min = 5;
-size_t tile_length = 1000;
-size_t genome_size = 0;
-size_t target_size = 0;
-size_t kmer_size = 0;
-size_t weight = 0;
-size_t min_length = 5000;
-size_t hash_num = 1;
-double occupancy = 0.1;
-double ratio = 0.1;
-size_t levels = 1;
-size_t jobs = 1;
-size_t max_paths = 1;
-size_t threshold = 10;
-std::string prefix_file = "workpackage2";
-std::string input = "";
-std::string seed_preset = "";
-int help = 0;
-int ntcard = 0;
-int second_pass = 0;
-int temp_mode = 0;
-int new_temp_mode = 0;
-
-}
-
-static constexpr bool verbose = true;
-
-struct ReadHashes
-{
-  btllib::SeqReader::Record record;
-  std::vector<std::vector<uint64_t>> hashes;
-};
-
-static size_t
-hash_precompute(btllib::SeqReader& reader,
-                btllib::OrderQueueMPMC<ReadHashes>& queue,
-                size_t min_seq_len,
-                const std::vector<std::string>& seed_string_vec)
-{
-  btllib::OrderQueueMPMC<btllib::SeqReader::Record>::Block record_block(
-    btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
-  btllib::OrderQueueMPMC<ReadHashes>::Block block(
-    btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
-  size_t last_block_num = 0;
-  while (true) {
-    record_block = reader.read_block();
-    if (record_block.count == 0) {
-      break;
-    }
-
-    for (size_t idx = 0; idx < record_block.count; idx++) {
-      auto record = record_block.data[idx];
-      const size_t len = record.seq.size();
-      const size_t num_tiles = len / opt::tile_length;
-
-      std::vector<std::vector<uint64_t>> hashed_values(num_tiles,
-                                                       std::vector<uint64_t>());
-      if (record.seq.size() >= min_seq_len) {
-        for (size_t i = 0; i < num_tiles; ++i) {
-          std::string tile_seq = record.seq.substr(
-            i * opt::tile_length, opt::tile_length + opt::kmer_size - 1);
-          multiLensfrHashIterator itr(tile_seq, seed_string_vec);
-          while (itr != itr.end()) {
-            for (size_t curr_hash = 0; curr_hash < seed_string_vec.size();
-                 ++curr_hash) {
-              hashed_values[i].push_back((*itr)[curr_hash]);
-            }
-            ++itr;
-          }
-        }
-      }
-
-      block.data[block.count++] = { std::move(record),
-                                    std::move(hashed_values) };
-      if (block.count == block.data.size()) {
-        block.num = record_block.num;
-        last_block_num = block.num;
-        queue.write(block);
-        block.count = 0;
-        block.num = 0;
-      }
-    }
-  }
-  if (block.count > 0) {
-    block.num = last_block_num;
-    queue.write(block);
-    block.count = 0;
-    block.num = 0;
-  }
-  return last_block_num;
-}
-
-static void
-hash_precomputing(const std::string& input,
-                  btllib::OrderQueueMPMC<ReadHashes>& queue,
-                  size_t min_seq_len,
-                  const std::vector<std::string>& seed_string_vec,
-                  unsigned worker_num)
-{
-  (new std::thread([&]() {
-    btllib::SeqReader reader(input, btllib::SeqReader::Flag::LONG_MODE);
-    std::vector<std::future<size_t>> last_block_num_futures;
-    std::vector<size_t> last_block_nums;
-    for (unsigned i = 0; i < worker_num; i++) {
-      last_block_num_futures.push_back(std::async(hash_precompute,
-                                                  std::ref(reader),
-                                                  std::ref(queue),
-                                                  min_seq_len,
-                                                  std::cref(seed_string_vec)));
-    }
-    for (auto& f : last_block_num_futures) {
-      last_block_nums.push_back(f.get());
-    }
-    btllib::OrderQueueMPMC<ReadHashes>::Block dummy(
-      btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
-    dummy.num =
-      *(std::max_element(last_block_nums.begin(), last_block_nums.end())) + 1;
-    dummy.count = 0;
-    queue.write(dummy);
-  }))
-    ->detach();
-}
+#include <unordered_set>
+#include <vector>
 
 bool
 sort_by_sec(const pair<size_t, size_t>& a, const pair<size_t, size_t>& b)
 {
   return (a.second > b.second);
-}
-
-static void
-printUsage(const std::string& progname)
-{
-  std::cout
-    << "Usage:  " << progname
-    << "  -k K -w W -i INPUT [-p prefix] [-o O] [-t T] [-h H] [-u U] [-m M]  "
-       "[-a A] [-l L] [-j J]\n\n"
-       "  -i INPUT    find golden paths from INPUT [required]\n"
-       "  -o O        use O as occupancy[0.1]\n"
-       "  -h H        use h as number of spaced seed patterns [1]\n"
-       "  -t T        use T as tile length [1000]\n"
-       "  -k K        use K as span of spaced seed [required]\n"
-       "  -w W        use W as weight of spaced seed [required]\n"
-       "  -m M        use reads longer than M [5000]\n"
-       "  -u U        U minimum unassigned tiles for read to be unassigned "
-       "[5]\n"
-       "  -a A        A maximum assigned tiles for read to be unassigned [5]\n"
-       "  -l L        output L golden paths [1]\n"
-       "  -p prefix   write output to files with prefix, e.g. "
-       "prefix_golden_path_0.fa [workpackage2]\n"
-       "  -j J        use J number of threads [1]\n"
-       "  -x X        require X hits for a tile to be assigned [10]\n"
-       "  --ntcard    use ntcard to estimate genome size [false, assume max "
-       "entries]\n"
-       "  --help      display this help and exit\n";
-}
-
-uint64_t
-calc_ntcard_genome_size(const std::vector<std::string>& seed_string_vec)
-{
-
-  vector<string> inFiles;
-  inFiles.push_back(opt::input);
-  uint64_t genome_size = 0;
-
-  /* indices 0 and 1 are reserved for F0 and 1.
-     Indicex 2 to 10001 store kmer multiplicities up to 10000 */
-  static const size_t DEFAULT_NTCARD_HIST_COV_MAX = 10000;
-  std::cerr << "Calculating expected entries" << std::endl;
-  const auto histArray = getHist(inFiles,
-                                 opt::kmer_size,
-                                 opt::jobs,
-                                 DEFAULT_NTCARD_HIST_COV_MAX,
-                                 seed_string_vec);
-  for (size_t i = 0; i < seed_string_vec.size(); ++i) {
-    std::cerr << "Expected entries for seed pattern " << seed_string_vec[i]
-              << " : " << histArray[i][1] << std::endl;
-
-    genome_size += (histArray[i][1]);
-  }
-  std::cerr << "Total expected entries for seed patterns: " << genome_size
-            << std::endl;
-  return genome_size;
 }
 
 const std::vector<std::string>
@@ -311,7 +108,6 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
 
   size_t num_assigned_tiles = 0;
   size_t num_tiles = hashed_values.size();
-  // std::vector<uint32_t> tiles_assigned_id_vec (num_tiles, 0);
 
   static std::unique_ptr<uint32_t[]> tiles_assigned_id_array;
   if (verbose) {
@@ -592,113 +388,15 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
 int
 main(int argc, char** argv)
 {
+  process_options(argc, argv);
 
-  static const struct option longopts[] = {
-    { "new_temp_mode", no_argument, &opt::new_temp_mode, 1 },
-    { "temp_mode", no_argument, &opt::temp_mode, 1 },
-    { "second_pass", no_argument, &opt::second_pass, 1 },
-    { "help", no_argument, &opt::help, 1 },
-    { "ntcard", no_argument, &opt::ntcard, 1 },
-    { nullptr, 0, nullptr, 0 }
-  };
-
-  int optindex = 0;
-  int c;
-  char* end = nullptr;
-  while ((c = getopt_long(argc,
-                          argv,
-                          "a:g:h:i:j:k:l:m:M:o:r:s:t:u:w:x:p:T:",
-                          longopts,
-                          &optindex)) != -1) {
-    switch (c) {
-      case 0:
-        break;
-      case 'a': {
-        opt::assigned_max = strtoul(optarg, &end, 10);
-        break;
-      }
-      case 'g':
-        opt::genome_size = strtoull(optarg, &end, 10);
-        break;
-      case 'h':
-        opt::hash_num = strtoul(optarg, &end, 10);
-        break;
-      case 'i':
-        opt::input = optarg;
-        break;
-      case 'j':
-        opt::jobs = strtoul(optarg, &end, 10);
-        break;
-      case 'k':
-        opt::kmer_size = strtoul(optarg, &end, 10);
-        break;
-      case 'l':
-        opt::levels = strtoul(optarg, &end, 10);
-        break;
-      case 'm':
-        opt::min_length = strtoul(optarg, &end, 10);
-        break;
-      case 'M':
-        opt::max_paths = strtoul(optarg, &end, 10);
-        break;
-      case 'o':
-        opt::occupancy = strtod(optarg, &end);
-        break;
-      case 'r':
-        opt::ratio = strtod(optarg, &end);
-        break;
-      case 'p':
-        opt::prefix_file = optarg;
-        break;
-      case 's':
-        opt::seed_preset = optarg;
-        break;
-      case 't':
-        opt::tile_length = strtoul(optarg, &end, 10);
-        break;
-      case 'T':
-        opt::target_size = strtoul(optarg, &end, 10);
-        break;
-      case 'u': {
-        opt::unassigned_min = strtoul(optarg, &end, 10);
-        break;
-      }
-      case 'w': {
-        opt::weight = strtoul(optarg, &end, 10);
-        break;
-      }
-      case 'x': {
-        opt::threshold = strtoul(optarg, &end, 10);
-        break;
-      }
-      default:
-        exit(EXIT_FAILURE);
-    }
-  }
-
-  if (opt::help) {
-    printUsage("workpackage2");
-    exit(0);
-  }
-
-  if (!opt::kmer_size) {
-    std::cerr << "span of spaced seed cannot be 0" << std::endl;
-    printUsage("workpackage2");
-    exit(0);
-  }
-
-  if (!opt::weight) {
-    std::cerr << "weight of spaced seed cannot be 0" << std::endl;
-    printUsage("workpackage2");
-    exit(0);
-  }
+#if _OPENMP
+  omp_set_num_threads(opt::jobs);
+#endif
 
   if (opt::second_pass) {
     std::cerr << "second_pass" << std::endl;
   }
-#if _OPENMP
-  omp_set_num_threads(opt::jobs);
-#endif
 
   size_t min_seq_len = opt::min_length;
 
@@ -707,7 +405,8 @@ main(int argc, char** argv)
 
   if (opt::genome_size == 0) {
     if (opt::ntcard) {
-      opt::genome_size = calc_ntcard_genome_size(seed_string_vec);
+      opt::genome_size = calc_ntcard_genome_size(
+        opt::input, opt::kmer_size, seed_string_vec, opt::jobs);
     } else {
       static const uint8_t BASES = 4;
       static const float HASH_UNIVERSE_COEFFICIENT = 0.5;
@@ -782,8 +481,8 @@ main(int argc, char** argv)
   miBFCS.setup();
   std::vector<std::unique_ptr<MIBloomFilter<uint32_t>>> mibf_vec;
   for (size_t i = 0; i < opt::levels; ++i) {
-    mibf_vec.emplace_back(std::move(
-      std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF())));
+    mibf_vec.emplace_back(
+      std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF()));
   }
 
   std::cerr << "assigning tiles" << std::endl;
@@ -792,11 +491,16 @@ main(int argc, char** argv)
   uint64_t target_bases = opt::ratio * opt::target_size;
   uint64_t curr_path = 1;
   std::cerr << "checkpoint1" << std::endl;
-  btllib::OrderQueueMPMC<ReadHashes> precomputed_hash_queue(
+  btllib::OrderQueueMPMC<ReadTileHashes> precomputed_hash_queue(
     btllib::SeqReader::LONG_MODE_BUFFER_SIZE,
     btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
-  hash_precomputing(
-    opt::input, precomputed_hash_queue, min_seq_len, seed_string_vec, 6);
+  start_read_hashing(opt::input,
+                     min_seq_len,
+                     opt::tile_length,
+                     opt::kmer_size,
+                     seed_string_vec,
+                     precomputed_hash_queue,
+                     6);
   std::cerr << "checkpoint2" << std::endl;
   while (true) {
     std::cerr << "checkpoint3" << std::endl;
@@ -810,8 +514,8 @@ main(int argc, char** argv)
     }
     for (size_t idx = 0; idx < block.count; idx++) {
       const auto& read_hashes = block.data[idx];
-      const auto& record = read_hashes.record;
-      const auto& hashed_values = read_hashes.hashes;
+      const auto& record = read_hashes.read;
+      const auto& hashed_values = read_hashes.tile_hashes;
       if (record.seq.size() < min_seq_len) {
         if (verbose) {
           std::cerr << "too short" << std::endl;
@@ -903,9 +607,8 @@ main(int argc, char** argv)
               }
               inserted_bases = 0;
               mibf_vec.pop_back();
-              mibf_vec.emplace_back(
-                std::move(std::unique_ptr<MIBloomFilter<uint32_t>>(
-                  miBFCS.getEmptyMIBF())));
+              mibf_vec.emplace_back(std::unique_ptr<MIBloomFilter<uint32_t>>(
+                miBFCS.getEmptyMIBF()));
               golden_path_vec.pop_back();
               golden_path_vec.emplace_back(
                 std::ofstream(opt::prefix_file + "_golden_path_" +
@@ -1203,9 +906,8 @@ main(int argc, char** argv)
                 }
                 inserted_bases = 0;
                 mibf_vec.pop_back();
-                mibf_vec.emplace_back(
-                  std::move(std::unique_ptr<MIBloomFilter<uint32_t>>(
-                    miBFCS.getEmptyMIBF())));
+                mibf_vec.emplace_back(std::unique_ptr<MIBloomFilter<uint32_t>>(
+                  miBFCS.getEmptyMIBF()));
                 golden_path_vec.pop_back();
                 golden_path_vec.emplace_back(
                   std::ofstream(opt::prefix_file + "_golden_path_" +
