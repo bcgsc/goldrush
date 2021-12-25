@@ -1,5 +1,6 @@
 #include "opt.hpp"
 #include "read_hashing.hpp"
+#include "spaced_seeds.hpp"
 
 #include "Common/Options.h"
 #include "MIBFConstructSupport.hpp"
@@ -39,64 +40,24 @@ sort_by_sec(const pair<size_t, size_t>& a, const pair<size_t, size_t>& b)
   return (a.second > b.second);
 }
 
-const std::vector<std::string>
-make_seed_pattern()
-{
+void fill_bit_vector(const std::string& input_file, MIBFConstructSupport<uint32_t, multiLensfrHashIterator> &miBFCS, const size_t min_seq_len, const std::vector<std::string>& spaced_seeds) {
+  std::cerr << "inserting bit vector" << std::endl;
 
-  std::vector<std::string> seed_string_vec;
-  std::string left_seed_str;
-  std::string right_seed_str;
+  auto sTime = omp_get_wtime();
 
-  if (opt::seed_preset == "") {
-    srand(time(NULL));
-    // seed generation
-    std::cerr << "Designing base symmetrical spaced seed"
-              << "\n"
-              << "Using:"
-              << "\n"
-              << "span: " << opt::kmer_size << "\n"
-              << "weight: " << opt::weight << std::endl;
-
-    std::vector<unsigned> left_seed_vec(opt::kmer_size / 2, 0);
-    left_seed_vec[0] = 1; // left most val in seed must be a 1
-    size_t weight_count = 0;
-
-    while (weight_count != opt::weight / 2) {
-      for (size_t i = 1; i < opt::kmer_size / 2; ++i) {
-        left_seed_vec[i] = rand() % 2;
-      }
-      weight_count = std::count(left_seed_vec.begin(), left_seed_vec.end(), 1);
+  btllib::SeqReader reader(input_file, btllib::SeqReader::Flag::LONG_MODE);
+#pragma omp parallel
+  for (const auto record : reader) {
+    if (record.seq.size() < min_seq_len) {
+      continue;
     }
-
-    std::stringstream temp_ss;
-    for (const auto val : left_seed_vec) {
-      temp_ss << val;
-    }
-
-    left_seed_str = temp_ss.str();
-    right_seed_str = std::string(left_seed_str.rbegin(), left_seed_str.rend());
-
-  } else {
-    std::cerr << "Using preset spaced seed"
-              << "\n"
-              << "with:"
-              << "\n"
-              << "span: " << opt::seed_preset.size() << "\n"
-              << "weight: "
-              << std::count(
-                   opt::seed_preset.begin(), opt::seed_preset.end(), '1')
-              << std::endl;
-    left_seed_str = opt::seed_preset.substr(0, opt::seed_preset.size() / 2);
-    right_seed_str = opt::seed_preset.substr(opt::seed_preset.size() / 2,
-                                             opt::seed_preset.size() / 2);
+    multiLensfrHashIterator itr(record.seq, spaced_seeds);
+    miBFCS.insertBV(itr);
   }
 
-  for (size_t i = 0; i < opt::hash_num; ++i) {
-    seed_string_vec.push_back(left_seed_str + std::string(i, '0') +
-                              right_seed_str);
-  }
-
-  return seed_string_vec;
+  std::cerr << "finished inserting bit vector" << std::endl;
+  std::cerr << "in " << setprecision(4) << fixed << omp_get_wtime() - sTime
+            << "\n";
 }
 
 size_t
@@ -385,137 +346,7 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
   return num_assigned_tiles;
 }
 
-int
-main(int argc, char** argv)
-{
-  process_options(argc, argv);
-
-#if _OPENMP
-  omp_set_num_threads(opt::jobs);
-#endif
-
-  if (opt::second_pass) {
-    std::cerr << "second_pass" << std::endl;
-  }
-
-  size_t min_seq_len = opt::min_length;
-
-  // srand (1); // for testing, change to srand(time(NULL)) for actual code
-  const std::vector<std::string> seed_string_vec = make_seed_pattern();
-
-  if (opt::genome_size == 0) {
-    if (opt::ntcard) {
-      opt::genome_size = calc_ntcard_genome_size(
-        opt::input, opt::kmer_size, seed_string_vec, opt::jobs);
-    } else {
-      static const uint8_t BASES = 4;
-      static const float HASH_UNIVERSE_COEFFICIENT = 0.5;
-      opt::genome_size =
-        pow(BASES, opt::weight) * HASH_UNIVERSE_COEFFICIENT * opt::hash_num;
-    }
-  }
-
-  uint32_t id = 1;
-
-  std::cerr << "Calculating " << opt::levels << " golden path(s)"
-            << "\n"
-            << "Using:"
-            << "\n"
-            << "tile length: " << opt::tile_length << "\n"
-            << "seed pattens: " << opt::hash_num << "\n"
-            << "threshold: " << opt::threshold << "\n"
-            << "base seed pattern: " << seed_string_vec[0] << "\n"
-            << "minimum unassigned tiles: " << opt::unassigned_min << "\n"
-            << "maximum assigned tiles: " << opt::assigned_max << "\n"
-            << "genome size: " << opt::genome_size << "\n"
-            << "occupancy: " << opt::occupancy << "\n"
-            << "jobs: " << opt::jobs << std::endl;
-
-  std::vector<std::ofstream> golden_path_vec;
-  for (size_t level = 0; level < opt::levels; ++level) {
-    golden_path_vec.emplace_back(std::ofstream(
-      opt::prefix_file + "_golden_path_" + std::to_string(level) + ".fa"));
-  }
-
-  double sTime = omp_get_wtime();
-  std::cerr << "allocating bit vector" << std::endl;
-
-  size_t filter_size = MIBloomFilter<uint32_t>::calcOptimalSize(
-    opt::genome_size, 1, opt::occupancy);
-  MIBFConstructSupport<uint32_t, multiLensfrHashIterator> miBFCS(
-    opt::genome_size,
-    opt::kmer_size,
-    seed_string_vec.size(),
-    opt::occupancy,
-    filter_size,
-    seed_string_vec);
-
-  std::cerr << "finished allocating bit vector" << std::endl;
-  std::cerr << "in " << setprecision(4) << fixed << omp_get_wtime() - sTime
-            << "\n";
-
-  std::cerr << "opening: " << opt::input << std::endl;
-
-  uint32_t ids_inserted = 0;
-
-  std::cerr << "inserting bit vector" << std::endl;
-
-  sTime = omp_get_wtime();
-  {
-    btllib::SeqReader reader(opt::input, btllib::SeqReader::Flag::LONG_MODE);
-#pragma omp parallel
-    for (const auto record : reader) {
-      if (record.seq.size() < min_seq_len) {
-        continue;
-      }
-      multiLensfrHashIterator itr(record.seq, seed_string_vec);
-      miBFCS.insertBV(itr);
-    }
-  }
-
-  std::cerr << "finished inserting bit vector" << std::endl;
-  std::cerr << "in " << setprecision(4) << fixed << omp_get_wtime() - sTime
-            << "\n";
-
-  // setting up MIBF
-  miBFCS.setup();
-  std::vector<std::unique_ptr<MIBloomFilter<uint32_t>>> mibf_vec;
-  for (size_t i = 0; i < opt::levels; ++i) {
-    mibf_vec.emplace_back(
-      std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF()));
-  }
-
-  std::cerr << "assigning tiles" << std::endl;
-  sTime = omp_get_wtime();
-  uint64_t inserted_bases = 0;
-  uint64_t target_bases = opt::ratio * opt::target_size;
-  uint64_t curr_path = 1;
-  std::cerr << "checkpoint1" << std::endl;
-  btllib::OrderQueueMPMC<ReadTileHashes> precomputed_hash_queue(
-    btllib::SeqReader::LONG_MODE_BUFFER_SIZE,
-    btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
-  start_read_hashing(opt::input,
-                     min_seq_len,
-                     opt::tile_length,
-                     opt::kmer_size,
-                     seed_string_vec,
-                     precomputed_hash_queue,
-                     6);
-  std::cerr << "checkpoint2" << std::endl;
-  while (true) {
-    std::cerr << "checkpoint3" << std::endl;
-    decltype(precomputed_hash_queue)::Block block(
-      btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
-    std::cerr << "checkpoint4" << std::endl;
-    precomputed_hash_queue.read(block);
-    std::cerr << "checkpoint5" << std::endl;
-    if (block.count == 0) {
-      break;
-    }
-    for (size_t idx = 0; idx < block.count; idx++) {
-      const auto& read_hashes = block.data[idx];
-      const auto& record = read_hashes.read;
-      const auto& hashed_values = read_hashes.tile_hashes;
+void process_read(const btllib::SeqReader::Record& record, const std::vector<std::vector<uint64_t>>& hashed_values, std::vector<std::ofstream>& golden_path_vec, std::vector<std::unique_ptr<MIBloomFilter<uint32_t>>>& mibf_vec, MIBFConstructSupport<uint32_t, multiLensfrHashIterator>& miBFCS, uint64_t& inserted_bases, uint64_t& target_bases, uint64_t& curr_path, uint32_t& id, uint32_t& ids_inserted, const size_t min_seq_len) {
       if (record.seq.size() < min_seq_len) {
         if (verbose) {
           std::cerr << "too short" << std::endl;
@@ -524,9 +355,8 @@ main(int argc, char** argv)
         // wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping
         // wood path output to reduce time
         ++id;
-        continue;
+        return;
       }
-      std::cerr << "checkpoint6" << std::endl;
       if (id % 10000 == 0) {
         std::cerr << "processed " << id << " reads" << std::endl;
       }
@@ -928,9 +758,124 @@ main(int argc, char** argv)
 
         ++id;
       }
+}
+
+int
+main(int argc, char** argv)
+{
+  process_options(argc, argv);
+
+#if _OPENMP
+  omp_set_num_threads(opt::jobs);
+#endif
+
+  if (opt::second_pass) {
+    std::cerr << "second_pass" << std::endl;
+  }
+
+  // srand (1); // for testing, change to srand(time(NULL)) for actual code
+  const auto seed_string_vec = make_seed_pattern(
+    opt::seed_preset, opt::kmer_size, opt::weight, opt::hash_num);
+
+  if (opt::genome_size == 0) {
+    if (opt::ntcard) {
+      opt::genome_size = calc_ntcard_genome_size(
+        opt::input, opt::kmer_size, seed_string_vec, opt::jobs);
+    } else {
+      static const uint8_t BASES = 4;
+      static const float HASH_UNIVERSE_COEFFICIENT = 0.5;
+      opt::genome_size =
+        pow(BASES, opt::weight) * HASH_UNIVERSE_COEFFICIENT * opt::hash_num;
     }
   }
-  std::cerr << "assgined" << std::endl;
+
+  std::cerr << "Calculating " << opt::levels << " golden path(s)"
+            << "\n"
+            << "Using:"
+            << "\n"
+            << "tile length: " << opt::tile_length << "\n"
+            << "seed pattens: " << opt::hash_num << "\n"
+            << "threshold: " << opt::threshold << "\n"
+            << "base seed pattern: " << seed_string_vec[0] << "\n"
+            << "minimum unassigned tiles: " << opt::unassigned_min << "\n"
+            << "maximum assigned tiles: " << opt::assigned_max << "\n"
+            << "genome size: " << opt::genome_size << "\n"
+            << "occupancy: " << opt::occupancy << "\n"
+            << "jobs: " << opt::jobs << std::endl;
+
+  std::vector<std::ofstream> golden_path_vec;
+  for (size_t level = 0; level < opt::levels; ++level) {
+    golden_path_vec.emplace_back(std::ofstream(
+      opt::prefix_file + "_golden_path_" + std::to_string(level) + ".fa"));
+  }
+
+  double sTime = omp_get_wtime();
+  std::cerr << "allocating bit vector" << std::endl;
+
+  size_t filter_size = MIBloomFilter<uint32_t>::calcOptimalSize(
+    opt::genome_size, 1, opt::occupancy);
+  MIBFConstructSupport<uint32_t, multiLensfrHashIterator> miBFCS(
+    opt::genome_size,
+    opt::kmer_size,
+    seed_string_vec.size(),
+    opt::occupancy,
+    filter_size,
+    seed_string_vec);
+
+  std::cerr << "finished allocating bit vector" << std::endl;
+  std::cerr << "in " << setprecision(4) << fixed << omp_get_wtime() - sTime
+            << "\n";
+
+  std::cerr << "opening: " << opt::input << std::endl;
+
+  fill_bit_vector(opt::input, miBFCS, opt::min_length, seed_string_vec);
+
+  // setting up MIBF
+  miBFCS.setup();
+  std::vector<std::unique_ptr<MIBloomFilter<uint32_t>>> mibf_vec;
+  for (size_t i = 0; i < opt::levels; ++i) {
+    mibf_vec.emplace_back(
+      std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF()));
+  }
+
+  std::cerr << "assigning tiles" << std::endl;
+  sTime = omp_get_wtime();
+
+  btllib::OrderQueueMPMC<ReadTileHashes> precomputed_hash_queue(
+    btllib::SeqReader::LONG_MODE_BUFFER_SIZE,
+    btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
+  start_read_hashing(opt::input,
+                     opt::min_length,
+                     opt::tile_length,
+                     opt::kmer_size,
+                     seed_string_vec,
+                     precomputed_hash_queue,
+                     6);
+
+  uint64_t inserted_bases = 0;
+  uint64_t target_bases = opt::ratio * opt::target_size;
+  uint64_t curr_path = 1;
+  uint32_t id = 1;
+  uint32_t ids_inserted = 0;
+  while (true) {
+    decltype(precomputed_hash_queue)::Block block(
+      btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
+
+    precomputed_hash_queue.read(block);
+
+    if (block.count == 0) {
+      break;
+    }
+    for (size_t idx = 0; idx < block.count; idx++) {
+      const auto& read_hashes = block.data[idx];
+      const auto& record = read_hashes.read;
+      const auto& hashed_values = read_hashes.tile_hashes;
+
+      process_read(record, hashed_values, golden_path_vec, mibf_vec, miBFCS, inserted_bases, target_bases, curr_path, id, ids_inserted, opt::min_length);
+    }
+  }
+
+  std::cerr << "assigned" << std::endl;
   std::cerr << "in " << setprecision(4) << fixed << omp_get_wtime() - sTime
             << "\n";
 }
