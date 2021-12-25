@@ -16,11 +16,21 @@
  * execution of the program.
  */
 namespace opt {
-enum OutType {NONE ,FASTQ, FASTA, TSV};
+enum OutType
+{
+  NONE,
+  FASTQ,
+  FASTA,
+  TSV
+};
 
 /** for modes of filtering */
-enum FilteringMode {
-	STD, ORDERED, BESTHIT, SCORES
+enum FilteringMode
+{
+  STD,
+  ORDERED,
+  BESTHIT,
+  SCORES
 };
 
 extern bool inclusive;
