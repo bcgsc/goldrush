@@ -7,5 +7,6 @@ executable('workpackage2',
     src_files,
     dependencies : deps,
     include_directories : inc_dirs,
-    link_args : link_args
+    link_args : link_args,
+    install : true
 )
