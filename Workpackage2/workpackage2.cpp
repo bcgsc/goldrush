@@ -59,13 +59,16 @@ namespace opt {
     size_t unassigned_min = 5;
     size_t tile_length = 1000;
     size_t genome_size = 0;
+    size_t target_size = 0;
     size_t kmer_size = 0;
     size_t weight = 0;
     size_t min_length = 5000;
     size_t hash_num = 1;
     double occupancy = 0.1;
+    double ratio = 0.1;
     size_t levels = 1;
     size_t jobs = 1;
+    size_t max_paths = 1;
     size_t threshold = 10;
     std::string prefix_file = "workpackage2";
     std::string input = "";
@@ -73,6 +76,9 @@ namespace opt {
     int help = 0;
     int ntcard = 0;
     int second_pass = 0;
+    int temp_mode = 0;
+    int new_temp_mode = 0;
+    std::string filter_file = "";
 
 }
 
@@ -396,6 +402,41 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
     }
     std::cerr << std::endl;
 
+    for (size_t i = 1; i < num_tiles - 1; ++i) {
+        /*if (i == 0) {
+            if (tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i + 1] && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i + 1]  - 1 && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i + 1]  + 1) {
+                tiles_assigned_bool_vec[i] = false;
+            }
+            continue;
+        } else if (i == num_tiles - 1) {
+            if (tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i - 1] && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i - 1]  - 1 && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i - 1]  + 1) {
+                tiles_assigned_bool_vec[i] = false;
+            }
+            continue; 
+        }*/
+        if (tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i + 1] && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i + 1]  - 1 && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i + 1]  + 1 && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i - 1] && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i - 1]  - 1 && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i - 1]  + 1) {
+            tiles_assigned_bool_vec[i] = false;
+        }
+        
+    }
+
+
+
+    //print which id each tile is assigned to
+    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
+        std::cerr << tiles_assigned_id << "\t";
+
+
+    }
+    std::cerr << std::endl;
+
+    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
+        std::cerr << tiles_assigned_bool << "\t";
+
+
+    }
+    std::cerr << std::endl;
+
     std::cerr << std::endl;
     num_assigned_tiles = 0;
     for (const auto& is_tile_assigned : tiles_assigned_bool_vec) {
@@ -409,7 +450,9 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
 
 int main(int argc, char** argv) {
 
-	static const struct option longopts[] = { { "second_pass", no_argument, &opt::second_pass, 1 },
+	static const struct option longopts[] = { { "new_temp_mode", no_argument, &opt::new_temp_mode, 1 },
+                                              { "temp_mode", no_argument, &opt::temp_mode, 1 },
+                                              { "second_pass", no_argument, &opt::second_pass, 1 },
                                               { "help", no_argument, &opt::help, 1 },
                                               { "ntcard", no_argument, &opt::ntcard, 1 },
 		                                      { nullptr, 0, nullptr, 0 } };
@@ -417,7 +460,7 @@ int main(int argc, char** argv) {
     int optindex = 0;
     int c;
     char* end = nullptr;
-    while ((c = getopt_long(argc, argv, "a:g:h:i:j:k:l:m:o:s:t:u:w:x:p:", longopts, &optindex)) != -1) {
+    while ((c = getopt_long(argc, argv, "a:f:g:h:i:j:k:l:m:M:o:r:s:t:u:w:x:p:T:", longopts, &optindex)) != -1) {
         switch (c) {
         case 0:
             break;
@@ -425,6 +468,9 @@ int main(int argc, char** argv) {
             opt::assigned_max = strtoul(optarg, &end, 10);
             break;
         }
+        case 'f':
+            opt::filter_file = optarg;
+            break;
         case 'g':
             opt::genome_size = strtoull(optarg, &end, 10);
             break;
@@ -446,8 +492,14 @@ int main(int argc, char** argv) {
         case 'm':
             opt::min_length =  strtoul(optarg, &end, 10);
             break;
+        case 'M':
+            opt::max_paths =  strtoul(optarg, &end, 10);
+            break;
         case 'o':
             opt::occupancy = strtod(optarg, &end);
+            break;
+        case 'r':
+            opt::ratio = strtod(optarg, &end);
             break;
         case 'p':
             opt::prefix_file = optarg;
@@ -457,6 +509,9 @@ int main(int argc, char** argv) {
             break;
         case 't':
             opt::tile_length = strtoul(optarg, &end, 10);
+            break;
+        case 'T':
+            opt::target_size = strtoul(optarg, &end, 10);
             break;
         case 'u': {
             opt::unassigned_min = strtoul(optarg, &end, 10);
@@ -536,7 +591,16 @@ int main(int argc, char** argv) {
               << "occupancy: " << opt::occupancy << "\n"
               << "jobs: " << opt::jobs << std::endl;
 
-            
+    std::unordered_set<std::string> filter_out_reads;
+    if (opt::filter_file != "") {
+        std::cerr << "Using only reads not found in: " << opt::filter_file << std::endl;
+        std::string read_name = "";
+        std::ifstream infileStream(opt::filter_file);
+        while (infileStream >> read_name) {
+            filter_out_reads.insert(read_name);
+        }
+
+    }       
     
     std::vector<std::ofstream> golden_path_vec;
     for (size_t level = 0; level < opt::levels; ++level){
@@ -572,6 +636,12 @@ int main(int argc, char** argv) {
             if (record.seq.size() < min_seq_len) {
                 continue;
             }
+            if (opt::filter_file != "") {
+                if (filter_out_reads.contains(record.id)) {
+                    ++id;
+                    continue;
+                }
+            }
             multiLensfrHashIterator itr(record.seq, seed_string_vec); 
             miBFCS.insertBV(itr);
         }
@@ -593,6 +663,9 @@ int main(int argc, char** argv) {
 
     std::cerr << "assigning tiles" << std::endl;
     sTime = omp_get_wtime();
+    uint64_t inserted_bases = 0;
+    uint64_t target_bases = opt::ratio * opt::target_size;
+    uint64_t curr_path = 1;
 
     btllib::SeqReader reader(opt::input, btllib::SeqReader::Flag::LONG_MODE);
     for (const auto record : reader) {
@@ -604,9 +677,16 @@ int main(int argc, char** argv) {
                 continue;
 
         }
+        if (opt::filter_file != "") {
+            if (filter_out_reads.contains(record.id)) {
+                ++id;
+                continue;
+            }
+        }
         if (id % 1000 == 0) {
             std::cerr << "processed " << id << " reads" <<std::endl;
         }
+        
         size_t len = record.seq.size();
         size_t num_tiles = len / opt::tile_length;
         
@@ -672,10 +752,30 @@ int main(int argc, char** argv) {
                 }
                 ids_inserted = ids_inserted + uint32_t(record.seq.size() / 10000);
                 //output read to golden path
+
                 golden_path_vec[level] << ">" << record.id << '\n' << record.seq << std::endl;
+                
+                inserted_bases += record.seq.size();
+                if (opt::temp_mode || opt::new_temp_mode) {
+                    if (target_bases < inserted_bases) {
+                        ++curr_path;
+                        if (opt::max_paths < curr_path) {
+                            exit(0);
+                        }
+                        inserted_bases = 0;
+                        mibf_vec.pop_back();
+                        mibf_vec.emplace_back(std::move(std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF())));
+                        golden_path_vec.pop_back();
+                        golden_path_vec.emplace_back(std::ofstream(opt::prefix_file + "_golden_path_" + std::to_string(curr_path) + ".fa"));
+                        ids_inserted = 0;
+                    }
+                }
                 break; //breaks the level loop
                 
             } else {
+                if (opt::temp_mode) {
+                    continue;
+                }
                 if (num_assigned_tiles == num_tiles || opt::second_pass == true) {
                     std::cerr << "complete assignment" << std::endl;
                     continue;
@@ -737,12 +837,14 @@ int main(int argc, char** argv) {
                 bool good_flank = false;
                 size_t trim_start_idx = longest_start_idx - 1;
                 size_t trim_end_idx = longest_end_idx + 1;
+                std::cerr << "trim_start_idx: " << trim_start_idx << std::endl;
+                std::cerr << "trim_end_idx: " << trim_end_idx << std::endl;
 
                 if (num_tiles < 15) {
                     bool good_right_flank = false;
                     bool good_left_flank = false;
                     std::unordered_map<size_t, size_t> left_flank;
-                    for (ssize_t i = longest_start_idx - 1; i >= 1; --i ){
+                    for (ssize_t i = longest_start_idx - 1; i >= 0; --i ){
                         if (left_flank.contains(tiles_assigned_id_vec[i])) {
                             ++left_flank[tiles_assigned_id_vec[i]];
                         } else {
@@ -766,10 +868,17 @@ int main(int argc, char** argv) {
                             trim_start_idx = longest_start_idx - 2;
                             good_left_flank = true;       
 
+                        } else if (trim_start_idx == 0) {
+                            good_left_flank = true; 
                         }
                     }
+                    if (good_left_flank) {
+                        std::cerr << "good left flank: true" << std::endl; 
+                    } else {
+                        std::cerr << "good left flank: false"<< std::endl; 
+                    }
                     std::unordered_map<size_t, size_t> right_flank;
-                    for (ssize_t i = longest_end_idx + 1; i < (ssize_t)num_tiles - 1; ++i ){
+                    for (ssize_t i = longest_end_idx + 1; i < (ssize_t)num_tiles; ++i ){
                         if (right_flank.contains(tiles_assigned_id_vec[i])) {
                             ++right_flank[tiles_assigned_id_vec[i]];
                         } else {
@@ -789,11 +898,20 @@ int main(int argc, char** argv) {
                             trim_end_idx = longest_end_idx + 2;
                             good_right_flank = true;    
 
+                        } else if (trim_end_idx == num_tiles - 1) {
+                            good_right_flank = true; 
                         }
+                    }
+                    if (good_right_flank) {
+                        std::cerr << "good right flank: true" << std::endl; 
+                    } else {
+                        std::cerr << "good right flank: false"<< std::endl; 
                     }
                     if (good_left_flank && good_right_flank) {
                         good_flank = true;
                     }
+
+
                 } else {
                     std::cerr << "checkpoint 2" <<std::endl;
                     //bool valid = true;
@@ -876,9 +994,28 @@ int main(int argc, char** argv) {
                     ids_inserted = ids_inserted + uint32_t((trim_end_idx - trim_start_idx) * 1000 / 10000);
                     //output read to golden path
                     if (trim_end_idx == num_tiles -1) {
-                        golden_path_vec[level] << ">trimmed" << record.id << '\n' << record.seq.substr(trim_start_idx * 1000,std::string::npos) << std::endl;
+                        std::string new_seq = record.seq.substr(trim_start_idx * 1000,std::string::npos);
+                        golden_path_vec[level] << ">trimmed" << record.id << '\n' << new_seq << std::endl;
+                        inserted_bases += new_seq.size();
                     } else {
-                        golden_path_vec[level] << ">trimmed" << record.id << '\n' << record.seq.substr(trim_start_idx * 1000, (trim_end_idx - trim_start_idx + 1) * 1000) << std::endl;
+                        std::string new_seq = record.seq.substr(trim_start_idx * 1000, (trim_end_idx - trim_start_idx + 1) * 1000);
+                        golden_path_vec[level] << ">trimmed" << record.id << '\n' << new_seq << std::endl;
+                        inserted_bases += new_seq.size();
+                    }
+                    
+                    if (opt::temp_mode || opt::new_temp_mode) {
+                        if (target_bases < inserted_bases) {
+                            ++curr_path;
+                            if (opt::max_paths < curr_path) {
+                                exit(0);
+                            }
+                            inserted_bases = 0;
+                            mibf_vec.pop_back();
+                            mibf_vec.emplace_back(std::move(std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF())));
+                            golden_path_vec.pop_back();
+                            golden_path_vec.emplace_back(std::ofstream(opt::prefix_file + "_golden_path_" + std::to_string(curr_path) + ".fa"));
+                            ids_inserted = 0;
+                        }
                     }
                     
 
