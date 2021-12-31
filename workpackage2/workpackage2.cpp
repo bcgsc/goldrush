@@ -346,7 +346,7 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
   return num_assigned_tiles;
 }
 
-void process_read(const btllib::SeqReader::Record& record, const std::vector<std::vector<uint64_t>>& hashed_values, std::vector<std::ofstream>& golden_path_vec, std::vector<std::unique_ptr<MIBloomFilter<uint32_t>>>& mibf_vec, MIBFConstructSupport<uint32_t, multiLensfrHashIterator>& miBFCS, uint64_t& inserted_bases, uint64_t& target_bases, uint64_t& curr_path, uint32_t& id, uint32_t& ids_inserted, const size_t min_seq_len) {
+inline void process_read(const btllib::SeqReader::Record& record, const std::vector<std::vector<uint64_t>>& hashed_values, std::vector<std::ofstream>& golden_path_vec, std::vector<std::unique_ptr<MIBloomFilter<uint32_t>>>& mibf_vec, MIBFConstructSupport<uint32_t, multiLensfrHashIterator>& miBFCS, uint64_t& inserted_bases, uint64_t& target_bases, uint64_t& curr_path, uint32_t& id, uint32_t& ids_inserted, const size_t min_seq_len) {
       if (record.seq.size() < min_seq_len) {
         if (verbose) {
           std::cerr << "too short" << std::endl;
@@ -534,15 +534,15 @@ void process_read(const btllib::SeqReader::Record& record, const std::vector<std
                 left_flank[tiles_assigned_id_vec[i]] = 1;
               }
             }
-            std::cerr << "checkpoint 2.1" << std::endl;
+
             std::vector<std::pair<size_t, size_t>> left_flank_vec;
             for (const auto& myPair : left_flank) {
               left_flank_vec.push_back(
                 std::make_pair(myPair.first, myPair.second));
             }
-            std::cerr << "checkpoint 2.2" << std::endl;
+
             sort(left_flank_vec.begin(), left_flank_vec.end(), sort_by_sec);
-            std::cerr << "checkpoint 2.3" << std::endl;
+
             std::cerr << left_flank_vec.size() << std::endl;
             if (left_flank_vec.size() != 0) {
               if (left_flank_vec[0].second >= 2) {
@@ -613,7 +613,6 @@ void process_read(const btllib::SeqReader::Record& record, const std::vector<std
             }
 
           } else {
-            std::cerr << "checkpoint 2" << std::endl;
             // bool valid = true;
 
             if (longest_start_idx - 5 >= 1) {
@@ -627,15 +626,14 @@ void process_read(const btllib::SeqReader::Record& record, const std::vector<std
                   left_flank[tiles_assigned_id_vec[i]] = 1;
                 }
               }
-              std::cerr << "checkpoint 2.1" << std::endl;
               std::vector<std::pair<size_t, size_t>> left_flank_vec;
               for (const auto& myPair : left_flank) {
                 left_flank_vec.push_back(
                   std::make_pair(myPair.first, myPair.second));
               }
-              std::cerr << "checkpoint 2.2" << std::endl;
+
               sort(left_flank_vec.begin(), left_flank_vec.end(), sort_by_sec);
-              std::cerr << "checkpoint 2.3" << std::endl;
+
               std::cerr << left_flank_vec.size() << std::endl;
               if (left_flank_vec[0].second >= 2) {
                 trim_start_idx = longest_start_idx - 2;
