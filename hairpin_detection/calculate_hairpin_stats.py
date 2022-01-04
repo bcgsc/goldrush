@@ -64,12 +64,3 @@ def compute_read_statistics(mx_info, args, read_len):
     mapped_bins = compute_mapped_bins(mx_df, read_len, args.e, num_bins=args.bins)
 
     return corr, yintercept, slope, mapped_bins
-
-def random_forest(corr, slope, num_mx, mapped_bins, len_over_yint, classifier, scaler):
-    "Classify using random forest"
-    X = np.ndarray(shape=(1, 5), buffer=np.array(list(map(float, [corr, slope, num_mx,
-                                                                  mapped_bins, len_over_yint]))),
-                   dtype=float)
-    X = scaler.transform(X)
-    prediction = classifier.predict(X)[0]
-    return prediction
