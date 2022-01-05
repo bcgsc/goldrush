@@ -75,7 +75,7 @@ start_read_hashing(
   btllib::OrderQueueMPMC<ReadTileHashes>& read_tile_hashes_queue,
   const unsigned worker_num)
 {
-  (new std::thread([&]() {
+  (new std::thread([&, tile_size, min_seq_len, k, worker_num]() {
     btllib::SeqReader reader(reads_filepath,
                              btllib::SeqReader::Flag::LONG_MODE);
     std::vector<std::future<size_t>> last_block_nums_futures;
