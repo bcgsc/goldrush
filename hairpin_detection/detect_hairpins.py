@@ -5,7 +5,6 @@ Detect hairpin structure artifacts in oxford nanopore reads
 import argparse
 from collections import defaultdict, namedtuple
 import sys
-from joblib import load
 import btllib
 import calculate_hairpin_stats
 
@@ -85,13 +84,14 @@ def is_hairpin(mx_info, correlation, yintercept, slope, mapped_bins, seq_length,
         return False
     if slope > args.upper_slope or slope < args.lower_slope:
         return False
-    if yintercept > seq_length*(1 + (args.perc/100)) or yintercept < seq_length*(1 - (args.perc/100)):
+    if yintercept > seq_length*(1 + (args.perc/100)) or \
+            yintercept < seq_length*(1 - (args.perc/100)):
         return False
     if mapped_bins < args.mapped_bin_threshold:
         return False
     return True
 
-def detect_hairpins(args, seq_lengths):
+def detect_hairpins(args):
     "Read through minimizers for each read, and determine whether it is a putative hairpin artifact"
     hairpins = 0
     total_reads = 0
@@ -104,8 +104,8 @@ def detect_hairpins(args, seq_lengths):
 
     with btllib.Indexlr(args.FA, args.k, args.w, btllib.IndexlrFlag.LONG_MODE, 2) as minimizers: # !! TODO: specify flags when bug fixed
         for mx_entry in minimizers:
-            name = mx_entry.id
-            mx_info = filter_ordered_sketch(mx_entry.minimizers, args, seq_lengths[name])
+            name, seq_length = mx_entry.id, mx_entry.readlen
+            mx_info = filter_ordered_sketch(mx_entry.minimizers, args, seq_length)
 
             if args.v:
                 print("Name", "Minimizer1", "Minimizer2", sep="\t", file=sys.stderr)
@@ -120,14 +120,14 @@ def detect_hairpins(args, seq_lengths):
             if len(mx_info) >= args.mapped_bin_threshold:
                 correlation, yint, slope, mapped_bins = \
                     calculate_hairpin_stats.compute_read_statistics(mx_info, args,
-                                                                    seq_lengths[name])
+                                                                    seq_length)
 
-            if is_hairpin(mx_info, correlation, yint, slope, mapped_bins, seq_lengths[name], args):
+            if is_hairpin(mx_info, correlation, yint, slope, mapped_bins, seq_length, args):
                 hairpins += 1
-                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope,
+                fout.write(format_str.format(name, seq_length, correlation, yint, slope,
                                              len(mx_info), mapped_bins, "Hairpin"))
             else:
-                fout.write(format_str.format(name, seq_lengths[name], correlation, yint, slope,
+                fout.write(format_str.format(name, seq_length, correlation, yint, slope,
                                              len(mx_info), mapped_bins, "Non-hairpin"))
 
             total_reads += 1
@@ -140,7 +140,6 @@ def print_args(args):
     "Print the values of the arguments"
     print("\nHairpin detection parameters:")
     print("\tFA", args.FA)
-    print("\t-i", args.index)
     print("\t--perc", args.perc)
     print("\t-e", args.e)
     print("\t--upper_slope", args.upper_slope)
@@ -155,8 +154,6 @@ def main():
     "Detect hairpin structures in input nanopore reads from minimizer sketches"
     parser = argparse.ArgumentParser(description="Detect hairpin artifacts in nanopore reads")
     parser.add_argument("FA", help="Input fasta file, or '-' if piping to standard in")
-    parser.add_argument("-i", "--index", help="samtools faidx index for input reads",
-                        required=True, type=str)
     parser.add_argument("-k", help="Kmer size", required=True, type=int)
     parser.add_argument("-w", help="Window size", required=True, type=int)
     parser.add_argument("--perc", help="Percentage error allowed for yintercept [10]",
@@ -191,8 +188,7 @@ def main():
 
     args.FA = "/dev/stdin" if args.FA == "-" else args.FA
 
-    seq_lengths = tally_sequence_lengths(args.index)
-    hairpins, total_reads = detect_hairpins(args, seq_lengths)
+    hairpins, total_reads = detect_hairpins(args)
     print("Total reads analyzed:", total_reads)
     print("Total hairpins detected:", hairpins)
 

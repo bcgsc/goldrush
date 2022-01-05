@@ -8,7 +8,6 @@ import statsmodels.api as sm
 import statsmodels.tools.sm_exceptions as sm_except
 import pandas as pd
 import scipy.stats as sci
-import numpy as np
 warnings.simplefilter(action='ignore', category=sm_except.ConvergenceWarning)
 warnings.simplefilter(action='ignore', category=RuntimeWarning)
 
