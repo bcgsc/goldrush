@@ -40,7 +40,12 @@ sort_by_sec(const pair<size_t, size_t>& a, const pair<size_t, size_t>& b)
   return (a.second > b.second);
 }
 
-void fill_bit_vector(const std::string& input_file, MIBFConstructSupport<uint32_t, multiLensfrHashIterator> &miBFCS, const size_t min_seq_len, const std::vector<std::string>& spaced_seeds) {
+void
+fill_bit_vector(const std::string& input_file,
+                MIBFConstructSupport<uint32_t, multiLensfrHashIterator>& miBFCS,
+                const size_t min_seq_len,
+                const std::vector<std::string>& spaced_seeds)
+{
   std::cerr << "inserting bit vector" << std::endl;
 
   auto sTime = omp_get_wtime();
@@ -146,7 +151,6 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
       tiles_assigned_id_array[i] = curr_id;
     }
   }
-
 
   if (verbose) {
     // print which id each tile is assigned to
@@ -356,418 +360,426 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
   return num_assigned_tiles;
 }
 
-inline void process_read(const btllib::SeqReader::Record& record, const std::vector<std::vector<uint64_t>>& hashed_values, std::vector<std::ofstream>& golden_path_vec, std::vector<std::unique_ptr<MIBloomFilter<uint32_t>>>& mibf_vec, MIBFConstructSupport<uint32_t, multiLensfrHashIterator>& miBFCS, uint64_t& inserted_bases, uint64_t& target_bases, uint64_t& curr_path, uint32_t& id, uint32_t& ids_inserted, const size_t min_seq_len) {
-      if (record.seq.size() < min_seq_len) {
-        if (verbose) {
-          std::cerr << "too short" << std::endl;
-          std::cerr << "skipping: " << record.id << std::endl;
-        }
-        // wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping
-        // wood path output to reduce time
-        ++id;
-        return;
-      }
-      if (id % 10000 == 0) {
-        std::cerr << "processed " << id << " reads" << std::endl;
-      }
-      size_t len = record.seq.size();
-      size_t num_tiles = len / opt::tile_length;
+inline void
+process_read(const btllib::SeqReader::Record& record,
+             const std::vector<std::vector<uint64_t>>& hashed_values,
+             std::vector<std::ofstream>& golden_path_vec,
+             std::vector<std::unique_ptr<MIBloomFilter<uint32_t>>>& mibf_vec,
+             MIBFConstructSupport<uint32_t, multiLensfrHashIterator>& miBFCS,
+             uint64_t& inserted_bases,
+             uint64_t& target_bases,
+             uint64_t& curr_path,
+             uint32_t& id,
+             uint32_t& ids_inserted,
+             const size_t min_seq_len)
+{
+  if (record.seq.size() < min_seq_len) {
+    if (verbose) {
+      std::cerr << "too short" << std::endl;
+      std::cerr << "skipping: " << record.id << std::endl;
+    }
+    // wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping
+    // wood path output to reduce time
+    ++id;
+    return;
+  }
+  if (id % 10000 == 0) {
+    std::cerr << "processed " << id << " reads" << std::endl;
+  }
+  size_t len = record.seq.size();
+  size_t num_tiles = len / opt::tile_length;
 
+  if (verbose) {
+    std::cerr << "name: " << record.id << std::endl;
+    std::cerr << "num tiles: " << num_tiles - 2 << std::endl;
+  }
+
+  bool assigned = true;
+
+  for (size_t level = 0; level < opt::levels; ++level) {
+    auto& miBF = mibf_vec[level];
+    if (verbose) {
+      std::cerr << "current level : " << level << std::endl;
+    }
+
+    std::vector<uint32_t> tiles_assigned_id_vec(num_tiles, 0);
+    std::vector<bool> tiles_assigned_bool_vec(num_tiles, false);
+    const size_t num_assigned_tiles = calc_num_assigned_tiles(
+      *miBF, hashed_values, tiles_assigned_id_vec, tiles_assigned_bool_vec);
+    if (verbose) {
+      std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl;
+    }
+    const size_t num_unassigned_tiles = num_tiles - 2 - num_assigned_tiles;
+    if (verbose) {
+      std::cerr << "num unassigned tiles: " << num_unassigned_tiles
+                << std::endl;
+    }
+
+    // assignment logic
+    if (num_unassigned_tiles >= opt::unassigned_min &&
+        num_assigned_tiles <= opt::assigned_max) {
+      assigned = false;
+    }
+    if (opt::second_pass) {
+      if (num_assigned_tiles == num_tiles) {
+        assigned = true;
+      } else {
+        assigned = false;
+      }
+    }
+
+    if (!assigned) {
       if (verbose) {
-        std::cerr << "name: " << record.id << std::endl;
-        std::cerr << "num tiles: " << num_tiles - 2 << std::endl;
+        std::cerr << "unassigned" << std::endl;
       }
-
-      bool assigned = true;
-
-      for (size_t level = 0; level < opt::levels; ++level) {
-        auto& miBF = mibf_vec[level];
-        if (verbose) {
-          std::cerr << "current level : " << level << std::endl;
-        }
-
-        std::vector<uint32_t> tiles_assigned_id_vec(num_tiles, 0);
-        std::vector<bool> tiles_assigned_bool_vec(num_tiles, false);
-        const size_t num_assigned_tiles = calc_num_assigned_tiles(
-          *miBF, hashed_values, tiles_assigned_id_vec, tiles_assigned_bool_vec);
-        if (verbose) {
-          std::cerr << "num assigned tiles: " << num_assigned_tiles
-                    << std::endl;
-        }
-        const size_t num_unassigned_tiles = num_tiles - 2 - num_assigned_tiles;
-        if (verbose) {
-          std::cerr << "num unassigned tiles: " << num_unassigned_tiles
-                    << std::endl;
-        }
-
-        // assignment logic
-        if (num_unassigned_tiles >= opt::unassigned_min &&
-            num_assigned_tiles <= opt::assigned_max) {
-          assigned = false;
-        }
-        if (opt::second_pass) {
-          if (num_assigned_tiles == num_tiles) {
-            assigned = true;
-          } else {
-            assigned = false;
-          }
-        }
-
-        if (!assigned) {
-          if (verbose) { std::cerr << "unassigned" << std::endl; }
-          ++ids_inserted;
+      ++ids_inserted;
 
 #if _OPENMP
 #pragma omp parallel for
 #endif
-          for (size_t i = 0; i < num_tiles; ++i) {
-            uint32_t curr_ids_inserted =
-              ids_inserted + uint32_t((i + 1) * opt::tile_length / 10000);
-            const auto& hashed_values_flat_array = hashed_values[i];
-            miBFCS.insertMIBF(*miBF,
-                              hashed_values_flat_array,
-                              curr_ids_inserted); //, non_singletons_bf_vec);
-            // miBFCS.insertSaturation(*miBF, Hhashes, ids_inserted); // don't
-            // care about saturation atm so skipping for speed
-            // }
+      for (size_t i = 0; i < num_tiles; ++i) {
+        uint32_t curr_ids_inserted =
+          ids_inserted + uint32_t((i + 1) * opt::tile_length / 10000);
+        const auto& hashed_values_flat_array = hashed_values[i];
+        miBFCS.insertMIBF(*miBF,
+                          hashed_values_flat_array,
+                          curr_ids_inserted); //, non_singletons_bf_vec);
+        // miBFCS.insertSaturation(*miBF, Hhashes, ids_inserted); // don't
+        // care about saturation atm so skipping for speed
+        // }
+      }
+
+      ids_inserted = ids_inserted + uint32_t(record.seq.size() / 10000);
+      // output read to golden path
+
+      golden_path_vec[level] << ">" << record.id << '\n'
+                             << record.seq << std::endl;
+
+      inserted_bases += record.seq.size();
+      if (opt::temp_mode || opt::new_temp_mode) {
+        if (target_bases < inserted_bases) {
+          ++curr_path;
+          if (opt::max_paths < curr_path) {
+            exit(0);
           }
+          inserted_bases = 0;
+          mibf_vec.pop_back();
+          mibf_vec.emplace_back(
+            std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF()));
+          golden_path_vec.pop_back();
+          golden_path_vec.emplace_back(
+            std::ofstream(opt::prefix_file + "_golden_path_" +
+                          std::to_string(curr_path) + ".fa"));
+          ids_inserted = 0;
+        }
+      }
+      break; // breaks the level loop
 
-          ids_inserted = ids_inserted + uint32_t(record.seq.size() / 10000);
-          // output read to golden path
+    } else {
+      if (opt::temp_mode) {
+        continue;
+      }
+      if (num_assigned_tiles == num_tiles || opt::second_pass == true) {
+        if (verbose) {
+          std::cerr << "complete assignment" << std::endl;
+        }
+        continue;
+      }
+      /*if (num_tiles < 15) {
+          continue;
+      }*/
+      /*if (num_unassigned_tiles < 2) {
+          continue;
+      }*/
+      /*std::unordered_map<size_t, size_t> left_flank;
+      for (int i = 1; i < 11; ++i ){
+          if (left_flank.contains(left_flank[tiles_assigned_id_vec[i]])) {
+              ++left_flank[tiles_assigned_id_vec[i]];
+          } else {
+              left_flank[tiles_assigned_id_vec[i]] == 1;
+          }
+      }
 
-          golden_path_vec[level] << ">" << record.id << '\n'
-                                 << record.seq << std::endl;
+      //size_t curr_max_id = 0;
+      //size_t curr_max_hits = 0;
+      std::vector<std::pair<size_t, size_t>> left_flank_vec;
+      for ( const auto &[id, hits]: left_flank ) {
+          left_flank.push_back(std::make_pair(ids, hits));
+      }
+      sort(vect.begin(), vect.end(), sort_by_sec);
+      */
+      size_t start_idx = 0;
+      size_t end_idx = 0;
+      ssize_t longest_start_idx = 0;
+      ssize_t longest_end_idx = 0;
+      size_t curr_stretch = 0;
+      size_t longest_stretch = 0;
+      for (size_t i = 1; i < num_tiles - 1; ++i) {
+        if (tiles_assigned_bool_vec[i] == false &&
+            tiles_assigned_bool_vec[i - 1] == true) {
+          start_idx = i;
+          curr_stretch = 1;
+        } else if ((tiles_assigned_bool_vec[i] == false &&
+                    tiles_assigned_bool_vec[i] ==
+                      tiles_assigned_bool_vec[i - 1]) &&
+                   (i + 1 != num_tiles - 1)) {
+          ++curr_stretch;
+        } else if (tiles_assigned_bool_vec[i] == true &&
+                   tiles_assigned_bool_vec[i] !=
+                     tiles_assigned_bool_vec[i - 1]) {
+          end_idx = i - 1;
+          if (longest_stretch < curr_stretch) {
+            longest_stretch = curr_stretch;
+            longest_start_idx = (ssize_t)start_idx;
+            longest_end_idx = (ssize_t)end_idx;
+          }
+        } else if (i + 1 == num_tiles - 1 && end_idx < start_idx) {
+          end_idx = i;
+          ++curr_stretch;
+          if (longest_stretch < curr_stretch) {
+            longest_stretch = curr_stretch;
+            longest_start_idx = (ssize_t)start_idx;
+            longest_end_idx = (ssize_t)end_idx;
+          }
+        }
+      }
 
-          inserted_bases += record.seq.size();
-          if (opt::temp_mode || opt::new_temp_mode) {
-            if (target_bases < inserted_bases) {
-              ++curr_path;
-              if (opt::max_paths < curr_path) {
-                exit(0);
-              }
-              inserted_bases = 0;
-              mibf_vec.pop_back();
-              mibf_vec.emplace_back(std::unique_ptr<MIBloomFilter<uint32_t>>(
-                miBFCS.getEmptyMIBF()));
-              golden_path_vec.pop_back();
-              golden_path_vec.emplace_back(
-                std::ofstream(opt::prefix_file + "_golden_path_" +
-                              std::to_string(curr_path) + ".fa"));
-              ids_inserted = 0;
+      bool good_flank = false;
+      size_t trim_start_idx = longest_start_idx - 1;
+      size_t trim_end_idx = longest_end_idx + 1;
+      if (verbose) {
+        std::cerr << "trim_start_idx: " << trim_start_idx << std::endl;
+        std::cerr << "trim_end_idx: " << trim_end_idx << std::endl;
+      }
+
+      if (num_tiles < 15) {
+        bool good_right_flank = false;
+        bool good_left_flank = false;
+        std::unordered_map<size_t, size_t> left_flank;
+        for (ssize_t i = longest_start_idx - 1; i >= 0; --i) {
+          if (left_flank.find(tiles_assigned_id_vec[i]) != left_flank.end()) {
+            ++left_flank[tiles_assigned_id_vec[i]];
+          } else {
+            left_flank[tiles_assigned_id_vec[i]] = 1;
+          }
+        }
+
+        std::vector<std::pair<size_t, size_t>> left_flank_vec;
+        for (const auto& myPair : left_flank) {
+          left_flank_vec.push_back(std::make_pair(myPair.first, myPair.second));
+        }
+
+        sort(left_flank_vec.begin(), left_flank_vec.end(), sort_by_sec);
+
+        if (verbose) {
+          std::cerr << left_flank_vec.size() << std::endl;
+        }
+        if (left_flank_vec.size() != 0) {
+          if (left_flank_vec[0].second >= 2) {
+            trim_start_idx = longest_start_idx - 2;
+            good_left_flank = true;
+          } else if (left_flank_vec.size() >= 2 &&
+                     (left_flank_vec[0].second + left_flank_vec[1].second > 3 &&
+                      (left_flank_vec[0].first - left_flank_vec[1].first == 1 ||
+                       left_flank_vec[1].first - left_flank_vec[0].first ==
+                         1))) {
+            trim_start_idx = longest_start_idx - 2;
+            good_left_flank = true;
+
+          } else if (trim_start_idx == 0) {
+            good_left_flank = true;
+          }
+        }
+        if (verbose) {
+          if (good_left_flank) {
+            std::cerr << "good left flank: true" << std::endl;
+          } else {
+            std::cerr << "good left flank: false" << std::endl;
+          }
+        }
+        std::unordered_map<size_t, size_t> right_flank;
+        for (ssize_t i = longest_end_idx + 1; i < (ssize_t)num_tiles; ++i) {
+          if (right_flank.find(tiles_assigned_id_vec[i]) != right_flank.end()) {
+            ++right_flank[tiles_assigned_id_vec[i]];
+          } else {
+            right_flank[tiles_assigned_id_vec[i]] = 1;
+          }
+        }
+        std::vector<std::pair<size_t, size_t>> right_flank_vec;
+        for (const auto& myPair : right_flank) {
+          right_flank_vec.push_back(
+            std::make_pair(myPair.first, myPair.second));
+        }
+        sort(right_flank_vec.begin(), right_flank_vec.end(), sort_by_sec);
+        if (right_flank_vec.size() != 0) {
+          if (right_flank_vec[0].second >= 2) {
+            trim_end_idx = longest_end_idx + 2;
+            good_right_flank = true;
+          } else if (right_flank_vec.size() >= 2 &&
+                     (right_flank_vec[0].second + right_flank_vec[1].second >
+                        3 &&
+                      (right_flank_vec[0].first - right_flank_vec[1].first ==
+                         1 ||
+                       right_flank_vec[1].first - right_flank_vec[0].first ==
+                         1))) {
+            trim_end_idx = longest_end_idx + 2;
+            good_right_flank = true;
+
+          } else if (trim_end_idx == num_tiles - 1) {
+            good_right_flank = true;
+          }
+        }
+        if (verbose) {
+          if (good_right_flank) {
+            std::cerr << "good right flank: true" << std::endl;
+          } else {
+            std::cerr << "good right flank: false" << std::endl;
+          }
+        }
+        if (good_left_flank && good_right_flank) {
+          good_flank = true;
+        }
+
+      } else {
+        // bool valid = true;
+
+        if (longest_start_idx - 5 >= 1) {
+          std::unordered_map<size_t, size_t> left_flank;
+          for (ssize_t i = longest_start_idx - 5; i < longest_start_idx; ++i) {
+            if (left_flank.find(tiles_assigned_id_vec[i]) != left_flank.end()) {
+              ++left_flank[tiles_assigned_id_vec[i]];
+            } else {
+              left_flank[tiles_assigned_id_vec[i]] = 1;
             }
           }
-          break; // breaks the level loop
+          std::vector<std::pair<size_t, size_t>> left_flank_vec;
+          for (const auto& myPair : left_flank) {
+            left_flank_vec.push_back(
+              std::make_pair(myPair.first, myPair.second));
+          }
+
+          sort(left_flank_vec.begin(), left_flank_vec.end(), sort_by_sec);
+
+          if (verbose) {
+            std::cerr << left_flank_vec.size() << std::endl;
+          }
+          if (left_flank_vec[0].second >= 2) {
+            trim_start_idx = longest_start_idx - 2;
+            good_flank = true;
+          } else if (left_flank_vec[0].second + left_flank_vec[1].second > 3 &&
+                     (left_flank_vec[0].first - left_flank_vec[1].first == 1 ||
+                      left_flank_vec[1].first - left_flank_vec[0].first == 1)) {
+            trim_start_idx = longest_start_idx - 2;
+            good_flank = true;
+          }
+        } else {
+          trim_start_idx = 0;
+        }
+
+        if (longest_end_idx + 5 < (ssize_t)num_tiles - 1) {
+          std::unordered_map<size_t, size_t> right_flank;
+          for (ssize_t i = longest_end_idx + 5; i > longest_end_idx; --i) {
+            if (right_flank.find(tiles_assigned_id_vec[i]) !=
+                right_flank.end()) {
+              ++right_flank[tiles_assigned_id_vec[i]];
+            } else {
+              right_flank[tiles_assigned_id_vec[i]] = 1;
+            }
+          }
+          std::vector<std::pair<size_t, size_t>> right_flank_vec;
+          for (const auto& myPair : right_flank) {
+            right_flank_vec.push_back(
+              std::make_pair(myPair.first, myPair.second));
+          }
+          sort(right_flank_vec.begin(), right_flank_vec.end(), sort_by_sec);
+          if (right_flank_vec[0].second >= 2) {
+            trim_end_idx = longest_end_idx + 2;
+            good_flank = true;
+          } else if (right_flank_vec[0].second + right_flank_vec[1].second >
+                       3 &&
+                     (right_flank_vec[0].first - right_flank_vec[1].first ==
+                        1 ||
+                      right_flank_vec[1].first - right_flank_vec[0].first ==
+                        1)) {
+            trim_end_idx = longest_end_idx + 2;
+            good_flank = true;
+          }
 
         } else {
-          if (opt::temp_mode) {
-            continue;
-          }
-          if (num_assigned_tiles == num_tiles || opt::second_pass == true) {
-            if (verbose) { std::cerr << "complete assignment" << std::endl; }
-            continue;
-          }
-          /*if (num_tiles < 15) {
-              continue;
-          }*/
-          /*if (num_unassigned_tiles < 2) {
-              continue;
-          }*/
-          /*std::unordered_map<size_t, size_t> left_flank;
-          for (int i = 1; i < 11; ++i ){
-              if (left_flank.contains(left_flank[tiles_assigned_id_vec[i]])) {
-                  ++left_flank[tiles_assigned_id_vec[i]];
-              } else {
-                  left_flank[tiles_assigned_id_vec[i]] == 1;
-              }
-          }
-
-          //size_t curr_max_id = 0;
-          //size_t curr_max_hits = 0;
-          std::vector<std::pair<size_t, size_t>> left_flank_vec;
-          for ( const auto &[id, hits]: left_flank ) {
-              left_flank.push_back(std::make_pair(ids, hits));
-          }
-          sort(vect.begin(), vect.end(), sort_by_sec);
-          */
-          size_t start_idx = 0;
-          size_t end_idx = 0;
-          ssize_t longest_start_idx = 0;
-          ssize_t longest_end_idx = 0;
-          size_t curr_stretch = 0;
-          size_t longest_stretch = 0;
-          for (size_t i = 1; i < num_tiles - 1; ++i) {
-            if (tiles_assigned_bool_vec[i] == false &&
-                tiles_assigned_bool_vec[i - 1] == true) {
-              start_idx = i;
-              curr_stretch = 1;
-            } else if ((tiles_assigned_bool_vec[i] == false &&
-                        tiles_assigned_bool_vec[i] ==
-                          tiles_assigned_bool_vec[i - 1]) &&
-                       (i + 1 != num_tiles - 1)) {
-              ++curr_stretch;
-            } else if (tiles_assigned_bool_vec[i] == true &&
-                       tiles_assigned_bool_vec[i] !=
-                         tiles_assigned_bool_vec[i - 1]) {
-              end_idx = i - 1;
-              if (longest_stretch < curr_stretch) {
-                longest_stretch = curr_stretch;
-                longest_start_idx = (ssize_t)start_idx;
-                longest_end_idx = (ssize_t)end_idx;
-              }
-            } else if (i + 1 == num_tiles - 1 && end_idx < start_idx) {
-              end_idx = i;
-              ++curr_stretch;
-              if (longest_stretch < curr_stretch) {
-                longest_stretch = curr_stretch;
-                longest_start_idx = (ssize_t)start_idx;
-                longest_end_idx = (ssize_t)end_idx;
-              }
-            }
-          }
-
-          bool good_flank = false;
-          size_t trim_start_idx = longest_start_idx - 1;
-          size_t trim_end_idx = longest_end_idx + 1;
-          if (verbose) {
-            std::cerr << "trim_start_idx: " << trim_start_idx << std::endl;
-            std::cerr << "trim_end_idx: " << trim_end_idx << std::endl;
-          }
-
-          if (num_tiles < 15) {
-            bool good_right_flank = false;
-            bool good_left_flank = false;
-            std::unordered_map<size_t, size_t> left_flank;
-            for (ssize_t i = longest_start_idx - 1; i >= 0; --i) {
-              if (left_flank.find(tiles_assigned_id_vec[i]) !=
-                  left_flank.end()) {
-                ++left_flank[tiles_assigned_id_vec[i]];
-              } else {
-                left_flank[tiles_assigned_id_vec[i]] = 1;
-              }
-            }
-
-            std::vector<std::pair<size_t, size_t>> left_flank_vec;
-            for (const auto& myPair : left_flank) {
-              left_flank_vec.push_back(
-                std::make_pair(myPair.first, myPair.second));
-            }
-
-            sort(left_flank_vec.begin(), left_flank_vec.end(), sort_by_sec);
-
-            if (verbose) { std::cerr << left_flank_vec.size() << std::endl; }
-            if (left_flank_vec.size() != 0) {
-              if (left_flank_vec[0].second >= 2) {
-                trim_start_idx = longest_start_idx - 2;
-                good_left_flank = true;
-              } else if (left_flank_vec.size() >= 2 &&
-                         (left_flank_vec[0].second + left_flank_vec[1].second >
-                            3 &&
-                          (left_flank_vec[0].first - left_flank_vec[1].first ==
-                             1 ||
-                           left_flank_vec[1].first - left_flank_vec[0].first ==
-                             1))) {
-                trim_start_idx = longest_start_idx - 2;
-                good_left_flank = true;
-
-              } else if (trim_start_idx == 0) {
-                good_left_flank = true;
-              }
-            }
-            if (verbose) {
-              if (good_left_flank) {
-                std::cerr << "good left flank: true" << std::endl;
-              } else {
-                std::cerr << "good left flank: false" << std::endl;
-              }
-            }
-            std::unordered_map<size_t, size_t> right_flank;
-            for (ssize_t i = longest_end_idx + 1; i < (ssize_t)num_tiles; ++i) {
-              if (right_flank.find(tiles_assigned_id_vec[i]) !=
-                  right_flank.end()) {
-                ++right_flank[tiles_assigned_id_vec[i]];
-              } else {
-                right_flank[tiles_assigned_id_vec[i]] = 1;
-              }
-            }
-            std::vector<std::pair<size_t, size_t>> right_flank_vec;
-            for (const auto& myPair : right_flank) {
-              right_flank_vec.push_back(
-                std::make_pair(myPair.first, myPair.second));
-            }
-            sort(right_flank_vec.begin(), right_flank_vec.end(), sort_by_sec);
-            if (right_flank_vec.size() != 0) {
-              if (right_flank_vec[0].second >= 2) {
-                trim_end_idx = longest_end_idx + 2;
-                good_right_flank = true;
-              } else if (right_flank_vec.size() >= 2 &&
-                         (right_flank_vec[0].second +
-                              right_flank_vec[1].second >
-                            3 &&
-                          (right_flank_vec[0].first -
-                               right_flank_vec[1].first ==
-                             1 ||
-                           right_flank_vec[1].first -
-                               right_flank_vec[0].first ==
-                             1))) {
-                trim_end_idx = longest_end_idx + 2;
-                good_right_flank = true;
-
-              } else if (trim_end_idx == num_tiles - 1) {
-                good_right_flank = true;
-              }
-            }
-            if (verbose) {
-              if (good_right_flank) {
-                std::cerr << "good right flank: true" << std::endl;
-              } else {
-                std::cerr << "good right flank: false" << std::endl;
-              }
-            }
-            if (good_left_flank && good_right_flank) {
-              good_flank = true;
-            }
-
-          } else {
-            // bool valid = true;
-
-            if (longest_start_idx - 5 >= 1) {
-              std::unordered_map<size_t, size_t> left_flank;
-              for (ssize_t i = longest_start_idx - 5; i < longest_start_idx;
-                   ++i) {
-                if (left_flank.find(tiles_assigned_id_vec[i]) !=
-                    left_flank.end()) {
-                  ++left_flank[tiles_assigned_id_vec[i]];
-                } else {
-                  left_flank[tiles_assigned_id_vec[i]] = 1;
-                }
-              }
-              std::vector<std::pair<size_t, size_t>> left_flank_vec;
-              for (const auto& myPair : left_flank) {
-                left_flank_vec.push_back(
-                  std::make_pair(myPair.first, myPair.second));
-              }
-
-              sort(left_flank_vec.begin(), left_flank_vec.end(), sort_by_sec);
-
-              if (verbose) { std::cerr << left_flank_vec.size() << std::endl; }
-              if (left_flank_vec[0].second >= 2) {
-                trim_start_idx = longest_start_idx - 2;
-                good_flank = true;
-              } else if (left_flank_vec[0].second + left_flank_vec[1].second >
-                           3 &&
-                         (left_flank_vec[0].first - left_flank_vec[1].first ==
-                            1 ||
-                          left_flank_vec[1].first - left_flank_vec[0].first ==
-                            1)) {
-                trim_start_idx = longest_start_idx - 2;
-                good_flank = true;
-              }
-            } else {
-              trim_start_idx = 0;
-            }
-
-            if (longest_end_idx + 5 < (ssize_t)num_tiles - 1) {
-              std::unordered_map<size_t, size_t> right_flank;
-              for (ssize_t i = longest_end_idx + 5; i > longest_end_idx; --i) {
-                if (right_flank.find(tiles_assigned_id_vec[i]) !=
-                    right_flank.end()) {
-                  ++right_flank[tiles_assigned_id_vec[i]];
-                } else {
-                  right_flank[tiles_assigned_id_vec[i]] = 1;
-                }
-              }
-              std::vector<std::pair<size_t, size_t>> right_flank_vec;
-              for (const auto& myPair : right_flank) {
-                right_flank_vec.push_back(
-                  std::make_pair(myPair.first, myPair.second));
-              }
-              sort(right_flank_vec.begin(), right_flank_vec.end(), sort_by_sec);
-              if (right_flank_vec[0].second >= 2) {
-                trim_end_idx = longest_end_idx + 2;
-                good_flank = true;
-              } else if (right_flank_vec[0].second + right_flank_vec[1].second >
-                           3 &&
-                         (right_flank_vec[0].first - right_flank_vec[1].first ==
-                            1 ||
-                          right_flank_vec[1].first - right_flank_vec[0].first ==
-                            1)) {
-                trim_end_idx = longest_end_idx + 2;
-                good_flank = true;
-              }
-
-            } else {
-              trim_end_idx = (ssize_t)num_tiles - 1;
-            }
-          }
-          if (good_flank) {
-            assigned = false;
-            if (verbose) { std::cerr << "trimmed" << std::endl; }
-            ++ids_inserted;
+          trim_end_idx = (ssize_t)num_tiles - 1;
+        }
+      }
+      if (good_flank) {
+        assigned = false;
+        if (verbose) {
+          std::cerr << "trimmed" << std::endl;
+        }
+        ++ids_inserted;
 
 #if _OPENMP
 #pragma omp parallel for
 #endif
-            for (size_t i = trim_start_idx; i <= trim_end_idx; ++i) {
-              uint32_t curr_ids_inserted =
-                ids_inserted +
-                uint32_t((i - trim_start_idx + 1) * opt::tile_length / 10000);
-              const auto& hashed_values_flat_array = hashed_values[i];
-              miBFCS.insertMIBF(*miBF,
-                                hashed_values_flat_array,
-                                curr_ids_inserted); //, non_singletons_bf_vec);
-              // miBFCS.insertSaturation(*miBF, Hhashes, ids_inserted); // don't
-              // care about saturation atm so skipping for speed
-              // }
-            }
-            ids_inserted =
-              ids_inserted +
-              uint32_t((trim_end_idx - trim_start_idx) * 1000 / 10000);
-            // output read to golden path
-            if (trim_end_idx == num_tiles - 1) {
-              std::string new_seq =
-                record.seq.substr(trim_start_idx * 1000, std::string::npos);
-              golden_path_vec[level] << ">trimmed" << record.id << '\n'
-                                     << new_seq << std::endl;
-              inserted_bases += new_seq.size();
-            } else {
-              std::string new_seq =
-                record.seq.substr(trim_start_idx * 1000,
-                                  (trim_end_idx - trim_start_idx + 1) * 1000);
-              golden_path_vec[level] << ">trimmed" << record.id << '\n'
-                                     << new_seq << std::endl;
-              inserted_bases += new_seq.size();
-            }
+        for (size_t i = trim_start_idx; i <= trim_end_idx; ++i) {
+          uint32_t curr_ids_inserted =
+            ids_inserted +
+            uint32_t((i - trim_start_idx + 1) * opt::tile_length / 10000);
+          const auto& hashed_values_flat_array = hashed_values[i];
+          miBFCS.insertMIBF(*miBF,
+                            hashed_values_flat_array,
+                            curr_ids_inserted); //, non_singletons_bf_vec);
+          // miBFCS.insertSaturation(*miBF, Hhashes, ids_inserted); // don't
+          // care about saturation atm so skipping for speed
+          // }
+        }
+        ids_inserted = ids_inserted +
+                       uint32_t((trim_end_idx - trim_start_idx) * 1000 / 10000);
+        // output read to golden path
+        if (trim_end_idx == num_tiles - 1) {
+          std::string new_seq =
+            record.seq.substr(trim_start_idx * 1000, std::string::npos);
+          golden_path_vec[level] << ">trimmed" << record.id << '\n'
+                                 << new_seq << std::endl;
+          inserted_bases += new_seq.size();
+        } else {
+          std::string new_seq = record.seq.substr(
+            trim_start_idx * 1000, (trim_end_idx - trim_start_idx + 1) * 1000);
+          golden_path_vec[level] << ">trimmed" << record.id << '\n'
+                                 << new_seq << std::endl;
+          inserted_bases += new_seq.size();
+        }
 
-            if (opt::temp_mode || opt::new_temp_mode) {
-              if (target_bases < inserted_bases) {
-                ++curr_path;
-                if (opt::max_paths < curr_path) {
-                  exit(0);
-                }
-                inserted_bases = 0;
-                mibf_vec.pop_back();
-                mibf_vec.emplace_back(std::unique_ptr<MIBloomFilter<uint32_t>>(
-                  miBFCS.getEmptyMIBF()));
-                golden_path_vec.pop_back();
-                golden_path_vec.emplace_back(
-                  std::ofstream(opt::prefix_file + "_golden_path_" +
-                                std::to_string(curr_path) + ".fa"));
-                ids_inserted = 0;
-              }
+        if (opt::temp_mode || opt::new_temp_mode) {
+          if (target_bases < inserted_bases) {
+            ++curr_path;
+            if (opt::max_paths < curr_path) {
+              exit(0);
             }
-
-            break; // breaks the level loop
+            inserted_bases = 0;
+            mibf_vec.pop_back();
+            mibf_vec.emplace_back(
+              std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF()));
+            golden_path_vec.pop_back();
+            golden_path_vec.emplace_back(
+              std::ofstream(opt::prefix_file + "_golden_path_" +
+                            std::to_string(curr_path) + ".fa"));
+            ids_inserted = 0;
           }
         }
-      }
-      if (assigned) {
-        if (verbose) { std::cerr << "assigned" << std::endl; }
-        // output read to wood path
-        // wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping
-        // wood path output to reduce time
 
-        ++id;
+        break; // breaks the level loop
       }
+    }
+  }
+  if (assigned) {
+    if (verbose) {
+      std::cerr << "assigned" << std::endl;
+    }
+    // output read to wood path
+    // wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping
+    // wood path output to reduce time
+
+    ++id;
+  }
 }
 
 int
@@ -880,7 +892,17 @@ main(int argc, char** argv)
       const auto& record = read_hashes.read;
       const auto& hashed_values = read_hashes.tile_hashes;
 
-      process_read(record, hashed_values, golden_path_vec, mibf_vec, miBFCS, inserted_bases, target_bases, curr_path, id, ids_inserted, opt::min_length);
+      process_read(record,
+                   hashed_values,
+                   golden_path_vec,
+                   mibf_vec,
+                   miBFCS,
+                   inserted_bases,
+                   target_bases,
+                   curr_path,
+                   id,
+                   ids_inserted,
+                   opt::min_length);
     }
   }
 
