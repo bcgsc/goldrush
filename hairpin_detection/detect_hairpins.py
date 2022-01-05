@@ -102,7 +102,7 @@ def detect_hairpins(args):
 
     format_str = ("{}\t"*8).strip() + "\n"
 
-    with btllib.Indexlr(args.FA, args.k, args.w, btllib.IndexlrFlag.LONG_MODE, 2) as minimizers: # !! TODO: specify flags when bug fixed
+    with btllib.Indexlr(args.FA, args.k, args.w, btllib.IndexlrFlag.LONG_MODE, args.threads) as minimizers:
         for mx_entry in minimizers:
             name, seq_length = mx_entry.id, mx_entry.readlen
             mx_info = filter_ordered_sketch(mx_entry.minimizers, args, seq_length)
@@ -148,6 +148,7 @@ def print_args(args):
     print("\t-b", args.bins)
     print("\t-m", args.mapped_bin_threshold)
     print("\t--corr", args.corr)
+    print("\t-t", args.threads)
 
 
 def main():
@@ -173,6 +174,8 @@ def main():
     parser.add_argument("-m", "--mapped-bin-threshold",
                         help="Threshold number of bins with mapped minimizers [5]",
                         type=int, default=5)
+    parser.add_argument("-t", "--threads", help="Number of threads [5]", type=int,
+                        default=5)
     parser.add_argument("-o", help="Output file for hairpin classifications [stdout]",
                         type=str, default=sys.stdout)
     parser.add_argument("-v", action="store_true", help="Verbose logging of filtered minimizers")
