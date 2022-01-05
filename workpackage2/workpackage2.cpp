@@ -147,16 +147,19 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
     }
   }
 
-  // print which id each tile is assigned to
-  for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
-    std::cerr << tiles_assigned_id << "\t";
-  }
-  std::cerr << std::endl;
 
-  for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
-    std::cerr << tiles_assigned_bool << "\t";
+  if (verbose) {
+    // print which id each tile is assigned to
+    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
+      std::cerr << tiles_assigned_id << "\t";
+    }
+    std::cerr << std::endl;
+
+    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
+      std::cerr << tiles_assigned_bool << "\t";
+    }
+    std::cerr << std::endl;
   }
-  std::cerr << std::endl;
   num_assigned_tiles = 0;
   for (const auto& is_tile_assigned : tiles_assigned_bool_vec) {
     if (is_tile_assigned) {
@@ -224,16 +227,18 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
     }
   }
 
-  // print which id each tile is assigned to
-  for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
-    std::cerr << tiles_assigned_id << "\t";
-  }
-  std::cerr << std::endl;
+  if (verbose) {
+    // print which id each tile is assigned to
+    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
+      std::cerr << tiles_assigned_id << "\t";
+    }
+    std::cerr << std::endl;
 
-  for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
-    std::cerr << tiles_assigned_bool << "\t";
+    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
+      std::cerr << tiles_assigned_bool << "\t";
+    }
+    std::cerr << std::endl;
   }
-  std::cerr << std::endl;
 
   size_t start_idx = 0;
   size_t end_idx = 0;
@@ -260,16 +265,18 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
     }
   }
 
-  // print which id each tile is assigned to
-  for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
-    std::cerr << tiles_assigned_id << "\t";
-  }
-  std::cerr << std::endl;
+  if (verbose) {
+    // print which id each tile is assigned to
+    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
+      std::cerr << tiles_assigned_id << "\t";
+    }
+    std::cerr << std::endl;
 
-  for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
-    std::cerr << tiles_assigned_bool << "\t";
+    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
+      std::cerr << tiles_assigned_bool << "\t";
+    }
+    std::cerr << std::endl;
   }
-  std::cerr << std::endl;
 
   for (size_t i = 2; i < num_tiles - 2; ++i) {
     if (tiles_assigned_bool_vec[i] == true && tiles_assigned_id_vec[i] > 100) {
@@ -289,16 +296,18 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
     }
   }
 
-  // print which id each tile is assigned to
-  for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
-    std::cerr << tiles_assigned_id << "\t";
-  }
-  std::cerr << std::endl;
+  if (verbose) {
+    // print which id each tile is assigned to
+    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
+      std::cerr << tiles_assigned_id << "\t";
+    }
+    std::cerr << std::endl;
 
-  for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
-    std::cerr << tiles_assigned_bool << "\t";
+    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
+      std::cerr << tiles_assigned_bool << "\t";
+    }
+    std::cerr << std::endl;
   }
-  std::cerr << std::endl;
 
   for (size_t i = 1; i < num_tiles - 1; ++i) {
     /*if (i == 0) {
@@ -326,17 +335,18 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
     }
   }
 
-  // print which id each tile is assigned to
-  for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
-    std::cerr << tiles_assigned_id << "\t";
-  }
-  std::cerr << std::endl;
+  if (verbose) {
+    // print which id each tile is assigned to
+    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
+      std::cerr << tiles_assigned_id << "\t";
+    }
+    std::cerr << std::endl;
 
-  for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
-    std::cerr << tiles_assigned_bool << "\t";
+    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
+      std::cerr << tiles_assigned_bool << "\t";
+    }
+    std::cerr << std::endl;
   }
-
-  std::cerr << std::endl;
   num_assigned_tiles = 0;
   for (const auto& is_tile_assigned : tiles_assigned_bool_vec) {
     if (is_tile_assigned) {
@@ -404,7 +414,7 @@ inline void process_read(const btllib::SeqReader::Record& record, const std::vec
         }
 
         if (!assigned) {
-          std::cerr << "unassigned" << std::endl;
+          if (verbose) { std::cerr << "unassigned" << std::endl; }
           ++ids_inserted;
 
 #if _OPENMP
@@ -453,7 +463,7 @@ inline void process_read(const btllib::SeqReader::Record& record, const std::vec
             continue;
           }
           if (num_assigned_tiles == num_tiles || opt::second_pass == true) {
-            std::cerr << "complete assignment" << std::endl;
+            if (verbose) { std::cerr << "complete assignment" << std::endl; }
             continue;
           }
           /*if (num_tiles < 15) {
@@ -485,7 +495,6 @@ inline void process_read(const btllib::SeqReader::Record& record, const std::vec
           ssize_t longest_end_idx = 0;
           size_t curr_stretch = 0;
           size_t longest_stretch = 0;
-          std::cerr << "checkpoint 1" << std::endl;
           for (size_t i = 1; i < num_tiles - 1; ++i) {
             if (tiles_assigned_bool_vec[i] == false &&
                 tiles_assigned_bool_vec[i - 1] == true) {
@@ -519,8 +528,10 @@ inline void process_read(const btllib::SeqReader::Record& record, const std::vec
           bool good_flank = false;
           size_t trim_start_idx = longest_start_idx - 1;
           size_t trim_end_idx = longest_end_idx + 1;
-          std::cerr << "trim_start_idx: " << trim_start_idx << std::endl;
-          std::cerr << "trim_end_idx: " << trim_end_idx << std::endl;
+          if (verbose) {
+            std::cerr << "trim_start_idx: " << trim_start_idx << std::endl;
+            std::cerr << "trim_end_idx: " << trim_end_idx << std::endl;
+          }
 
           if (num_tiles < 15) {
             bool good_right_flank = false;
@@ -543,7 +554,7 @@ inline void process_read(const btllib::SeqReader::Record& record, const std::vec
 
             sort(left_flank_vec.begin(), left_flank_vec.end(), sort_by_sec);
 
-            std::cerr << left_flank_vec.size() << std::endl;
+            if (verbose) { std::cerr << left_flank_vec.size() << std::endl; }
             if (left_flank_vec.size() != 0) {
               if (left_flank_vec[0].second >= 2) {
                 trim_start_idx = longest_start_idx - 2;
@@ -562,10 +573,12 @@ inline void process_read(const btllib::SeqReader::Record& record, const std::vec
                 good_left_flank = true;
               }
             }
-            if (good_left_flank) {
-              std::cerr << "good left flank: true" << std::endl;
-            } else {
-              std::cerr << "good left flank: false" << std::endl;
+            if (verbose) {
+              if (good_left_flank) {
+                std::cerr << "good left flank: true" << std::endl;
+              } else {
+                std::cerr << "good left flank: false" << std::endl;
+              }
             }
             std::unordered_map<size_t, size_t> right_flank;
             for (ssize_t i = longest_end_idx + 1; i < (ssize_t)num_tiles; ++i) {
@@ -603,10 +616,12 @@ inline void process_read(const btllib::SeqReader::Record& record, const std::vec
                 good_right_flank = true;
               }
             }
-            if (good_right_flank) {
-              std::cerr << "good right flank: true" << std::endl;
-            } else {
-              std::cerr << "good right flank: false" << std::endl;
+            if (verbose) {
+              if (good_right_flank) {
+                std::cerr << "good right flank: true" << std::endl;
+              } else {
+                std::cerr << "good right flank: false" << std::endl;
+              }
             }
             if (good_left_flank && good_right_flank) {
               good_flank = true;
@@ -634,7 +649,7 @@ inline void process_read(const btllib::SeqReader::Record& record, const std::vec
 
               sort(left_flank_vec.begin(), left_flank_vec.end(), sort_by_sec);
 
-              std::cerr << left_flank_vec.size() << std::endl;
+              if (verbose) { std::cerr << left_flank_vec.size() << std::endl; }
               if (left_flank_vec[0].second >= 2) {
                 trim_start_idx = longest_start_idx - 2;
                 good_flank = true;
@@ -647,11 +662,9 @@ inline void process_read(const btllib::SeqReader::Record& record, const std::vec
                 trim_start_idx = longest_start_idx - 2;
                 good_flank = true;
               }
-              std::cerr << "checkpoint 2.4" << std::endl;
             } else {
               trim_start_idx = 0;
             }
-            std::cerr << "checkpoint 3" << std::endl;
 
             if (longest_end_idx + 5 < (ssize_t)num_tiles - 1) {
               std::unordered_map<size_t, size_t> right_flank;
@@ -686,10 +699,9 @@ inline void process_read(const btllib::SeqReader::Record& record, const std::vec
               trim_end_idx = (ssize_t)num_tiles - 1;
             }
           }
-          std::cerr << "checkpoint 4" << std::endl;
           if (good_flank) {
             assigned = false;
-            std::cerr << "trimmed" << std::endl;
+            if (verbose) { std::cerr << "trimmed" << std::endl; }
             ++ids_inserted;
 
 #if _OPENMP
@@ -749,7 +761,7 @@ inline void process_read(const btllib::SeqReader::Record& record, const std::vec
         }
       }
       if (assigned) {
-        std::cerr << "assigned" << std::endl;
+        if (verbose) { std::cerr << "assigned" << std::endl; }
         // output read to wood path
         // wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping
         // wood path output to reduce time
@@ -832,8 +844,7 @@ main(int argc, char** argv)
   miBFCS.setup();
   std::vector<std::unique_ptr<MIBloomFilter<uint32_t>>> mibf_vec;
   for (size_t i = 0; i < opt::levels; ++i) {
-    mibf_vec.emplace_back(
-      std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF()));
+    mibf_vec.emplace_back(miBFCS.getEmptyMIBF());
   }
 
   std::cerr << "assigning tiles" << std::endl;
@@ -843,8 +854,8 @@ main(int argc, char** argv)
     btllib::SeqReader::LONG_MODE_BUFFER_SIZE,
     btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
   start_read_hashing(opt::input,
-                     opt::min_length,
                      opt::tile_length,
+                     opt::min_length,
                      opt::kmer_size,
                      seed_string_vec,
                      precomputed_hash_queue,
