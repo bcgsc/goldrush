@@ -14,8 +14,8 @@ Uses minimizers to identify and flag putative hairpin artifact reads in Nanopore
 ## Usage
 
 ```commandline
-usage: detect_hairpins.py [-h] -i INDEX -k K -w W [--perc PERC] [-e E] [--upper_slope UPPER_SLOPE] [--lower_slope LOWER_SLOPE] [-c C] [--corr CORR] [-b BINS]
-                          [-m MAPPED_BIN_THRESHOLD] [-o O] [-r R] [-v]
+usage: detect_hairpins.py [-h] -k K -w W [--perc PERC] [-e E] [--upper_slope UPPER_SLOPE] [--lower_slope LOWER_SLOPE] [-c C] [--corr CORR] [-b BINS]
+                          [-m MAPPED_BIN_THRESHOLD] [-o O] [-v]
                           FA
 
 Detect hairpin artifacts in nanopore reads
@@ -25,8 +25,6 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -i INDEX, --index INDEX
-                        samtools faidx index for input reads
   -k K                  Kmer size
   -w W                  Window size
   --perc PERC           Percentage error allowed for yintercept [10]
@@ -41,7 +39,6 @@ optional arguments:
   -m MAPPED_BIN_THRESHOLD, --mapped-bin-threshold MAPPED_BIN_THRESHOLD
                         Threshold number of bins with mapped minimizers [5]
   -o O                  Output file for hairpin classifications [stdout]
-  -r R                  Path to random forest models
   -v                    Verbose logging of filtered minimizers
 ```
 
