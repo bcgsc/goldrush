@@ -97,8 +97,9 @@ def detect_hairpins(args):
     total_reads = 0
 
     fout = open(args.o, 'w')
-    fout.write("Name\tLength\tCorrelation_coefficient\tyintercept\tslope\tnum_mx"
-               "\tmapped_bins\tis_hairpin_pred\n")
+    if not args.brief:
+        fout.write("Name\tLength\tCorrelation_coefficient\tyintercept\tslope\tnum_mx"
+                   "\tmapped_bins\tis_hairpin_pred\n")
 
     format_str = ("{}\t"*8).strip() + "\n"
 
@@ -185,7 +186,7 @@ def main():
     parser.add_argument("-t", "--threads", help="Number of threads [5]", type=int,
                         default=5)
     parser.add_argument("-o", help="Output file for hairpin classifications [stdout]",
-                        type=str, default=sys.stdout)
+                        type=str, default="/dev/stdout")
     parser.add_argument("-v", action="store_true", help="Verbose logging of filtered minimizers")
 
     args = parser.parse_args()
