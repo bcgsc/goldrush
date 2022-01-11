@@ -180,7 +180,8 @@ def main():
     parser.add_argument("-m", "--mapped-bin-threshold",
                         help="Threshold number of bins with mapped minimizers [5]",
                         type=int, default=5)
-    parser.add_argument("--brief", help="Brief output. Only outputs 1 or 0 for each input fasta/fastq entry.")
+    parser.add_argument("--brief", help="Brief output. Only outputs 1 or 0 for each input fasta/fastq entry.",
+                        action="store_true")
     parser.add_argument("-t", "--threads", help="Number of threads [5]", type=int,
                         default=5)
     parser.add_argument("-o", help="Output file for hairpin classifications [stdout]",
