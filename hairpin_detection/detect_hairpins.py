@@ -124,11 +124,17 @@ def detect_hairpins(args):
 
             if is_hairpin(mx_info, correlation, yint, slope, mapped_bins, seq_length, args):
                 hairpins += 1
-                fout.write(format_str.format(name, seq_length, correlation, yint, slope,
-                                             len(mx_info), mapped_bins, "Hairpin"))
+                if args.brief:
+                    fout.write("{}\n".format(1))
+                else:
+                    fout.write(format_str.format(name, seq_length, correlation, yint, slope,
+                                                 len(mx_info), mapped_bins, "Hairpin"))
             else:
-                fout.write(format_str.format(name, seq_length, correlation, yint, slope,
-                                             len(mx_info), mapped_bins, "Non-hairpin"))
+                if args.brief:
+                    fout.write("{}\n".format(0))
+                else:
+                    fout.write(format_str.format(name, seq_length, correlation, yint, slope,
+                                                 len(mx_info), mapped_bins, "Non-hairpin"))
 
             total_reads += 1
 
@@ -174,6 +180,7 @@ def main():
     parser.add_argument("-m", "--mapped-bin-threshold",
                         help="Threshold number of bins with mapped minimizers [5]",
                         type=int, default=5)
+    parser.add_argument("--brief", help="Brief output. Only outputs 1 or 0 for each input fasta/fastq entry.")
     parser.add_argument("-t", "--threads", help="Number of threads [5]", type=int,
                         default=5)
     parser.add_argument("-o", help="Output file for hairpin classifications [stdout]",
@@ -182,9 +189,10 @@ def main():
 
     args = parser.parse_args()
 
-    print("Running hairpin detection...")
+    if not args.brief:
+        print("Running hairpin detection...")
 
-    print_args(args)
+        print_args(args)
 
     if args.corr not in ["pearson", "spearman"]:
         raise ValueError("--corr must be set to pearson or spearman. ", args.corr, "supplied.")
@@ -192,10 +200,11 @@ def main():
     args.FA = "/dev/stdin" if args.FA == "-" else args.FA
 
     hairpins, total_reads = detect_hairpins(args)
-    print("Total reads analyzed:", total_reads)
-    print("Total hairpins detected:", hairpins)
+    if not args.brief:
+        print("Total reads analyzed:", total_reads)
+        print("Total hairpins detected:", hairpins)
 
-    print("DONE!")
+        print("DONE!")
 
 
 if __name__ == "__main__":
