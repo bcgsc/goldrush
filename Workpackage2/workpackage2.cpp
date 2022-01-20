@@ -189,6 +189,7 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
     size_t num_assigned_tiles = 0;
     size_t num_tiles = hashed_values.size();
     //std::vector<uint32_t> tiles_assigned_id_vec (num_tiles, 0);
+    std::vector<std::vector<std::pair<uint32_t, uint32_t>>> tiles_assigned_all_id_vec(hashed_values.size());
 
 
 #if _OPENMP
@@ -243,13 +244,17 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
 
         uint32_t curr_id = 0;
         uint32_t curr_id_count = 0;
-
+        std::vector<std::pair<uint32_t, uint32_t>> id_counts_vec;
         for (auto id_counts_it = id_counts.begin(); id_counts_it != id_counts.end(); ++id_counts_it) { //find id with highest count in a tile
             if (id_counts_it->second.second > curr_id_count) {
                 curr_id = id_counts_it->first;
                 curr_id_count = id_counts_it->second.second;
             }
+            id_counts_vec.emplace_back(std::make_pair(curr_id, curr_id_count));
         }
+
+        sort(id_counts_vec.begin(), id_counts_vec.end(), sort_by_sec);
+
 
         if (curr_id_count > opt::threshold) {
 #if _OPENMP
@@ -260,6 +265,7 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
         }
 
         tiles_assigned_id_vec[i] = curr_id;
+        tiles_assigned_all_id_vec[i] = id_counts_vec;
         
     }
 
@@ -284,9 +290,74 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
         }
     }
 
+    for (size_t i = 1; i < num_tiles; ++i) {
+        uint32_t curr_id = tiles_assigned_id_vec[i];
+        uint32_t prev_id = tiles_assigned_id_vec[i - 1];
+        if (curr_id != prev_id) {
+            for (auto& pair : tiles_assigned_all_id_vec[i]) {
+                if (pair.first == prev_id) {
+                    tiles_assigned_id_vec[i] = prev_id;
+                    if (pair.second > opt::threshold) {
+                        tiles_assigned_bool_vec[i] = true;
+                    } else {
+                        tiles_assigned_bool_vec[i] = false;
+                    }
+                }
+            }
+        }
+    }
+
+    //print which id each tile is assigned to
+    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
+        std::cerr << tiles_assigned_id << "\t";
+
+
+    }
+    std::cerr << std::endl;
+
+    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
+        std::cerr << tiles_assigned_bool << "\t";
+
+
+    }
+    std::cerr << std::endl;
+
+    for (ssize_t i = (ssize_t)num_tiles - 2; i >= 0; --i) {
+        uint32_t curr_id = tiles_assigned_id_vec[i];
+        uint32_t prev_id = tiles_assigned_id_vec[i + 1];
+        if (curr_id != prev_id) {
+            for (auto& pair : tiles_assigned_all_id_vec[i]) {
+                if (pair.first == prev_id) {
+                    tiles_assigned_id_vec[i] = prev_id;
+                    if (pair.second > opt::threshold) {
+                        tiles_assigned_bool_vec[i] = true;
+                    } else {
+                        tiles_assigned_bool_vec[i] = false;
+                    }
+                }
+            }
+        }
+    }
+
+    //print which id each tile is assigned to
+    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
+        std::cerr << tiles_assigned_id << "\t";
+
+
+    }
+    std::cerr << std::endl;
+
+    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
+        std::cerr << tiles_assigned_bool << "\t";
+
+
+    }
+    std::cerr << std::endl;
+
+
 
     for (size_t i = 1; i < num_tiles -1; ++i) {
-        if (tiles_assigned_bool_vec[i] == false && tiles_assigned_id_vec[i] > 100) {
+        if (tiles_assigned_bool_vec[i] == false) {
             if ((tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i - 1] && tiles_assigned_bool_vec[i - 1] == true) || (tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i + 1] && tiles_assigned_bool_vec[i + 1] == true)) {
                 tiles_assigned_bool_vec[i] = true;
             } else if ((tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i - 1] + 1 && tiles_assigned_bool_vec[i - 1] == true) || (tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i + 1] + 1 && tiles_assigned_bool_vec[i + 1] == true)) {
@@ -301,7 +372,7 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
     }
 
     for (size_t i = num_tiles - 2; i >= 1; --i) {
-        if (tiles_assigned_bool_vec[i] == false  && tiles_assigned_id_vec[i] > 100) {
+        if (tiles_assigned_bool_vec[i] == false) {
             if ((tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i - 1] && tiles_assigned_bool_vec[i - 1] == true) || (tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i + 1] && tiles_assigned_bool_vec[i + 1] == true)) {
                 tiles_assigned_bool_vec[i] = true;
             } else if ((tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i - 1] + 1 && tiles_assigned_bool_vec[i - 1] == true) || (tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i + 1] + 1 && tiles_assigned_bool_vec[i + 1] == true)) {
@@ -369,19 +440,20 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
     }
     std::cerr << std::endl;
 
-
-    for (size_t i = 2; i < num_tiles -2; ++i) {
-        if (tiles_assigned_bool_vec[i] == true && tiles_assigned_id_vec[i] > 100) {
-            if (tiles_assigned_bool_vec[i - 1] == false && tiles_assigned_bool_vec[i + 1] == false) {
-                tiles_assigned_bool_vec[i] = false;
+    if (num_tiles >= 3) {
+        for (size_t i = 2; i < num_tiles -2; ++i) {
+            if (tiles_assigned_bool_vec[i] == true) {
+                if (tiles_assigned_bool_vec[i - 1] == false && tiles_assigned_bool_vec[i + 1] == false) {
+                    tiles_assigned_bool_vec[i] = false;
+                }
             }
         }
-    }
 
-    for (size_t i = num_tiles - 3; i >= 2; --i) {
-        if (tiles_assigned_bool_vec[i] == true && tiles_assigned_id_vec[i] > 100) {
-            if (tiles_assigned_bool_vec[i - 1] == false && tiles_assigned_bool_vec[i + 1] == false) {
-                tiles_assigned_bool_vec[i] = false;
+        for (size_t i = num_tiles - 3; i >= 2; --i) {
+            if (tiles_assigned_bool_vec[i] == true) {
+                if (tiles_assigned_bool_vec[i - 1] == false && tiles_assigned_bool_vec[i + 1] == false) {
+                    tiles_assigned_bool_vec[i] = false;
+                }
             }
         }
     }
@@ -401,6 +473,58 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
 
     }
     std::cerr << std::endl;
+
+    std::unordered_map<uint32_t, std::vector<uint32_t>> id_to_idx;
+    for (size_t i = 0; i < num_tiles; ++i) {
+        uint32_t curr_id = tiles_assigned_id_vec[i];
+        uint32_t curr_id_bool = tiles_assigned_bool_vec[i];
+        if (curr_id_bool) {
+            id_to_idx[curr_id].emplace_back(i);
+        }
+    }
+
+
+    for (auto& id_idx_vec_pair : id_to_idx) {
+        auto& idx_vec = id_idx_vec_pair.second;
+        sort(idx_vec.begin(), idx_vec.end());
+        
+        for (size_t i = 1; i < idx_vec.size(); ++i){
+            uint32_t prev_idx = idx_vec[i - 1];
+            uint32_t curr_idx = idx_vec[i];
+            if (curr_idx > prev_idx + 1) {
+                uint32_t prev_id = tiles_assigned_id_vec[prev_idx];
+                for (size_t j = prev_idx + 1; j <= curr_idx; ++j) {
+                     tiles_assigned_id_vec[j] = prev_id;
+                }
+            }
+        }
+    }
+    //print which id each tile is assigned to
+    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
+        std::cerr << tiles_assigned_id << "\t";
+
+
+    }
+    std::cerr << std::endl;
+
+    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
+        std::cerr << tiles_assigned_bool << "\t";
+
+
+    }
+    std::cerr << std::endl;
+
+    size_t last_id = tiles_assigned_id_vec[num_tiles - 1];
+    size_t second_last_id = tiles_assigned_id_vec[num_tiles - 2];
+    size_t start_id = tiles_assigned_id_vec[0];
+    size_t second_start_id = tiles_assigned_id_vec[1];
+    if (last_id == second_last_id || last_id == second_last_id + 1 || last_id == second_last_id - 1) {
+        tiles_assigned_bool_vec[num_tiles - 1] = true;
+    }
+    if (start_id == second_start_id || start_id == second_start_id + 1 || start_id == second_start_id - 1) {
+        tiles_assigned_bool_vec[0] = true;
+    }
+
 
     for (size_t i = 1; i < num_tiles - 1; ++i) {
         /*if (i == 0) {
@@ -436,6 +560,46 @@ size_t calc_num_assigned_tiles (const std::unique_ptr<MIBloomFilter<uint32_t>>& 
 
     }
     std::cerr << std::endl;
+
+    start_idx = 0;
+    end_idx = 0;
+    //size_t curr_stretch = 0;
+    std::cerr << "c1" << std::endl;
+    coord_vec.clear();
+    for (size_t i = 1; i < num_tiles - 1; ++i){
+        if (tiles_assigned_bool_vec[i] == true && tiles_assigned_bool_vec[i - 1] == false) {
+            start_idx = i;
+        } else if (tiles_assigned_bool_vec[i] == false && tiles_assigned_bool_vec[i - 1] == true) {
+            end_idx = i - 1;
+            coord_vec.push_back(std::make_pair(start_idx, end_idx));
+        }
+    }
+    std::cerr << "c2" << std::endl;
+    for (const auto& coords : coord_vec) {
+        if (coords.second - coords.first + 1 <= 5 ) {
+            for (auto i = coords.first; i <= coords.second; ++i) {
+                tiles_assigned_bool_vec[i] = false;
+            }
+        }
+
+    }
+    std::cerr << "c3" << std::endl;
+
+    //print which id each tile is assigned to
+    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
+        std::cerr << tiles_assigned_id << "\t";
+
+
+    }
+    std::cerr << std::endl;
+
+    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
+        std::cerr << tiles_assigned_bool << "\t";
+
+
+    }
+    std::cerr << std::endl;
+
 
     std::cerr << std::endl;
     num_assigned_tiles = 0;
@@ -691,7 +855,7 @@ int main(int argc, char** argv) {
         size_t num_tiles = len / opt::tile_length;
         
         std::cerr << "name: " << record.id << std::endl;
-        std::cerr << "num tiles: " << num_tiles - 2 << std::endl;
+        std::cerr << "num tiles: " << num_tiles << std::endl;
 
         
         bool assigned = true;
@@ -835,7 +999,12 @@ int main(int argc, char** argv) {
                 }
 
                 bool good_flank = false;
-                size_t trim_start_idx = longest_start_idx - 1;
+                size_t trim_start_idx = 0;
+                if (longest_start_idx != 0) {
+                    trim_start_idx = longest_start_idx - 1;
+                } else {
+                    trim_start_idx = longest_start_idx;
+                }
                 size_t trim_end_idx = longest_end_idx + 1;
                 std::cerr << "trim_start_idx: " << trim_start_idx << std::endl;
                 std::cerr << "trim_end_idx: " << trim_end_idx << std::endl;
@@ -862,15 +1031,26 @@ int main(int argc, char** argv) {
                     std::cerr << left_flank_vec.size() <<std::endl;
                     if (left_flank_vec.size() != 0) {
                         if (left_flank_vec[0].second >= 2) {
-                            trim_start_idx = longest_start_idx - 2;
+                            if (longest_start_idx != 0) {
+                                trim_start_idx = longest_start_idx - 1;
+                            } else {
+                                trim_start_idx = longest_start_idx;
+                            }
                             good_left_flank = true;
                         } else if ( left_flank_vec.size() >= 2 && (left_flank_vec[0].second + left_flank_vec[1].second> 3 && (left_flank_vec[0].first - left_flank_vec[1].first == 1 || left_flank_vec[1].first - left_flank_vec[0].first == 1))) {
-                            trim_start_idx = longest_start_idx - 2;
+                            if (longest_start_idx != 0) {
+                                trim_start_idx = longest_start_idx - 1;
+                            } else {
+                                trim_start_idx = longest_start_idx;
+                            }
                             good_left_flank = true;       
 
                         } else if (trim_start_idx == 0) {
                             good_left_flank = true; 
                         }
+                    }
+                    if (trim_start_idx == 0) {
+                            good_left_flank = true; 
                     }
                     if (good_left_flank) {
                         std::cerr << "good left flank: true" << std::endl; 
@@ -892,15 +1072,18 @@ int main(int argc, char** argv) {
                     sort(right_flank_vec.begin(), right_flank_vec.end(), sort_by_sec);
                     if (right_flank_vec.size() != 0) {
                         if (right_flank_vec[0].second >= 2) {
-                            trim_end_idx = longest_end_idx + 2;
+                            trim_end_idx = longest_end_idx + 1;
                             good_right_flank = true;
                         } else if ( right_flank_vec.size() >= 2 && (right_flank_vec[0].second + right_flank_vec[1].second> 3 && (right_flank_vec[0].first - right_flank_vec[1].first == 1 || right_flank_vec[1].first - right_flank_vec[0].first == 1))) {
-                            trim_end_idx = longest_end_idx + 2;
+                            trim_end_idx = longest_end_idx + 1;
                             good_right_flank = true;    
 
                         } else if (trim_end_idx == num_tiles - 1) {
                             good_right_flank = true; 
                         }
+                    }
+                    if (trim_end_idx == num_tiles - 1) {
+                            good_right_flank = true; 
                     }
                     if (good_right_flank) {
                         std::cerr << "good right flank: true" << std::endl; 
@@ -913,6 +1096,7 @@ int main(int argc, char** argv) {
 
 
                 } else {
+                    std::cerr << "checkpoint long" <<std::endl;
                     std::cerr << "checkpoint 2" <<std::endl;
                     //bool valid = true;
 
@@ -935,15 +1119,25 @@ int main(int argc, char** argv) {
                         std::cerr << "checkpoint 2.3" <<std::endl;
                         std::cerr << left_flank_vec.size() <<std::endl;
                         if (left_flank_vec[0].second >= 2) {
-                            trim_start_idx = longest_start_idx - 2;
+                            if (longest_start_idx != 0) {
+                                trim_start_idx = longest_start_idx - 1;
+                            } else {
+                                trim_start_idx = longest_start_idx;
+                            }
                             good_flank = true;
                         } else if (left_flank_vec[0].second + left_flank_vec[1].second> 3 && (left_flank_vec[0].first - left_flank_vec[1].first == 1 || left_flank_vec[1].first - left_flank_vec[0].first == 1)) {
-                            trim_start_idx = longest_start_idx - 2;
+                            if (longest_start_idx != 0) {
+                                trim_start_idx = longest_start_idx - 1;
+                            } else {
+                                trim_start_idx = longest_start_idx;
+                            }
                             good_flank = true;       
 
                         }  
                         std::cerr << "checkpoint 2.4" <<std::endl;
                     } else {
+                        std::cerr << "checkpoint long1" <<std::endl;
+                        good_flank = true;
                         trim_start_idx = 0;
                     }
                     std::cerr << "checkpoint 3" <<std::endl;
@@ -963,15 +1157,17 @@ int main(int argc, char** argv) {
                         }                
                         sort(right_flank_vec.begin(), right_flank_vec.end(), sort_by_sec);
                         if (right_flank_vec[0].second >= 2) {
-                            trim_end_idx = longest_end_idx + 2;
+                            trim_end_idx = longest_end_idx + 1;
                             good_flank = true;
                         } else if (right_flank_vec[0].second + right_flank_vec[1].second> 3 && (right_flank_vec[0].first - right_flank_vec[1].first == 1 || right_flank_vec[1].first - right_flank_vec[0].first == 1)) {
-                        trim_end_idx = longest_end_idx + 2;
+                        trim_end_idx = longest_end_idx + 1;
                         good_flank = true;    
 
                         }
 
                     } else {
+                        std::cerr << "checkpoint long2" <<std::endl;
+                        good_flank = true;
                         trim_end_idx = (ssize_t)num_tiles - 1;
                     }
                 }
