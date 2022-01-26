@@ -2,7 +2,7 @@
 
 namespace opt {
 /** Verbose output */
-int verbose = 0;
+int verbose = 1;
 
 ScoringMethod scoringMethod = SIMPLE;
 

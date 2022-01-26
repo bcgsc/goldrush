@@ -25,6 +25,7 @@ extern size_t threshold;
 extern std::string prefix_file;
 extern std::string input;
 extern std::string seed_preset;
+extern std::string filter_file;
 extern int help;
 extern int ntcard;
 extern int second_pass;
