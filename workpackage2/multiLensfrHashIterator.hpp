@@ -37,6 +37,7 @@ public:
     for (size_t i = 0; i < m_seed; ++i) {
       std::vector<std::string> seed{ seedVec[i] };
       m_itrVec.push_back(btllib::SeedNtHash(seq, seed, 1, seedVec[i].size()));
+      m_itrVec[i].roll();
       m_hVec[i] = m_itrVec[i].hashes()[0];
     }
   }

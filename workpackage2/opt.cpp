@@ -27,6 +27,7 @@ int ntcard = 0;
 int second_pass = 0;
 int temp_mode = 0;
 int new_temp_mode = 0;
+std::string filter_file ="";
 
 }
 
@@ -65,7 +66,7 @@ process_options(int argc, char** argv)
   char* end = nullptr;
   while ((c = getopt_long(argc,
                           argv,
-                          "a:g:h:i:j:k:l:m:M:o:r:s:t:u:w:x:p:T:",
+                          "a:f:g:h:i:j:k:l:m:M:o:r:s:t:u:w:x:p:T:",
                           longopts,
                           &optindex)) != -1) {
     switch (c) {
@@ -75,6 +76,9 @@ process_options(int argc, char** argv)
         opt::assigned_max = strtoul(optarg, &end, 10);
         break;
       }
+        case 'f':
+            opt::filter_file = optarg;
+            break;
       case 'g':
         opt::genome_size = strtoull(optarg, &end, 10);
         break;

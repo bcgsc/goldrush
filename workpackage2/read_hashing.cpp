@@ -10,7 +10,9 @@ read_hashing(btllib::SeqReader& reader,
              const size_t min_seq_len,
              const size_t k,
              const std::vector<std::string>& spaced_seeds,
-             btllib::OrderQueueMPMC<ReadTileHashes>& read_tile_hashes_queue)
+             btllib::OrderQueueMPMC<ReadTileHashes>& read_tile_hashes_queue,
+             const std::string filter_file,
+             const std::unordered_set<std::string>& filter_out_reads)
 {
   btllib::OrderQueueMPMC<btllib::SeqReader::Record>::Block record_block(
     reader.get_block_size());
@@ -30,20 +32,40 @@ read_hashing(btllib::SeqReader& reader,
 
       std::vector<std::vector<uint64_t>> hashed_values(num_tiles,
                                                        std::vector<uint64_t>());
-      if (record.seq.size() >= min_seq_len) {
-        for (size_t i = 0; i < num_tiles; ++i) {
-          std::string tile_seq =
-            record.seq.substr(i * tile_size, tile_size + k - 1);
-          multiLensfrHashIterator itr(tile_seq, spaced_seeds);
-          while (itr != itr.end()) {
-            for (size_t curr_hash = 0; curr_hash < spaced_seeds.size();
-                 ++curr_hash) {
-              hashed_values[i].push_back((*itr)[curr_hash]);
+      if (filter_file != "") {
+          if (filter_out_reads.find(record.id) == filter_out_reads.end()) {
+            if (record.seq.size() >= min_seq_len) {
+              for (size_t i = 0; i < num_tiles; ++i) {
+                std::string tile_seq =
+                  record.seq.substr(i * tile_size, tile_size + k - 1);
+                multiLensfrHashIterator itr(tile_seq, spaced_seeds);
+                while (itr != itr.end()) {
+                  for (size_t curr_hash = 0; curr_hash < spaced_seeds.size();
+                      ++curr_hash) {
+                    hashed_values[i].push_back((*itr)[curr_hash]);
+                  }
+                  ++itr;
+                }
+              }
             }
-            ++itr;
+          }
+      } else {
+        if (record.seq.size() >= min_seq_len) {
+          for (size_t i = 0; i < num_tiles; ++i) {
+            std::string tile_seq =
+              record.seq.substr(i * tile_size, tile_size + k - 1);
+            multiLensfrHashIterator itr(tile_seq, spaced_seeds);
+            while (itr != itr.end()) {
+              for (size_t curr_hash = 0; curr_hash < spaced_seeds.size();
+                  ++curr_hash) {
+                hashed_values[i].push_back((*itr)[curr_hash]);
+              }
+              ++itr;
+            }
           }
         }
       }
+
 
       block.data[block.count++] = { std::move(record),
                                     std::move(hashed_values) };
@@ -73,7 +95,9 @@ start_read_hashing(
   const size_t k,
   const std::vector<std::string>& spaced_seeds,
   btllib::OrderQueueMPMC<ReadTileHashes>& read_tile_hashes_queue,
-  const unsigned worker_num)
+  const unsigned worker_num,
+             const std::string filter_file,
+             const std::unordered_set<std::string>& filter_out_reads)
 {
   (new std::thread([&, tile_size, min_seq_len, k, worker_num]() {
     btllib::SeqReader reader(reads_filepath,
@@ -89,7 +113,9 @@ start_read_hashing(
                    min_seq_len,
                    k,
                    std::cref(spaced_seeds),
-                   std::ref(read_tile_hashes_queue)));
+                   std::ref(read_tile_hashes_queue),
+              filter_file,
+             filter_out_reads));
     }
     for (auto& f : last_block_nums_futures) {
       last_block_nums.push_back(f.get());
