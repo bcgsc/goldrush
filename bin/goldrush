@@ -1,4 +1,6 @@
 #!/usr/bin/make -rRf
+# Pipeline for the Goldrush program
+# # Written by Puneet Sidhu and Johnathan Wong.
 
 # Input files
 reads=reads
