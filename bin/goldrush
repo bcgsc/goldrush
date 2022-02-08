@@ -1,6 +1,6 @@
 #!/usr/bin/make -rRf
 # Pipeline for the Goldrush program
-# Written by Puneet Sidhu and Johnathan Wong.
+# Written by Puneet Sidhu, Johnathan Wong and Lauren Coombe.
 
 # Input files
 reads=reads
@@ -52,6 +52,7 @@ k_ntJoin=24
 w_ntJoin=50
 no_cut=False
 ref_weight=2
+rounds=5
 
 # Reference for QUAST run
 ref=None
@@ -147,6 +148,7 @@ help:
 	@echo "	ntLink options:"
 	@echo "	k_ntLink		k-mer size for minimizers [64]"
 	@echo "	w_ntLink		window size for minimizers [1000]"
+	@echo "	rounds			number of rounds of ntLink [5]"
 	@echo ""
 	@echo "	ntJoin options:"
 	@echo "	k_ntJoin		k-mer size for minimizers [24]"
@@ -169,12 +171,10 @@ run: wp2-tigmint-ntlink
 wp2-racon: workpackage2 racon
 wp2-ntLink: workpackage2 racon ntLink-with-wp2
 wp2-tigmint: workpackage2 racon tigmint
-wp2-tigmint-ntLink1: wp2-tigmint ntLink-with-tigmint
-wp2-tigmint-ntLink2: wp2-tigmint-ntLink1 ntLink2
-wp2-tigmint-ntLink3: wp2-tigmint-ntLink2 ntLink3
-wp2-tigmint-ntLink4: wp2-tigmint-ntLink3 ntLink4
-wp2-tigmint-ntLink5: wp2-tigmint-ntLink4 ntLink5
 wp2-tigmint-ntJoin: wp2-tigmint ntJoin
+
+ntlink_targets = $(shell for i in `seq 2 $(rounds)`; do printf "$(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink)"; for j in `seq 1 $$i`; do printf ".ntLink"; done; printf ".fa "; done)
+wp2-tigmint-ntLink: ntLink1 $(ntlink_targets) ntLink_softlink
 
 
 # Run workpackage2
@@ -239,65 +239,21 @@ ref.config: $(p2)_golden_path_0.fa
 	echo "$(p1)_golden_path_2.fa,$(ref_weight)" >> ref.config
 
 
+# Run ntLink rounds after tigmint
+ntLink1: $(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink.fa
 
-# Run ntLink after tigmint 
-ntLink-with-tigmint: $(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink1.fa
-
-$(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink1.fa: $(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa
+$(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink.fa: $(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa
 	ln -sf $< $@
-	echo "Done WP2 + racon + tigmint + ntLink! Scaffolds can be found in: $@"
 
 %.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa: %.span$(span).dist$(dist).tigmint.fa $(long_reads)
 	$(time) ntLink scaffold target=$< reads=$(long_reads) t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z 
 
+%.ntLink.fa: %.fa
+		$(time) ntLink scaffold target=$< reads="$(long_reads)" t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z
+		ln -sf $<.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa $@
 
+ntLink_softlink: $(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink$(rounds).fa
 
-# Run ntLink twice after tigmint 
-ntLink2: $(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink2.fa
-
-$(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink2.fa: $(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink1.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa
-	ln -sf $< $@
-	echo "Done WP2 + racon + tigmint + ntLink(x2)! Scaffolds can be found in: $@"
-
-%.k$(k_ntLink).w$(w_ntLink).ntLink1.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa: %.k$(k_ntLink).w$(w_ntLink).ntLink1.fa $(long_reads)
-	$(time) ntLink scaffold target=$< reads="$(long_reads)" t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z 
-
-
-
-# Run ntLink three times after tigmint 
-ntLink3: $(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink3.fa
-
-$(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink3.fa: $(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink2.renamed.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa
-	ln -sf $< $@
-	echo "Done WP2 + racon + tigmint + ntLink(x3)! Scaffolds can be found in: $@"
-
-%.k$(k_ntLink).w$(w_ntLink).ntLink2.renamed.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa: %.k$(k_ntLink).w$(w_ntLink).ntLink2.renamed.fa $(long_reads)
-	$(time) ntLink scaffold target=$< reads="$(long_reads)" t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z 
-
-%.k$(k_ntLink).w$(w_ntLink).ntLink2.renamed.fa: %.k$(k_ntLink).w$(w_ntLink).ntLink2.fa 
-	seqtk rename $< post_ntLink2_ > $@
-
-
-
-# Run ntLink four times after tigmint 
-ntLink4: $(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink4.fa
-
-$(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink4.fa: $(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink3.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa
-	ln -sf $< $@
-	echo "Done WP2 + racon + tigmint + ntLink(x4)! Scaffolds can be found in: $@"
-
-%.k$(k_ntLink).w$(w_ntLink).ntLink3.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa: %.k$(k_ntLink).w$(w_ntLink).ntLink3.fa $(long_reads)
-	$(time) ntLink scaffold target=$< reads="$(long_reads)" t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z
-
-# Run ntLink fiver times after tigmint
-ntLink5: $(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink5.fa
-
-$(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink5.fa: $(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink4.renamed.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa
-	ln -sf $< $@
-	echo "Done WP2 + racon + tigmint + ntLink(x5)! Scaffolds can be found in: $@"
-
-%.k$(k_ntLink).w$(w_ntLink).ntLink4.renamed.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa: %.k$(k_ntLink).w$(w_ntLink).ntLink4.renamed.fa $(long_reads)
-	$(time) ntLink scaffold target=$< reads="$(long_reads)" t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z
-
-%.k$(k_ntLink).w$(w_ntLink).ntLink4.renamed.fa: %.k$(k_ntLink).w$(w_ntLink).ntLink4.fa
-	seqtk rename $< post_ntLink4_ > $@
+$(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink$(rounds).fa: ntLink1 $(ntlink_targets)
+	ln -sf $(lastword $^) $@
+	echo "Done WP2 + racon + tigmint + $(rounds) ntLink rounds! Scaffolds can be found in: $@"
