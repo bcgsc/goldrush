@@ -108,11 +108,7 @@ help:
 	@echo "	wp2-racon		run workpackage2, then racon"
 	@echo "	wp2-ntLink		run wp2, then racon, then ntLink"
 	@echo "	wp2-tigmint		run wp2, then racon, then tigmint"
-	@echo "	wp2-tigmint-ntLink1	run wp2, then racon, then tigmint, then ntLink"
-	@echo "	wp2-tigmint-ntLink2	run wp2, then racon, then tigmint, then ntLink two times"
-	@echo "	wp2-tigmint-ntLink3	run wp2, then racon, then tigmint, then ntLink three times"
-	@echo "	wp2-tigmint-ntLink4	run wp2, then racon, then tigmint, then ntLink four times"
-	@echo " wp2-tigmint-ntLink5     run wp2, then racon, then tigmint, then ntLink five times"
+	@echo "	wp2-tigmint-ntLink	run wp2, then racon, then tigmint, then ntLink (default 5 rounds)"
 	@echo "	wp2-tigmint-ntJoin	run wp2, then racon, then tigmint, then ntJoin"
 	@echo ""
 	@echo "	General options (required):"
@@ -168,10 +164,10 @@ clean:
 
 # Set-up pipelines 
 run: wp2-tigmint-ntlink
-wp2-racon: workpackage2 racon
-wp2-ntLink: workpackage2 racon ntLink-with-wp2
-wp2-tigmint: workpackage2 racon tigmint
-wp2-tigmint-ntJoin: wp2-tigmint ntJoin
+wp2-racon: racon
+wp2-ntLink: ntLink-with-wp2
+wp2-tigmint: tigmint
+wp2-tigmint-ntJoin: ntJoin
 
 ntlink_targets = $(shell for i in `seq 2 $(rounds)`; do printf "$(p2)_golden_path_0.renamed.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink)"; for j in `seq 1 $$i`; do printf ".ntLink"; done; printf ".fa "; done)
 wp2-tigmint-ntLink: ntLink1 $(ntlink_targets) ntLink_softlink
