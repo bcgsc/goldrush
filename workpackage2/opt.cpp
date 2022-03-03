@@ -17,6 +17,7 @@ double occupancy = 0.1;
 double ratio = 0.1;
 size_t levels = 1;
 size_t jobs = 1;
+size_t block_size = 10;
 size_t max_paths = 1;
 size_t threshold = 10;
 std::string prefix_file = "workpackage2";
@@ -66,7 +67,7 @@ process_options(int argc, char** argv)
   char* end = nullptr;
   while ((c = getopt_long(argc,
                           argv,
-                          "a:f:g:h:i:j:k:l:m:M:o:r:s:t:u:w:x:p:T:",
+                          "a:b:f:g:h:i:j:k:l:m:M:o:r:s:t:u:w:x:p:T:",
                           longopts,
                           &optindex)) != -1) {
     switch (c) {
@@ -76,9 +77,12 @@ process_options(int argc, char** argv)
         opt::assigned_max = strtoul(optarg, &end, 10);
         break;
       }
-        case 'f':
-            opt::filter_file = optarg;
-            break;
+      case 'b':
+        opt::block_size = strtoul(optarg, &end, 10);
+        break;
+      case 'f':
+          opt::filter_file = optarg;
+          break;
       case 'g':
         opt::genome_size = strtoull(optarg, &end, 10);
         break;

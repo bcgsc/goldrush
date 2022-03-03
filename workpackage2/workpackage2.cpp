@@ -31,8 +31,23 @@
 #include <sys/stat.h>
 #include <thread>
 #include <tuple>
-#include <unordered_set>
+#include <set>
 #include <vector>
+
+void log_tile_states(std::vector<uint32_t>& tiles_assigned_id_vec, std::vector<uint8_t>& tiles_assigned_bool_vec) {
+    //print which id each tile is assigned to
+    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
+        std::cerr << tiles_assigned_id << "\t";
+    }
+
+    std::cerr << std::endl;
+    //print whether the id to each tile is assigned
+    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
+        std::cerr << tiles_assigned_bool << "\t";
+    }
+    std::cerr << std::endl;
+}
+
 
 bool
 sort_by_sec(const pair<size_t, size_t>& a, const pair<size_t, size_t>& b)
@@ -75,69 +90,63 @@ size_t
 calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
                         const std::vector<std::vector<uint64_t>> hashed_values,
                         std::vector<uint32_t>& tiles_assigned_id_vec,
-                        std::vector<bool>& tiles_assigned_bool_vec)
+                        std::vector<uint8_t>& tiles_assigned_bool_vec)
 {
 
-  size_t num_assigned_tiles = 0;
-  size_t num_tiles = hashed_values.size();
-  std::vector<std::vector<std::pair<uint32_t, uint32_t>>> tiles_assigned_all_id_vec(hashed_values.size());
+    size_t num_assigned_tiles = 0;
+    size_t num_tiles = hashed_values.size();
+    std::vector<std::vector<std::pair<uint32_t, uint32_t>>> tiles_assigned_all_id_vec(hashed_values.size());
 
-  /*static std::unique_ptr<uint32_t[]> tiles_assigned_id_array;
-  if (true) {
-    tiles_assigned_id_array = std::make_unique<uint32_t[]>(num_tiles);
-    std::memset(tiles_assigned_id_array.get(), 0, num_tiles * sizeof(uint32_t));
-  }*/
 
 #if _OPENMP
-#pragma omp parallel for reduction(+ : num_assigned_tiles)
+#pragma omp parallel for
 #endif
-  for (size_t i = 0; i < num_tiles;
-       ++i) { // for each tile except first and last tiles. We consider them
-              // erroneous and not used in tile assignment.
-    std::unordered_map<uint32_t, std::pair<uint32_t, uint32_t>> id_counts;
+    for (size_t i = 0; i < num_tiles; ++i) {
 
-    // Reusable vector for ranks
-    vector<uint64_t> m_rank_pos(miBF.getHashNum());
-    // Reusable vector for IDs
-    vector<uint32_t> m_data(miBF.getHashNum());
+        std::map<uint32_t, std::pair<uint32_t, uint32_t>> id_counts; // store counts of ids
 
-    const auto& hashed_values_flat_array = hashed_values[i];
-    std::vector<uint64_t> hashes(opt::hash_num, 0);
-    for (size_t curr_frame = 0; curr_frame < (hashed_values_flat_array.size() / opt::hash_num); ++curr_frame) {
+        // Reusable vector for ranks 
+        vector<uint64_t> m_rank_pos(miBF.getHashNum());
+        // Reusable vector for IDs 
+        vector<uint32_t> m_data(miBF.getHashNum());
         
-        for (size_t curr_hash = 0; curr_hash < opt::hash_num; ++curr_hash) {
-            hashes[curr_hash] = hashed_values_flat_array[curr_frame * opt::hash_num + curr_hash];
-        }
+        const auto& hashed_values_flat_array = hashed_values[i];
+        std::vector<uint64_t> hashes(opt::hash_num, 0);
+        for (size_t curr_frame = 0; curr_frame < (hashed_values_flat_array.size() / opt::hash_num); ++curr_frame) {
+            
+            for (size_t curr_hash = 0; curr_hash < opt::hash_num; ++curr_hash) {
+                hashes[curr_hash] = hashed_values_flat_array[curr_frame * opt::hash_num + curr_hash];
+            }
 
-        std::unordered_set<uint32_t> unique_ids;
-        if (miBF.atRank(hashes, m_rank_pos)) {                      // if its a hit
-            m_data = miBF.getData(m_rank_pos);                 // m_data has ID's
-            for(unsigned m = 0; m < miBF.getHashNum(); m++){   // iterate over ID's
-                if(m_data[m] > miBF.s_mask){                     // if ID is saturated
-                    uint32_t new_id = m_data[m] & miBF.s_antiMask;
-                    if (new_id == 0) {
-                        continue;
-                    }                                
-                    unique_ids.insert(new_id);
-                }
-                else{
-                    if (m_data[m] == 0) {
-                        continue;
+            std::set<uint32_t> unique_ids;
+            if (miBF.atRank(hashes, m_rank_pos)) {                      // if its a hit
+                m_data = miBF.getData(m_rank_pos);                 // m_data has ID's
+                for(unsigned m = 0; m < miBF.getHashNum(); m++){   // iterate over ID's
+                    if(m_data[m] > miBF.s_mask){                     // if ID is saturated
+                        uint32_t new_id = m_data[m] & miBF.s_antiMask;
+                        if (new_id == 0) {
+                            continue;
+                        }                                
+                        unique_ids.insert(new_id);
                     }
-                    unique_ids.insert(m_data[m]);
+                    else{
+                        if (m_data[m] == 0) {
+                            continue;
+                        }
+                        unique_ids.insert(m_data[m]);
+                    }
                 }
             }
-        }
 
-        for (const auto& unique_id : unique_ids) { // tabulate all unique ids to count table
-            if (id_counts.find(unique_id) != id_counts.end()) {
-                ++id_counts[unique_id].second;
-            } else {
-                id_counts[unique_id] = std::make_pair(unique_id, 1);
+            for (const auto& unique_id : unique_ids) { // tabulate all unique ids to count table
+                if (id_counts.find(unique_id) != id_counts.end()) {
+                    ++id_counts[unique_id].second;
+                } else {
+                    id_counts[unique_id] = std::make_pair(unique_id, 1);
+                }
             }
-        }
 
-    } 
+        } 
 
         uint32_t curr_id = 0;
         uint32_t curr_id_count = 0;
@@ -147,38 +156,29 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
                 curr_id = id_counts_it->first;
                 curr_id_count = id_counts_it->second.second;
             }
-            id_counts_vec.emplace_back(std::make_pair(curr_id, curr_id_count));
+            if (id_counts_it->second.second > 2) {
+                id_counts_vec.emplace_back(std::make_pair(id_counts_it->first, id_counts_it->second.second));
+            }
         }
 
         sort(id_counts_vec.begin(), id_counts_vec.end(), sort_by_sec);
 
-
-        if (curr_id_count > opt::threshold) {
-#if _OPENMP
-#pragma omp atomic
-#endif
-            num_assigned_tiles += 1;
-            tiles_assigned_bool_vec[i] = true;
-        }
-
         tiles_assigned_id_vec[i] = curr_id;
         tiles_assigned_all_id_vec[i] = id_counts_vec;
-  }
 
-  if (true) {
-    // print which id each tile is assigned to
-    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
-      std::cerr << tiles_assigned_id << "\t";
+        
     }
-    std::cerr << std::endl;
 
-    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
-      std::cerr << tiles_assigned_bool << "\t";
+    for (size_t i = 0; i < num_tiles; ++i) {
+        if (!tiles_assigned_all_id_vec[i].empty()){
+            if (tiles_assigned_all_id_vec[i][0].second > opt::threshold){
+                tiles_assigned_bool_vec[i] = 1;
+            }
+        }
     }
-    std::cerr << std::endl;
-  }
-
-
+if (verbose) {
+    log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
+}
     num_assigned_tiles = 0;
     for (const auto& is_tile_assigned : tiles_assigned_bool_vec) {
         if (is_tile_assigned) {
@@ -194,29 +194,18 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
                 if (pair.first == prev_id) {
                     tiles_assigned_id_vec[i] = prev_id;
                     if (pair.second > opt::threshold) {
-                        tiles_assigned_bool_vec[i] = true;
+                        tiles_assigned_bool_vec[i] = 1;
                     } else {
-                        tiles_assigned_bool_vec[i] = false;
+                        tiles_assigned_bool_vec[i] = 0;
                     }
                 }
             }
         }
     }
 
-    //print which id each tile is assigned to
-    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
-        std::cerr << tiles_assigned_id << "\t";
-
-
-    }
-    std::cerr << std::endl;
-
-    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
-        std::cerr << tiles_assigned_bool << "\t";
-
-
-    }
-    std::cerr << std::endl;
+if (verbose) {
+    log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
+}
 
     for (ssize_t i = (ssize_t)num_tiles - 2; i >= 0; --i) {
         uint32_t curr_id = tiles_assigned_id_vec[i];
@@ -226,151 +215,129 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
                 if (pair.first == prev_id) {
                     tiles_assigned_id_vec[i] = prev_id;
                     if (pair.second > opt::threshold) {
-                        tiles_assigned_bool_vec[i] = true;
+                        tiles_assigned_bool_vec[i] = 1;
                     } else {
-                        tiles_assigned_bool_vec[i] = false;
+                        tiles_assigned_bool_vec[i] = 0;
                     }
                 }
             }
         }
     }
 
-    //print which id each tile is assigned to
-    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
-        std::cerr << tiles_assigned_id << "\t";
-
-
-    }
-    std::cerr << std::endl;
-
-    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
-        std::cerr << tiles_assigned_bool << "\t";
-
-
-    }
-    std::cerr << std::endl;
+if (verbose) {
+    log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
+}
 
 
 
     for (size_t i = 1; i < num_tiles -1; ++i) {
-        if (tiles_assigned_bool_vec[i] == false) {
-            if ((tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i - 1] && tiles_assigned_bool_vec[i - 1] == true) || (tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i + 1] && tiles_assigned_bool_vec[i + 1] == true)) {
-                tiles_assigned_bool_vec[i] = true;
-            } else if ((tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i - 1] + 1 && tiles_assigned_bool_vec[i - 1] == true) || (tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i + 1] + 1 && tiles_assigned_bool_vec[i + 1] == true)) {
-                tiles_assigned_bool_vec[i] = true;
-            } else if ((tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i - 1] - 1 && tiles_assigned_bool_vec[i - 1] == true) || (tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i + 1] - 1 && tiles_assigned_bool_vec[i + 1] == true)) {
-                tiles_assigned_bool_vec[i] = true;
-            } else if (tiles_assigned_id_vec[i -1] == tiles_assigned_id_vec[i + 1]  && tiles_assigned_bool_vec[i -1] == true &&  tiles_assigned_bool_vec[i + 1] == true) {
-                tiles_assigned_bool_vec[i] = true;
-                tiles_assigned_id_vec[i] = tiles_assigned_id_vec[i -1];
+        auto& curr_assign = tiles_assigned_bool_vec[i];
+        auto& curr_id = tiles_assigned_id_vec[i];
+        const auto& prev_assign = tiles_assigned_bool_vec[i - 1];
+        const auto& prev_id = tiles_assigned_id_vec[i - 1];
+        const auto& next_assign = tiles_assigned_bool_vec[i + 1];
+        const auto& next_id = tiles_assigned_id_vec[i + 1];
+        if (!curr_assign) {
+            if ((curr_id == prev_id && prev_assign) || (curr_id == next_id && next_assign)) {
+                curr_assign = 1;
+            } else if ((curr_id == prev_id + 1 && prev_assign) || (curr_id == next_id + 1 && next_assign)) {
+                curr_assign = 1;
+            } else if ((curr_id == prev_id - 1 && prev_assign ) || (curr_id == next_id - 1 && next_assign )) {
+                curr_assign = 1;
+            } else if (prev_id == next_id  && prev_assign  &&  next_assign ) {
+                tiles_assigned_bool_vec[i] = prev_assign;
+                curr_id = prev_id;
             }
         }
     }
 
     for (size_t i = num_tiles - 2; i >= 1; --i) {
-        if (tiles_assigned_bool_vec[i] == false) {
-            if ((tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i - 1] && tiles_assigned_bool_vec[i - 1] == true) || (tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i + 1] && tiles_assigned_bool_vec[i + 1] == true)) {
-                tiles_assigned_bool_vec[i] = true;
-            } else if ((tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i - 1] + 1 && tiles_assigned_bool_vec[i - 1] == true) || (tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i + 1] + 1 && tiles_assigned_bool_vec[i + 1] == true)) {
-                tiles_assigned_bool_vec[i] = true;
-            } else if ((tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i - 1] - 1 && tiles_assigned_bool_vec[i - 1] == true) || (tiles_assigned_id_vec[i] == tiles_assigned_id_vec[i + 1] - 1 && tiles_assigned_bool_vec[i + 1] == true)) {
-                tiles_assigned_bool_vec[i] = true;
-            } else if (tiles_assigned_id_vec[i -1] == tiles_assigned_id_vec[i + 1]  && tiles_assigned_bool_vec[i -1] == true &&  tiles_assigned_bool_vec[i + 1] == true) {
-                tiles_assigned_bool_vec[i] = true;
-                tiles_assigned_id_vec[i] = tiles_assigned_id_vec[i -1];
+        auto& curr_assign = tiles_assigned_bool_vec[i];
+        auto& curr_id = tiles_assigned_id_vec[i];
+        const auto& prev_assign = tiles_assigned_bool_vec[i - 1];
+        const auto& prev_id = tiles_assigned_id_vec[i - 1];
+        const auto& next_assign = tiles_assigned_bool_vec[i + 1];
+        const auto& next_id = tiles_assigned_id_vec[i + 1];
+        if (!curr_assign) {
+            if ((curr_id == prev_id && prev_assign ) || (curr_id == next_id && next_assign )) {
+                curr_assign = 1;
+            } else if ((curr_id == prev_id + 1 && prev_assign ) || (curr_id == next_id + 1 && next_assign )) {
+                curr_assign = 1;
+            } else if ((curr_id == prev_id - 1 && prev_assign ) || (curr_id == next_id - 1 && next_assign )) {
+                curr_assign = 1;
+            } else if (prev_id == next_id  && prev_assign  &&  next_assign ) {
+                tiles_assigned_bool_vec[i] = prev_assign;
+                curr_id = prev_id;
             }
         }
     }
 
-    //print which id each tile is assigned to
-    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
-        std::cerr << tiles_assigned_id << "\t";
-
-
-    }
-    std::cerr << std::endl;
-
-    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
-        std::cerr << tiles_assigned_bool << "\t";
-
-
-    }
-    std::cerr << std::endl;
-
+if (verbose) {
+    log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
+}
     size_t start_idx = 0;
     size_t end_idx = 0;
     //size_t curr_stretch = 0;
     std::vector<std::pair<size_t, size_t>> coord_vec;
     for (size_t i = 1; i < num_tiles - 1; ++i){
-        if (tiles_assigned_bool_vec[i] == false && tiles_assigned_bool_vec[i - 1] == true) {
+        const auto& curr_assign = tiles_assigned_bool_vec[i];
+        const auto& prev_assign = tiles_assigned_bool_vec[i - 1];
+        if (!curr_assign && prev_assign ) {
             start_idx = i;
-        } else if (tiles_assigned_bool_vec[i] == true && tiles_assigned_bool_vec[i - 1] == false) {
+        } else if (curr_assign  && !prev_assign) {
             end_idx = i - 1;
             coord_vec.push_back(std::make_pair(start_idx, end_idx));
         }
     }
     for (const auto& coords : coord_vec) {
+        if (coords.first== 0 || coords.second == num_tiles - 1 ) {
+            continue;
+        } 
+
         const auto& left  = tiles_assigned_id_vec[coords.first - 1];
         const auto& right  = tiles_assigned_id_vec[coords.second + 1];
         if (left == right|| left == right + 1 || left == right - 1) {
             for (auto i = coords.first; i <= coords.second; ++i) {
-                tiles_assigned_bool_vec[i] = true;
+                tiles_assigned_bool_vec[i] = 1;
                 tiles_assigned_id_vec[i] = left;
             }
         }
 
     }
 
-    //print which id each tile is assigned to
-    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
-        std::cerr << tiles_assigned_id << "\t";
-
-
-    }
-    std::cerr << std::endl;
-
-    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
-        std::cerr << tiles_assigned_bool << "\t";
-
-
-    }
-    std::cerr << std::endl;
-
+if (verbose) {
+    log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
+}
     if (num_tiles >= 3) {
         for (size_t i = 2; i < num_tiles -2; ++i) {
-            if (tiles_assigned_bool_vec[i] == true) {
-                if (tiles_assigned_bool_vec[i - 1] == false && tiles_assigned_bool_vec[i + 1] == false) {
-                    tiles_assigned_bool_vec[i] = false;
+            const auto& curr_assign = tiles_assigned_bool_vec[i];
+            const auto& prev_assign = tiles_assigned_bool_vec[i - 1];
+            const auto& next_assign = tiles_assigned_bool_vec[i + 1];
+            if (curr_assign ) {
+                if (!prev_assign && !next_assign) {
+                    tiles_assigned_bool_vec[i] = 0;
                 }
             }
         }
 
         for (size_t i = num_tiles - 3; i >= 2; --i) {
-            if (tiles_assigned_bool_vec[i] == true) {
-                if (tiles_assigned_bool_vec[i - 1] == false && tiles_assigned_bool_vec[i + 1] == false) {
-                    tiles_assigned_bool_vec[i] = false;
+            const auto& curr_assign = tiles_assigned_bool_vec[i];
+            const auto& prev_assign = tiles_assigned_bool_vec[i - 1];
+            const auto& next_assign = tiles_assigned_bool_vec[i + 1];
+            if (curr_assign ) {
+                if (!prev_assign && !next_assign) {
+                    tiles_assigned_bool_vec[i] = 0;
                 }
             }
         }
     }
 
 
-    //print which id each tile is assigned to
-    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
-        std::cerr << tiles_assigned_id << "\t";
+if (verbose) {
+    log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
+}
 
-
-    }
-    std::cerr << std::endl;
-
-    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
-        std::cerr << tiles_assigned_bool << "\t";
-
-
-    }
-    std::cerr << std::endl;
-
-    std::unordered_map<uint32_t, std::vector<uint32_t>> id_to_idx;
+    std::map<uint32_t, std::vector<uint32_t>> id_to_idx;
     for (size_t i = 0; i < num_tiles; ++i) {
         uint32_t curr_id = tiles_assigned_id_vec[i];
         uint32_t curr_id_bool = tiles_assigned_bool_vec[i];
@@ -395,109 +362,66 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
             }
         }
     }
-    //print which id each tile is assigned to
-    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
-        std::cerr << tiles_assigned_id << "\t";
-
-
-    }
-    std::cerr << std::endl;
-
-    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
-        std::cerr << tiles_assigned_bool << "\t";
-
-
-    }
-    std::cerr << std::endl;
+if (verbose) {
+    log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
+}
 
     size_t last_id = tiles_assigned_id_vec[num_tiles - 1];
     size_t second_last_id = tiles_assigned_id_vec[num_tiles - 2];
     size_t start_id = tiles_assigned_id_vec[0];
     size_t second_start_id = tiles_assigned_id_vec[1];
     if (last_id == second_last_id || last_id == second_last_id + 1 || last_id == second_last_id - 1) {
-        tiles_assigned_bool_vec[num_tiles - 1] = true;
+        tiles_assigned_bool_vec[num_tiles - 1] = 1;
     }
     if (start_id == second_start_id || start_id == second_start_id + 1 || start_id == second_start_id - 1) {
-        tiles_assigned_bool_vec[0] = true;
+        tiles_assigned_bool_vec[0] = 1;
     }
 
 
     for (size_t i = 1; i < num_tiles - 1; ++i) {
-        /*if (i == 0) {
-            if (tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i + 1] && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i + 1]  - 1 && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i + 1]  + 1) {
-                tiles_assigned_bool_vec[i] = false;
-            }
-            continue;
-        } else if (i == num_tiles - 1) {
-            if (tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i - 1] && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i - 1]  - 1 && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i - 1]  + 1) {
-                tiles_assigned_bool_vec[i] = false;
-            }
-            continue; 
-        }*/
-        if (tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i + 1] && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i + 1]  - 1 && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i + 1]  + 1 && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i - 1] && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i - 1]  - 1 && tiles_assigned_id_vec[i] != tiles_assigned_id_vec[i - 1]  + 1) {
-            tiles_assigned_bool_vec[i] = false;
+        auto& curr_assign = tiles_assigned_bool_vec[i];
+        const auto& curr_id = tiles_assigned_id_vec[i];
+        const auto& prev_id = tiles_assigned_id_vec[i - 1];
+        const auto& next_id = tiles_assigned_id_vec[i + 1];
+        if (curr_id != next_id && curr_id != next_id  - 1 && curr_id != next_id  + 1 && curr_id != prev_id && curr_id != prev_id  - 1 && curr_id != prev_id  + 1) {
+            curr_assign = 0;
         }
         
     }
 
 
-
-    //print which id each tile is assigned to
-    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
-        std::cerr << tiles_assigned_id << "\t";
-
-
-    }
-    std::cerr << std::endl;
-
-    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
-        std::cerr << tiles_assigned_bool << "\t";
-
-
-    }
-    std::cerr << std::endl;
+if (verbose) {
+    log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
+}
 
     start_idx = 0;
     end_idx = 0;
-    //size_t curr_stretch = 0;
-    std::cerr << "c1" << std::endl;
+
     coord_vec.clear();
     for (size_t i = 1; i < num_tiles - 1; ++i){
-        if (tiles_assigned_bool_vec[i] == true && tiles_assigned_bool_vec[i - 1] == false) {
+        const auto& curr_assign = tiles_assigned_bool_vec[i];
+        const auto& prev_assign = tiles_assigned_bool_vec[i - 1];
+        if (curr_assign  && !prev_assign) {
             start_idx = i;
-        } else if (tiles_assigned_bool_vec[i] == false && tiles_assigned_bool_vec[i - 1] == true) {
+        } else if (!curr_assign && prev_assign  ) {
             end_idx = i - 1;
             coord_vec.push_back(std::make_pair(start_idx, end_idx));
         }
     }
-    std::cerr << "c2" << std::endl;
+
     for (const auto& coords : coord_vec) {
         if (coords.second - coords.first + 1 <= 5 ) {
             for (auto i = coords.first; i <= coords.second; ++i) {
-                tiles_assigned_bool_vec[i] = false;
+                tiles_assigned_bool_vec[i] = 0;
             }
         }
 
     }
-    std::cerr << "c3" << std::endl;
-
-    //print which id each tile is assigned to
-    for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
-        std::cerr << tiles_assigned_id << "\t";
 
 
-    }
-    std::cerr << std::endl;
-
-    for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
-        std::cerr << tiles_assigned_bool << "\t";
-
-
-    }
-    std::cerr << std::endl;
-
-
-    std::cerr << std::endl;
+if (verbose) {
+    log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
+}
     num_assigned_tiles = 0;
     for (const auto& is_tile_assigned : tiles_assigned_bool_vec) {
         if (is_tile_assigned) {
@@ -521,7 +445,7 @@ process_read(const btllib::SeqReader::Record& record,
              const size_t min_seq_len)
 {
   if (record.seq.size() < min_seq_len) {
-    if (true) {
+    if (verbose) {
       std::cerr << "too short" << std::endl;
       std::cerr << "skipping: " << record.id << std::endl;
     }
@@ -536,28 +460,28 @@ process_read(const btllib::SeqReader::Record& record,
   size_t len = record.seq.size();
   size_t num_tiles = len / opt::tile_length;
 
-  if (true) {
+if (verbose) {
     std::cerr << "name: " << record.id << std::endl;
     std::cerr << "num tiles: " << num_tiles << std::endl;
-  }
+}
 
   bool assigned = true;
 
   for (size_t level = 0; level < opt::levels; ++level) {
     auto& miBF = mibf_vec[level];
-    if (true) {
+    if (verbose) {
       std::cerr << "current level : " << level << std::endl;
     }
 
     std::vector<uint32_t> tiles_assigned_id_vec(num_tiles, 0);
-    std::vector<bool> tiles_assigned_bool_vec(num_tiles, false);
+    std::vector<uint8_t> tiles_assigned_bool_vec(num_tiles, 0);
     const size_t num_assigned_tiles = calc_num_assigned_tiles(
       *miBF, hashed_values, tiles_assigned_id_vec, tiles_assigned_bool_vec);
-    if (true) {
+    if (verbose) {
       std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl;
     }
     const size_t num_unassigned_tiles = num_tiles - num_assigned_tiles;
-    if (true) {
+    if (verbose) {
       std::cerr << "num unassigned tiles: " << num_unassigned_tiles
                 << std::endl;
     }
@@ -575,23 +499,24 @@ process_read(const btllib::SeqReader::Record& record,
       }
     }
 
-    if (!assigned) {
-      if (true) {
-        std::cerr << "unassigned" << std::endl;
-      }
-      ++ids_inserted;
-
-#if _OPENMP
-#pragma omp parallel for
-#endif
-                for (size_t i = 0; i < num_tiles; ++i) {
-                    uint32_t curr_ids_inserted = ids_inserted + uint32_t( (i + 1) * opt::tile_length / 10000);
-                    const auto& hashed_values_flat_array = hashed_values[i];
-                    miBFCS.insertMIBF(*miBF, hashed_values_flat_array, curr_ids_inserted);//, non_singletons_bf_vec);
-                    //miBFCS.insertSaturation(*miBF, Hhashes, ids_inserted); // don't care about saturation atm so skipping for speed
-                        //}
-                }
-                ids_inserted = ids_inserted + uint32_t(record.seq.size() / 10000);
+            if (!assigned) {
+if (verbose) {
+                std::cerr << "unassigned" << std::endl;
+}
+                ++ids_inserted;
+                    size_t block_start = 0;
+                    while (block_start < num_tiles) {
+                        size_t block_end = std::min(block_start + opt::block_size, num_tiles);
+                        uint32_t curr_ids_inserted = ids_inserted + uint32_t( (block_start ) / opt::block_size);
+                        std::vector<uint64_t> hashed_values_new_array;
+                        hashed_values_new_array.reserve(hashed_values[block_start].size() * opt::block_size);
+                        for (size_t i = block_start; i < block_end; ++i) {
+                            hashed_values_new_array.insert(hashed_values_new_array.end(), hashed_values[i].begin(), hashed_values[i].end());
+                        }
+                        miBFCS.insertMIBF(*miBF, hashed_values_new_array, curr_ids_inserted);
+                        block_start = block_start + opt::block_size;
+                    }
+                ids_inserted = ids_inserted + uint32_t(record.seq.size() / (opt::tile_length * opt::block_size));
                 //output read to golden path
 
                 golden_path_vec[level] << ">" << record.id << '\n' << record.seq << std::endl;
@@ -612,51 +537,30 @@ process_read(const btllib::SeqReader::Record& record,
                     }
                 }
                 break; //breaks the level loop
-    } else {
-      if (opt::temp_mode) {
-        continue;
-      }
+                
+            } else {
+                if (opt::temp_mode) {
+                    continue;
+                }
                 if (num_assigned_tiles == num_tiles || opt::second_pass == true) {
+if (verbose) {
                     std::cerr << "complete assignment" << std::endl;
+}
                     continue;
                 }
-                /*if (num_tiles < 15) {
-                    continue;
-                }*/
-                /*if (num_unassigned_tiles < 2) {
-                    continue;
-                }*/
-                /*std::unordered_map<size_t, size_t> left_flank;
-                for (int i = 1; i < 11; ++i ){
-                    if (left_flank.contains(left_flank[tiles_assigned_id_vec[i]])) {
-                        ++left_flank[tiles_assigned_id_vec[i]];
-                    } else {
-                        left_flank[tiles_assigned_id_vec[i]] == 1;
-                    }
-                }
-
-                //size_t curr_max_id = 0;
-                //size_t curr_max_hits = 0;
-                std::vector<std::pair<size_t, size_t>> left_flank_vec;
-                for ( const auto &[id, hits]: left_flank ) {
-                    left_flank.push_back(std::make_pair(ids, hits));
-                }                
-                sort(vect.begin(), vect.end(), sort_by_sec);
-                */
                 size_t start_idx = 0;
                 size_t end_idx = 0;
                 ssize_t longest_start_idx = 0;
                 ssize_t longest_end_idx = 0;
                 size_t curr_stretch = 0;
                 size_t longest_stretch = 0;
-                std::cerr << "checkpoint 1" <<std::endl;
                 for (size_t i = 1; i < num_tiles - 1; ++i){
-                    if (tiles_assigned_bool_vec[i] == false && tiles_assigned_bool_vec[i - 1] == true) {
+                    if (!tiles_assigned_bool_vec[i] && tiles_assigned_bool_vec[i - 1] ) {
                         start_idx = i;
                         curr_stretch = 1;
-                    } else if ((tiles_assigned_bool_vec[i] == false && tiles_assigned_bool_vec[i] == tiles_assigned_bool_vec[i-1]) && (i + 1 != num_tiles - 1)) {
+                    } else if ((!tiles_assigned_bool_vec[i] && tiles_assigned_bool_vec[i] == tiles_assigned_bool_vec[i-1]) && (i + 1 != num_tiles - 1)) {
                         ++curr_stretch;
-                    } else if (tiles_assigned_bool_vec[i] == true && tiles_assigned_bool_vec[i] != tiles_assigned_bool_vec[i-1]) {
+                    } else if (tiles_assigned_bool_vec[i]  && tiles_assigned_bool_vec[i] != tiles_assigned_bool_vec[i-1]) {
                         end_idx = i - 1;
                         if (longest_stretch < curr_stretch) {
                             longest_stretch = curr_stretch;
@@ -682,13 +586,11 @@ process_read(const btllib::SeqReader::Record& record,
                     trim_start_idx = longest_start_idx;
                 }
                 size_t trim_end_idx = longest_end_idx + 1;
-                std::cerr << "trim_start_idx: " << trim_start_idx << std::endl;
-                std::cerr << "trim_end_idx: " << trim_end_idx << std::endl;
 
                 if (num_tiles < 15) {
                     bool good_right_flank = false;
                     bool good_left_flank = false;
-                    std::unordered_map<size_t, size_t> left_flank;
+                    std::map<size_t, size_t> left_flank;
                     for (ssize_t i = longest_start_idx - 1; i >= 0; --i ){
                         if (left_flank.find(tiles_assigned_id_vec[i]) != left_flank.end()) {
                             ++left_flank[tiles_assigned_id_vec[i]];
@@ -696,15 +598,11 @@ process_read(const btllib::SeqReader::Record& record,
                             left_flank[tiles_assigned_id_vec[i]] = 1;
                         }
                     }
-                    std::cerr << "checkpoint 2.1" <<std::endl;
                     std::vector<std::pair<size_t, size_t>> left_flank_vec;
                     for (  const auto &myPair: left_flank ) {
                         left_flank_vec.push_back(std::make_pair(myPair.first, myPair.second));
-                    }
-                    std::cerr << "checkpoint 2.2" <<std::endl;                
+                    }              
                     sort(left_flank_vec.begin(), left_flank_vec.end(), sort_by_sec);
-                    std::cerr << "checkpoint 2.3" <<std::endl;
-                    std::cerr << left_flank_vec.size() <<std::endl;
                     if (left_flank_vec.size() != 0) {
                         if (left_flank_vec[0].second >= 2) {
                             if (longest_start_idx != 0) {
@@ -728,12 +626,7 @@ process_read(const btllib::SeqReader::Record& record,
                     if (trim_start_idx == 0) {
                             good_left_flank = true; 
                     }
-                    if (good_left_flank) {
-                        std::cerr << "good left flank: true" << std::endl; 
-                    } else {
-                        std::cerr << "good left flank: false"<< std::endl; 
-                    }
-                    std::unordered_map<size_t, size_t> right_flank;
+                    std::map<size_t, size_t> right_flank;
                     for (ssize_t i = longest_end_idx + 1; i < (ssize_t)num_tiles; ++i ){
                         if (right_flank.find(tiles_assigned_id_vec[i]) != right_flank.end()) {
                             ++right_flank[tiles_assigned_id_vec[i]];
@@ -761,23 +654,17 @@ process_read(const btllib::SeqReader::Record& record,
                     if (trim_end_idx == num_tiles - 1) {
                             good_right_flank = true; 
                     }
-                    if (good_right_flank) {
-                        std::cerr << "good right flank: true" << std::endl; 
-                    } else {
-                        std::cerr << "good right flank: false"<< std::endl; 
-                    }
+
                     if (good_left_flank && good_right_flank) {
                         good_flank = true;
                     }
 
 
                 } else {
-                    std::cerr << "checkpoint long" <<std::endl;
-                    std::cerr << "checkpoint 2" <<std::endl;
-                    //bool valid = true;
+
 
                     if (longest_start_idx - 5 >= 1 ) {
-                        std::unordered_map<size_t, size_t> left_flank;
+                        std::map<size_t, size_t> left_flank;
                         for (ssize_t i = longest_start_idx - 5; i < longest_start_idx; ++i ){
                             if (left_flank.find(tiles_assigned_id_vec[i]) != left_flank.end()) {
                                 ++left_flank[tiles_assigned_id_vec[i]];
@@ -785,15 +672,15 @@ process_read(const btllib::SeqReader::Record& record,
                                 left_flank[tiles_assigned_id_vec[i]] = 1;
                             }
                         }
-                        std::cerr << "checkpoint 2.1" <<std::endl;
+
                         std::vector<std::pair<size_t, size_t>> left_flank_vec;
                         for (  const auto &myPair: left_flank ) {
                             left_flank_vec.push_back(std::make_pair(myPair.first, myPair.second));
                         }
-                        std::cerr << "checkpoint 2.2" <<std::endl;                
+               
                         sort(left_flank_vec.begin(), left_flank_vec.end(), sort_by_sec);
-                        std::cerr << "checkpoint 2.3" <<std::endl;
-                        std::cerr << left_flank_vec.size() <<std::endl;
+
+
                         if (left_flank_vec[0].second >= 2) {
                             if (longest_start_idx != 0) {
                                 trim_start_idx = longest_start_idx - 1;
@@ -810,16 +697,16 @@ process_read(const btllib::SeqReader::Record& record,
                             good_flank = true;       
 
                         }  
-                        std::cerr << "checkpoint 2.4" <<std::endl;
+
                     } else {
-                        std::cerr << "checkpoint long1" <<std::endl;
+
                         good_flank = true;
                         trim_start_idx = 0;
                     }
-                    std::cerr << "checkpoint 3" <<std::endl;
+
 
                     if (longest_end_idx + 5 < (ssize_t)num_tiles - 1 ) {
-                        std::unordered_map<size_t, size_t> right_flank;
+                        std::map<size_t, size_t> right_flank;
                         for (ssize_t i = longest_end_idx + 5; i > longest_end_idx; --i ){
                             if (right_flank.find(tiles_assigned_id_vec[i]) != right_flank.end()) {
                                 ++right_flank[tiles_assigned_id_vec[i]];
@@ -842,35 +729,36 @@ process_read(const btllib::SeqReader::Record& record,
                         }
 
                     } else {
-                        std::cerr << "checkpoint long2" <<std::endl;
                         good_flank = true;
                         trim_end_idx = (ssize_t)num_tiles - 1;
                     }
                 }
-                std::cerr << "checkpoint 4" <<std::endl;
                 if (good_flank) {
                     assigned = false;
+if (verbose) {
                     std::cerr << "trimmed" << std::endl;
+}
                     ++ids_inserted;
-
-#if _OPENMP
-#pragma omp parallel for
-#endif
-                    for (size_t i = trim_start_idx; i <= trim_end_idx; ++i) {
-                        uint32_t curr_ids_inserted = ids_inserted + uint32_t( (i - trim_start_idx + 1) * opt::tile_length / 10000);
-                        const auto& hashed_values_flat_array = hashed_values[i];
-                        miBFCS.insertMIBF(*miBF, hashed_values_flat_array, curr_ids_inserted);//, non_singletons_bf_vec);
-                        //miBFCS.insertSaturation(*miBF, Hhashes, ids_inserted); // don't care about saturation atm so skipping for speed
-                            //}
+                    size_t block_start = trim_start_idx;
+                    while (block_start <= trim_end_idx) {
+                        size_t block_end = std::min(block_start + opt::block_size - 1, trim_end_idx);
+                        uint32_t curr_ids_inserted = ids_inserted + uint32_t( (block_start - trim_start_idx + 1)  / opt::block_size);
+                        std::vector<uint64_t> hashed_values_new_array;
+                        hashed_values_new_array.reserve(hashed_values[block_start].size() * opt::block_size);
+                        for (size_t i = block_start; i <= block_end; ++i) {
+                            hashed_values_new_array.insert(hashed_values_new_array.end(), hashed_values[i].begin(), hashed_values[i].end());
+                        }
+                        miBFCS.insertMIBF(*miBF, hashed_values_new_array, curr_ids_inserted);
+                        block_start = block_start + opt::block_size;
                     }
-                    ids_inserted = ids_inserted + uint32_t((trim_end_idx - trim_start_idx) * 1000 / 10000);
+                    ids_inserted = ids_inserted + uint32_t((trim_end_idx - trim_start_idx)  / opt::block_size);
                     //output read to golden path
                     if (trim_end_idx == num_tiles -1) {
-                        std::string new_seq = record.seq.substr(trim_start_idx * 1000,std::string::npos);
+                        std::string new_seq = record.seq.substr(trim_start_idx * opt::tile_length, std::string::npos);
                         golden_path_vec[level] << ">trimmed" << record.id << '\n' << new_seq << std::endl;
                         inserted_bases += new_seq.size();
                     } else {
-                        std::string new_seq = record.seq.substr(trim_start_idx * 1000, (trim_end_idx - trim_start_idx + 1) * 1000);
+                        std::string new_seq = record.seq.substr(trim_start_idx * opt::tile_length, (trim_end_idx - trim_start_idx + 1) * opt::tile_length);
                         golden_path_vec[level] << ">trimmed" << record.id << '\n' << new_seq << std::endl;
                         inserted_bases += new_seq.size();
                     }
@@ -898,16 +786,15 @@ process_read(const btllib::SeqReader::Record& record,
             }
 
         }
+  
   if (assigned) {
-    if (true) {
+    if (verbose) {
       std::cerr << "assigned" << std::endl;
     }
     // output read to wood path
-    // wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping
-    // wood path output to reduce time
-
-    ++id;
+   
   }
+  ++id;
 }
 
 int
@@ -944,6 +831,7 @@ main(int argc, char** argv)
             << "Using:"
             << "\n"
             << "tile length: " << opt::tile_length << "\n"
+            << "block size: " << opt::block_size << "\n"
             << "seed pattens: " << opt::hash_num << "\n"
             << "threshold: " << opt::threshold << "\n"
             << "base seed pattern: " << seed_string_vec[0] << "\n"
@@ -953,16 +841,15 @@ main(int argc, char** argv)
             << "occupancy: " << opt::occupancy << "\n"
             << "jobs: " << opt::jobs << std::endl;
 
-    std::unordered_set<std::string> filter_out_reads;
-    if (opt::filter_file != "") {
-        std::cerr << "Using only reads not found in: " << opt::filter_file << std::endl;
-        std::string read_name = "";
-        std::ifstream infileStream(opt::filter_file);
-        while (infileStream >> read_name) {
-            filter_out_reads.insert(read_name);
-        }
-
-    }       
+  std::unordered_set<std::string> filter_out_reads;
+  if (opt::filter_file != "") {
+    std::cerr << "Using only reads not found in: " << opt::filter_file << std::endl;
+    std::string read_name = "";
+    std::ifstream infileStream(opt::filter_file);
+    while (infileStream >> read_name) {
+      filter_out_reads.insert(read_name);
+    }
+  }       
     
 
   std::vector<std::ofstream> golden_path_vec;
@@ -1012,7 +899,6 @@ main(int argc, char** argv)
                      seed_string_vec,
                      precomputed_hash_queue,
                      6,
-                     opt::filter_file,
                      filter_out_reads);
 
   uint64_t inserted_bases = 0;
@@ -1032,40 +918,7 @@ main(int argc, char** argv)
     for (size_t idx = 0; idx < block.count; idx++) {
       const auto& read_hashes = block.data[idx];
       const auto& record = read_hashes.read;
-      //const auto& hashed_values2 = read_hashes.tile_hashes;
-      size_t len = record.seq.size();
-      size_t num_tiles = len / opt::tile_length;
-      std::vector<std::vector<uint64_t>> hashed_values(num_tiles, std::vector<uint64_t>()); 
-
-#if _OPENMP
-#pragma omp parallel for
-#endif
-        for (size_t i = 0; i < num_tiles; ++i) {
-            std::string tile_seq = record.seq.substr(i * opt::tile_length, opt::tile_length + opt::kmer_size - 1);
-            multiLensfrHashIterator itr(tile_seq, seed_string_vec); 
-            while(itr != itr.end()){
-                for (size_t curr_hash = 0; curr_hash < seed_string_vec.size(); ++curr_hash) {
-                    hashed_values[i].push_back((*itr)[curr_hash]);
-                }
-                ++itr;
-            }
-        }
-      /*for (size_t i = 0; i < hashed_values.size(); ++i) {
-        for (size_t j = 0; j < 3; j++) {
-          std::cerr << hashed_values[i][j] << std::endl;
-        }
-      }*/
-      /*for (size_t i = 0; i < hashed_values.size(); ++i) {
-        for (size_t j = 0; j < hashed_values[i].size(); ++j) {
-          if (hashed_values[i][j] != hashed_values2[i][j]) {
-            std::cerr << "diff hash" << std::endl;
-            exit(1);
-          }
-
-        }
-      }*/
-
-
+      const auto& hashed_values = read_hashes.tile_hashes;
       process_read(record,
                    hashed_values,
                    golden_path_vec,

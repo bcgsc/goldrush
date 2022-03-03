@@ -23,6 +23,5 @@ start_read_hashing(
   const std::vector<std::string>& spaced_seeds,
   btllib::OrderQueueMPMC<ReadTileHashes>& read_tile_hashes_queue,
   const unsigned worker_num,
-             const std::string filter_file,
-             const std::unordered_set<std::string>& filter_out_reads);
+  const std::unordered_set<std::string>& filter_out_reads);
 #endif
