@@ -10,6 +10,7 @@ namespace opt {
 extern size_t assigned_max;
 extern size_t unassigned_min;
 extern size_t tile_length;
+extern size_t block_size;
 extern size_t genome_size;
 extern size_t target_size;
 extern size_t kmer_size;
