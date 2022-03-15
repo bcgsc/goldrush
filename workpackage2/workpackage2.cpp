@@ -467,11 +467,8 @@ if (verbose) {
 
   bool assigned = true;
 
-  for (size_t level = 0; level < opt::levels; ++level) {
-    auto& miBF = mibf_vec[level];
-    if (verbose) {
-      std::cerr << "current level : " << level << std::endl;
-    }
+    auto& miBF = mibf_vec[0];
+
 
     std::vector<uint32_t> tiles_assigned_id_vec(num_tiles, 0);
     std::vector<uint8_t> tiles_assigned_bool_vec(num_tiles, 0);
@@ -519,7 +516,7 @@ if (verbose) {
                 ids_inserted = ids_inserted + uint32_t(record.seq.size() / (opt::tile_length * opt::block_size));
                 //output read to golden path
 
-                golden_path_vec[level] << ">" << record.id << '\n' << record.seq << std::endl;
+                golden_path_vec[0] << ">" << record.id << '\n' << record.seq << std::endl;
                 
                 inserted_bases += record.seq.size();
                 if (opt::temp_mode || opt::new_temp_mode) {
@@ -536,17 +533,16 @@ if (verbose) {
                         ids_inserted = 0;
                     }
                 }
-                break; //breaks the level loop
                 
             } else {
                 if (opt::temp_mode) {
-                    continue;
+                    return;
                 }
                 if (num_assigned_tiles == num_tiles || opt::second_pass == true) {
 if (verbose) {
                     std::cerr << "complete assignment" << std::endl;
 }
-                    continue;
+                    return;
                 }
                 size_t start_idx = 0;
                 size_t end_idx = 0;
@@ -755,11 +751,11 @@ if (verbose) {
                     //output read to golden path
                     if (trim_end_idx == num_tiles -1) {
                         std::string new_seq = record.seq.substr(trim_start_idx * opt::tile_length, std::string::npos);
-                        golden_path_vec[level] << ">trimmed" << record.id << '\n' << new_seq << std::endl;
+                        golden_path_vec[0] << ">trimmed" << record.id << '\n' << new_seq << std::endl;
                         inserted_bases += new_seq.size();
                     } else {
                         std::string new_seq = record.seq.substr(trim_start_idx * opt::tile_length, (trim_end_idx - trim_start_idx + 1) * opt::tile_length);
-                        golden_path_vec[level] << ">trimmed" << record.id << '\n' << new_seq << std::endl;
+                        golden_path_vec[0] << ">trimmed" << record.id << '\n' << new_seq << std::endl;
                         inserted_bases += new_seq.size();
                     }
                     
@@ -778,14 +774,12 @@ if (verbose) {
                         }
                     }
                     
-
-                    break; //breaks the level loop
                     
                 }
 
             }
 
-        }
+
   
   if (assigned) {
     if (verbose) {
@@ -853,10 +847,9 @@ main(int argc, char** argv)
     
 
   std::vector<std::ofstream> golden_path_vec;
-  for (size_t level = 0; level < opt::levels; ++level) {
-    golden_path_vec.emplace_back(std::ofstream(
-      opt::prefix_file + "_golden_path_" + std::to_string(level) + ".fa"));
-  }
+
+  golden_path_vec.emplace_back(std::ofstream(
+      opt::prefix_file + "_golden_path_1.fa"));
 
   double sTime = omp_get_wtime();
   std::cerr << "allocating bit vector" << std::endl;
@@ -882,9 +875,7 @@ main(int argc, char** argv)
   // setting up MIBF
   miBFCS.setup();
   std::vector<std::unique_ptr<MIBloomFilter<uint32_t>>> mibf_vec;
-  for (size_t i = 0; i < opt::levels; ++i) {
     mibf_vec.emplace_back(miBFCS.getEmptyMIBF());
-  }
 
   std::cerr << "assigning tiles" << std::endl;
   sTime = omp_get_wtime();
