@@ -43,7 +43,7 @@ void log_tile_states(std::vector<uint32_t>& tiles_assigned_id_vec, std::vector<u
     std::cerr << std::endl;
     //print whether the id to each tile is assigned
     for (const auto& tiles_assigned_bool : tiles_assigned_bool_vec) {
-        std::cerr << tiles_assigned_bool << "\t";
+        std::cerr << +tiles_assigned_bool << "\t";
     }
     std::cerr << std::endl;
 }
@@ -453,37 +453,36 @@ process_read(const btllib::SeqReader::Record& record,
     // wood path output to reduce time
     ++id;
     return;
-  }
+    }
   if (id % 10000 == 0) {
     std::cerr << "processed " << id << " reads" << std::endl;
   }
   size_t len = record.seq.size();
   size_t num_tiles = len / opt::tile_length;
 
-if (verbose) {
+  if (verbose) {
     std::cerr << "name: " << record.id << std::endl;
     std::cerr << "num tiles: " << num_tiles << std::endl;
-}
+ }
 
   bool assigned = true;
 
-    auto& miBF = mibf_vec[0];
+  auto& miBF = mibf_vec[0];
 
 
-    std::vector<uint32_t> tiles_assigned_id_vec(num_tiles, 0);
-    std::vector<uint8_t> tiles_assigned_bool_vec(num_tiles, 0);
-    const size_t num_assigned_tiles = calc_num_assigned_tiles(
-      *miBF, hashed_values, tiles_assigned_id_vec, tiles_assigned_bool_vec);
-    if (verbose) {
-      std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl;
-    }
-    const size_t num_unassigned_tiles = num_tiles - num_assigned_tiles;
-    if (verbose) {
-      std::cerr << "num unassigned tiles: " << num_unassigned_tiles
-                << std::endl;
-    }
+  std::vector<uint32_t> tiles_assigned_id_vec(num_tiles, 0);
+  std::vector<uint8_t> tiles_assigned_bool_vec(num_tiles, 0);
+  const size_t num_assigned_tiles = calc_num_assigned_tiles(
+  *miBF, hashed_values, tiles_assigned_id_vec, tiles_assigned_bool_vec);
+  if (verbose) {
+    std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl;
+  }
+  const size_t num_unassigned_tiles = num_tiles - num_assigned_tiles;
+  if (verbose) {
+    std::cerr << "num unassigned tiles: " << num_unassigned_tiles << std::endl;
+   }
 
-    // assignment logic
+   // assignment logic
     if (num_unassigned_tiles >= opt::unassigned_min &&
         num_assigned_tiles <= opt::assigned_max) {
       assigned = false;
@@ -501,18 +500,18 @@ if (verbose) {
                 std::cerr << "unassigned" << std::endl;
 }
                 ++ids_inserted;
-                    size_t block_start = 0;
-                    while (block_start < num_tiles) {
-                        size_t block_end = std::min(block_start + opt::block_size, num_tiles);
-                        uint32_t curr_ids_inserted = ids_inserted + uint32_t( (block_start ) / opt::block_size);
-                        std::vector<uint64_t> hashed_values_new_array;
-                        hashed_values_new_array.reserve(hashed_values[block_start].size() * opt::block_size);
-                        for (size_t i = block_start; i < block_end; ++i) {
-                            hashed_values_new_array.insert(hashed_values_new_array.end(), hashed_values[i].begin(), hashed_values[i].end());
-                        }
-                        miBFCS.insertMIBF(*miBF, hashed_values_new_array, curr_ids_inserted);
-                        block_start = block_start + opt::block_size;
+                size_t block_start = 0;
+                while (block_start < num_tiles) {
+                    size_t block_end = std::min(block_start + opt::block_size, num_tiles);
+                    uint32_t curr_ids_inserted = ids_inserted + uint32_t( (block_start ) / opt::block_size);
+                    std::vector<uint64_t> hashed_values_new_array;
+                    hashed_values_new_array.reserve(hashed_values[block_start].size() * opt::block_size);
+                    for (size_t i = block_start; i < block_end; ++i) {
+                        hashed_values_new_array.insert(hashed_values_new_array.end(), hashed_values[i].begin(), hashed_values[i].end());
                     }
+                    miBFCS.insertMIBF(*miBF, hashed_values_new_array, curr_ids_inserted);
+                    block_start = block_start + opt::block_size;
+                }
                 ids_inserted = ids_inserted + uint32_t(record.seq.size() / (opt::tile_length * opt::block_size));
                 //output read to golden path
 
