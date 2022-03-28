@@ -896,6 +896,7 @@ main(int argc, char** argv)
   uint64_t curr_path = 1;
   uint32_t id = 1;
   uint32_t ids_inserted = 0;
+  //std::unordered_map<uint32_t, uint8_t> id_to_num_tiles_inserted;
   while (true) {
     decltype(precomputed_hash_queue)::Block block(
       btllib::SeqReader::LONG_MODE_BLOCK_SIZE);
