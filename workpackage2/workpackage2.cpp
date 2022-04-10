@@ -6,7 +6,7 @@
 #include "MIBFConstructSupport.hpp"
 #include "MIBloomFilter.hpp"
 #include "multiLensfrHashIterator.hpp"
-
+#include "calc_phred_average.hpp"
 #include "btllib/bloom_filter.hpp"
 #include "btllib/seq_reader.hpp"
 #include "btllib/seq_writer.hpp"
@@ -34,6 +34,7 @@
 #include <set>
 #include <vector>
 
+
 void log_tile_states(std::vector<uint32_t>& tiles_assigned_id_vec, std::vector<uint8_t>& tiles_assigned_bool_vec) {
     //print which id each tile is assigned to
     for (const auto& tiles_assigned_id : tiles_assigned_id_vec) {
@@ -60,22 +61,31 @@ fill_bit_vector(const std::string& input_file,
                 MIBFConstructSupport<uint32_t, multiLensfrHashIterator>& miBFCS,
                 const size_t min_seq_len,
                 const std::vector<std::string>& spaced_seeds,
-                const std::unordered_set<std::string>& filter_out_reads)
+                std::unordered_set<std::string>& filter_out_reads)
 {
   std::cerr << "inserting bit vector" << std::endl;
 
   auto sTime = omp_get_wtime();
 
   btllib::SeqReader reader(input_file, btllib::SeqReader::Flag::LONG_MODE);
+    if (reader.get_format() != btllib::SeqReader::Format::FASTQ) {
+    std::cerr << "Gold Path requires fastq format" << std::endl;
+    exit(1);
+    }
 #pragma omp parallel
   for (const auto record : reader) {
     if (record.seq.size() < min_seq_len) {
       continue;
     }
-    if (opt::filter_file != "") {
+    if (!filter_out_reads.empty()) {
         if (filter_out_reads.find(record.id) != filter_out_reads.end()) {
             continue;
         }
+    }
+
+    if ( calc_phred_average(record.qual) < opt::phred_min) {
+        filter_out_reads.insert(record.id);
+        continue;
     }
     multiLensfrHashIterator itr(record.seq, spaced_seeds);
     miBFCS.insertBV(itr);
@@ -176,6 +186,7 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
             }
         }
     }
+if (num_tiles >= 3) {
 if (verbose) {
     log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
 }
@@ -422,6 +433,7 @@ if (verbose) {
 if (verbose) {
     log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
 }
+}
     num_assigned_tiles = 0;
     for (const auto& is_tile_assigned : tiles_assigned_bool_vec) {
         if (is_tile_assigned) {
@@ -442,17 +454,28 @@ process_read(const btllib::SeqReader::Record& record,
              uint64_t& curr_path,
              uint32_t& id,
              uint32_t& ids_inserted,
-             const size_t min_seq_len)
+             const size_t min_seq_len,
+             const std::unordered_set<std::string>& filter_out_reads)
 {
   if (record.seq.size() < min_seq_len) {
     if (verbose) {
       std::cerr << "too short" << std::endl;
       std::cerr << "skipping: " << record.id << std::endl;
     }
-    // wood_path <<  record.id << '\n' << record.seq <<  std::endl; skipping
-    // wood path output to reduce time
+
     ++id;
     return;
+    }
+    if (!filter_out_reads.empty()) {
+        if (filter_out_reads.find(record.id) != filter_out_reads.end()) {
+    if (verbose) {
+      std::cerr << "hairpin or quality too low" << std::endl;
+      std::cerr << "skipping: " << record.id << std::endl;
+    }
+
+    ++id;
+    return;
+        }
     }
   if (id % 10000 == 0) {
     std::cerr << "processed " << id << " reads" << std::endl;
@@ -515,7 +538,7 @@ if (verbose) {
                 ids_inserted = ids_inserted + uint32_t(record.seq.size() / (opt::tile_length * opt::block_size));
                 //output read to golden path
 
-                golden_path_vec[0] << ">" << record.id << '\n' << record.seq << std::endl;
+                golden_path_vec[0] << "@" << record.id << '_' << calc_phred_average(record.qual) << '\n' << record.seq << '\n' << '+' << '\n' << record.qual << std::endl;
                 
                 inserted_bases += record.seq.size();
                 if (opt::temp_mode || opt::new_temp_mode) {
@@ -528,7 +551,7 @@ if (verbose) {
                         mibf_vec.pop_back();
                         mibf_vec.emplace_back(std::move(std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF())));
                         golden_path_vec.pop_back();
-                        golden_path_vec.emplace_back(std::ofstream(opt::prefix_file + "_golden_path_" + std::to_string(curr_path) + ".fa"));
+                        golden_path_vec.emplace_back(std::ofstream(opt::prefix_file + "_golden_path_" + std::to_string(curr_path) + ".fq"));
                         ids_inserted = 0;
                     }
                 }
@@ -750,11 +773,13 @@ if (verbose) {
                     //output read to golden path
                     if (trim_end_idx == num_tiles -1) {
                         std::string new_seq = record.seq.substr(trim_start_idx * opt::tile_length, std::string::npos);
-                        golden_path_vec[0] << ">trimmed" << record.id << '\n' << new_seq << std::endl;
+                        std::string new_qual = record.qual.substr(trim_start_idx * opt::tile_length, std::string::npos);
+                        golden_path_vec[0] << "@trimmed" << record.id << '_' << calc_phred_average(new_qual) << '\n' << new_seq << '\n' << '+' << '\n' << new_qual << std::endl;
                         inserted_bases += new_seq.size();
                     } else {
                         std::string new_seq = record.seq.substr(trim_start_idx * opt::tile_length, (trim_end_idx - trim_start_idx + 1) * opt::tile_length);
-                        golden_path_vec[0] << ">trimmed" << record.id << '\n' << new_seq << std::endl;
+                        std::string new_qual = record.qual.substr(trim_start_idx * opt::tile_length, (trim_end_idx - trim_start_idx + 1) * opt::tile_length);
+                        golden_path_vec[0] << "@trimmed" << record.id << '_' << calc_phred_average(new_qual) << '\n' << new_seq << '\n' << '+' << '\n' << new_qual << std::endl;
                         inserted_bases += new_seq.size();
                     }
                     
@@ -768,7 +793,7 @@ if (verbose) {
                             mibf_vec.pop_back();
                             mibf_vec.emplace_back(std::move(std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF())));
                             golden_path_vec.pop_back();
-                            golden_path_vec.emplace_back(std::ofstream(opt::prefix_file + "_golden_path_" + std::to_string(curr_path) + ".fa"));
+                            golden_path_vec.emplace_back(std::ofstream(opt::prefix_file + "_golden_path_" + std::to_string(curr_path) + ".fq"));
                             ids_inserted = 0;
                         }
                     }
@@ -831,6 +856,7 @@ main(int argc, char** argv)
             << "minimum unassigned tiles: " << opt::unassigned_min << "\n"
             << "maximum assigned tiles: " << opt::assigned_max << "\n"
             << "genome size: " << opt::genome_size << "\n"
+            << "minimum average phred quality score: " << opt::phred_min << "\n"
             << "occupancy: " << opt::occupancy << "\n"
             << "jobs: " << opt::jobs << std::endl;
 
@@ -848,7 +874,7 @@ main(int argc, char** argv)
   std::vector<std::ofstream> golden_path_vec;
 
   golden_path_vec.emplace_back(std::ofstream(
-      opt::prefix_file + "_golden_path_1.fa"));
+      opt::prefix_file + "_golden_path_1.fq"));
 
   double sTime = omp_get_wtime();
   std::cerr << "allocating bit vector" << std::endl;
@@ -920,7 +946,8 @@ main(int argc, char** argv)
                    curr_path,
                    id,
                    ids_inserted,
-                   opt::min_length);
+                   opt::min_length,
+                   filter_out_reads);
     }
   }
 
