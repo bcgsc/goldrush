@@ -20,6 +20,7 @@ size_t jobs = 1;
 size_t block_size = 10;
 size_t max_paths = 1;
 size_t threshold = 10;
+uint32_t phred_min = 10;
 std::string prefix_file = "workpackage2";
 std::string input = "";
 std::string seed_preset = "";
@@ -50,7 +51,8 @@ print_usage(const std::string& progname)
        "[5]\n"
        "  -a A        A maximum assigned tiles for read to be unassigned [5]\n"
        "  -l L        output L golden paths [1]\n"
-       "  -p prefix   write output to files with prefix, e.g. "
+       "  -p prefix   write output to files with prefix, e.g.\n"
+       "  -P phred    minimum averge phred score for each read\n"
        "prefix_golden_path_0.fa [workpackage2]\n"
        "  -j J        use J number of threads [1]\n"
        "  -x X        require X hits for a tile to be assigned [10]\n"
@@ -67,7 +69,7 @@ process_options(int argc, char** argv)
   char* end = nullptr;
   while ((c = getopt_long(argc,
                           argv,
-                          "a:b:f:g:h:i:j:k:l:m:M:o:r:s:t:u:w:x:p:T:",
+                          "a:b:f:g:h:i:j:k:l:m:M:o:r:s:t:u:w:x:p:P:T:",
                           longopts,
                           &optindex)) != -1) {
     switch (c) {
@@ -115,6 +117,9 @@ process_options(int argc, char** argv)
         break;
       case 'p':
         opt::prefix_file = optarg;
+        break;
+      case 'P':
+        opt::phred_min = strtoul(optarg, &end, 10);
         break;
       case 's':
         opt::seed_preset = optarg;

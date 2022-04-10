@@ -14,6 +14,7 @@ extern size_t block_size;
 extern size_t genome_size;
 extern size_t target_size;
 extern size_t kmer_size;
+extern uint32_t phred_min;
 extern size_t weight;
 extern size_t min_length;
 extern size_t hash_num;

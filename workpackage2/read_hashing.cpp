@@ -1,5 +1,5 @@
 #include "multiLensfrHashIterator.hpp"
-
+#include "calc_phred_average.hpp"
 #include "read_hashing.hpp"
 
 #include <future>
@@ -38,6 +38,7 @@ read_hashing(btllib::SeqReader& reader,
             not_filtered = false;
           }
       }
+
 
       if (record.seq.size() >= min_seq_len && not_filtered) {
         for (size_t i = 0; i < num_tiles; ++i) {
