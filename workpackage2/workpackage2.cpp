@@ -77,14 +77,12 @@ fill_bit_vector(const std::string& input_file,
     if (record.seq.size() < min_seq_len) {
       continue;
     }
-    if (!filter_out_reads.empty()) {
-        if (filter_out_reads.find(record.id) != filter_out_reads.end()) {
-            continue;
-        }
-    }
-
-    if ( calc_phred_average(record.qual) < opt::phred_min) {
+    const auto phred_stat = calc_phred_average(record.qual);
+    if ( phred_stat.first < opt::phred_min || phred_stat.second >= 5) {
+#pragma omp critical
+{
         filter_out_reads.insert(record.id);
+}
         continue;
     }
     multiLensfrHashIterator itr(record.seq, spaced_seeds);
@@ -537,8 +535,8 @@ if (verbose) {
                 }
                 ids_inserted = ids_inserted + uint32_t(record.seq.size() / (opt::tile_length * opt::block_size));
                 //output read to golden path
-
-                golden_path_vec[0] << "@" << record.id << '_' << calc_phred_average(record.qual) << '\n' << record.seq << '\n' << '+' << '\n' << record.qual << std::endl;
+                const auto phred_stats = calc_phred_average(record.qual);
+                golden_path_vec[0] << "@" << record.id << '_' << phred_stats.first << '_' << phred_stats.second << '\n' << record.seq << '\n' << '+' << '\n' << record.qual << std::endl;
                 
                 inserted_bases += record.seq.size();
                 if (opt::temp_mode || opt::new_temp_mode) {
@@ -771,15 +769,17 @@ if (verbose) {
                     }
                     ids_inserted = ids_inserted + uint32_t((trim_end_idx - trim_start_idx)  / opt::block_size);
                     //output read to golden path
-                    if (trim_end_idx == num_tiles -1) {
+                    if (trim_end_idx == num_tiles - 1) {
                         std::string new_seq = record.seq.substr(trim_start_idx * opt::tile_length, std::string::npos);
                         std::string new_qual = record.qual.substr(trim_start_idx * opt::tile_length, std::string::npos);
-                        golden_path_vec[0] << "@trimmed" << record.id << '_' << calc_phred_average(new_qual) << '\n' << new_seq << '\n' << '+' << '\n' << new_qual << std::endl;
+                        const auto phred_stats = calc_phred_average(new_qual);
+                        golden_path_vec[0] << "@trimmed" << record.id << '_' << phred_stats.first << '_' << phred_stats.second << '\n' << new_seq << '\n' << '+' << '\n' << new_qual << std::endl;
                         inserted_bases += new_seq.size();
                     } else {
                         std::string new_seq = record.seq.substr(trim_start_idx * opt::tile_length, (trim_end_idx - trim_start_idx + 1) * opt::tile_length);
                         std::string new_qual = record.qual.substr(trim_start_idx * opt::tile_length, (trim_end_idx - trim_start_idx + 1) * opt::tile_length);
-                        golden_path_vec[0] << "@trimmed" << record.id << '_' << calc_phred_average(new_qual) << '\n' << new_seq << '\n' << '+' << '\n' << new_qual << std::endl;
+                        const auto phred_stats = calc_phred_average(new_qual);
+                        golden_path_vec[0] << "@trimmed" << record.id << '_' << phred_stats.first << '_' << phred_stats.second << '\n' << new_seq << '\n' << '+' << '\n' << new_qual << std::endl;
                         inserted_bases += new_seq.size();
                     }
                     

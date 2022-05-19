@@ -3,6 +3,6 @@
 #include <string>
 
 
-uint32_t calc_phred_average(const std::string qual);
+std::pair<uint32_t, uint32_t> calc_phred_average(const std::string qual);
 #endif 
 
