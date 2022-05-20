@@ -1,6 +1,6 @@
-#include "multiLensfrHashIterator.hpp"
-#include "calc_phred_average.hpp"
 #include "read_hashing.hpp"
+#include "calc_phred_average.hpp"
+#include "multiLensfrHashIterator.hpp"
 
 #include <future>
 
@@ -34,11 +34,10 @@ read_hashing(btllib::SeqReader& reader,
 
       bool not_filtered = true;
       if (!filter_out_reads.empty()) {
-          if (filter_out_reads.find(record.id) != filter_out_reads.end()) {
-            not_filtered = false;
-          }
+        if (filter_out_reads.find(record.id) != filter_out_reads.end()) {
+          not_filtered = false;
+        }
       }
-
 
       if (record.seq.size() >= min_seq_len && not_filtered) {
         for (size_t i = 0; i < num_tiles; ++i) {
@@ -47,14 +46,13 @@ read_hashing(btllib::SeqReader& reader,
           multiLensfrHashIterator itr(tile_seq, spaced_seeds);
           while (itr != itr.end()) {
             for (size_t curr_hash = 0; curr_hash < spaced_seeds.size();
-                ++curr_hash) {
+                 ++curr_hash) {
               hashed_values[i].push_back((*itr)[curr_hash]);
             }
             ++itr;
           }
         }
       }
-
 
       block.data[block.count++] = { std::move(record),
                                     std::move(hashed_values) };
