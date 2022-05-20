@@ -78,7 +78,7 @@ fill_bit_vector(const std::string& input_file,
       continue;
     }
     const auto phred_stat = calc_phred_average(record.qual);
-    if ( phred_stat.first < opt::phred_min || phred_stat.second >= 5) {
+    if ( phred_stat.first < opt::phred_min || phred_stat.second >= opt::phred_delta) {
 #pragma omp critical
 {
         filter_out_reads.insert(record.id);
