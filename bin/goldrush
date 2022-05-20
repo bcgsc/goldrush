@@ -178,14 +178,14 @@ wp2-tigmint-ntLink: ntLink1 $(ntlink_targets) ntLink_softlink
 workpackage2: $(p2)_golden_path_1.fq
 
 $(p2)_golden_path_1.fq: $(p1)_golden_path_all.fq 
-	$(time) workpackage2  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p2) -i $(p1)_golden_path_all.fq -h $(h) -j $(j) -P $(P) -x$(x) -s $(s) -m 0 
+	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p2) -i $(p1)_golden_path_all.fq -h $(h) -j $(j) -P $(P) -x$(x) -s $(s) -m 0 
 	echo "Done WP2! Golden path can be found in: $@"
 
 $(p1)_golden_path_all.fq: $(p1)_golden_path_$(M).fq
 	cat $(p1)_golden_path_*.fq > $(p1)_golden_path_all.fq
 
 $(p1)_golden_path_$(M).fq: $(long_reads)
-	$(time) workpackage2  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p1) -i $(long_reads)  -h $(h) -j $(j) -x$(x) -P $(P) -s $(s) -T $(T) -r $(r) --new_temp_mode -M $(M) -m $(m)
+	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p1) -i $(long_reads)  -h $(h) -j $(j) -x$(x) -P $(P) -s $(s) -T $(T) -r $(r) --new_temp_mode -M $(M) -m $(m)
 
 
 # Run racon 
