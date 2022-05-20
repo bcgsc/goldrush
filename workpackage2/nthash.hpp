@@ -15,9 +15,6 @@
 #include <string>
 #include <vector>
 
-
-
-
 namespace btllib {
 
 const std::string NTHASH_VERSION = "ntHash2";

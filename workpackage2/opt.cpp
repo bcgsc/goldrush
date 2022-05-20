@@ -30,7 +30,7 @@ int ntcard = 0;
 int second_pass = 0;
 int temp_mode = 0;
 int new_temp_mode = 0;
-std::string filter_file ="";
+std::string filter_file = "";
 
 }
 
@@ -87,8 +87,8 @@ process_options(int argc, char** argv)
         opt::phred_delta = strtoul(optarg, &end, 10);
         break;
       case 'f':
-          opt::filter_file = optarg;
-          break;
+        opt::filter_file = optarg;
+        break;
       case 'g':
         opt::genome_size = strtoull(optarg, &end, 10);
         break;
