@@ -21,6 +21,7 @@ size_t block_size = 10;
 size_t max_paths = 1;
 size_t threshold = 10;
 uint32_t phred_min = 10;
+uint32_t phred_delta = 5;
 std::string prefix_file = "workpackage2";
 std::string input = "";
 std::string seed_preset = "";
@@ -69,7 +70,7 @@ process_options(int argc, char** argv)
   char* end = nullptr;
   while ((c = getopt_long(argc,
                           argv,
-                          "a:b:f:g:h:i:j:k:l:m:M:o:r:s:t:u:w:x:p:P:T:",
+                          "a:b:d:f:g:h:i:j:k:l:m:M:o:r:s:t:u:w:x:p:P:T:",
                           longopts,
                           &optindex)) != -1) {
     switch (c) {
@@ -81,6 +82,9 @@ process_options(int argc, char** argv)
       }
       case 'b':
         opt::block_size = strtoul(optarg, &end, 10);
+        break;
+      case 'd':
+        opt::phred_delta = strtoul(optarg, &end, 10);
         break;
       case 'f':
           opt::filter_file = optarg;
