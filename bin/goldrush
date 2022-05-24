@@ -151,7 +151,6 @@ help:
 	@echo "	ref_weight		Weight of the reference assemblies [2]"	
 	@echo ""
 	@echo "Notes:"
-	@echo "	- G (genome size) must be specified if span=auto"
 	@echo "	- Workpackage2 runs the new protocol which generates silver paths before generating the golden path"
 	@echo "	- ntJoin runs with the two silver paths instead of the full five"
 	@echo "	- Ensure that all input files are in the current working directory, making soft-links if needed"
