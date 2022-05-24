@@ -112,7 +112,7 @@ help:
 	@echo ""
 	@echo "	General options (required):"
 	@echo "	reads			read name [reads]. File must have .fq.gz or .fa.gz extension"
-	@echo "	G			haploid genome size (bp) for calculating span parameter and target for generating silver paths(e.g. '3e9' for human genome). used in GoldRush-Path and Timignt. Required [3e9]"
+	@echo "	G			haploid genome size (bp) (e.g. '3e9' for human genome)"
 	@echo ""
 	@echo "	General options (optional):"
 	@echo "	t			number of threads for scaffolding and correction tools [8]"
