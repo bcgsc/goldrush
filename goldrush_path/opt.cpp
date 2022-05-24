@@ -1,5 +1,5 @@
 #include "opt.hpp"
-
+#include <cmath>
 #include <iostream>
 
 namespace opt {
@@ -7,8 +7,8 @@ namespace opt {
 size_t assigned_max = 5;
 size_t unassigned_min = 5;
 size_t tile_length = 1000;
-size_t genome_size = 0;
-size_t target_size = 0;
+uint64_t genome_size = 0;
+uint64_t target_size = 0;
 size_t kmer_size = 0;
 size_t weight = 0;
 size_t min_length = 5000;
@@ -32,6 +32,27 @@ int temp_mode = 0;
 int new_temp_mode = 0;
 std::string filter_file = "";
 
+}
+
+uint64_t
+SItoull(std::string SI)
+{
+  size_t e_idx = 0;
+  for (size_t i = 0; i < SI.size(); ++i) {
+    if (SI.at(i) == 'e') {
+      e_idx = i;
+    }
+  }
+  if (e_idx == 0) {
+    std::cerr
+      << "Please ensure the target genome size is of the format xey where x "
+         "and y are both integers. E.g. 3e9 for the human genome"
+      << std::endl;
+    exit(1);
+  }
+  double base = stod(SI.substr(0, e_idx));
+  size_t exponenet = stoul(SI.substr(e_idx + 1, std::string::npos));
+  return (uint64_t)(base * pow(10, exponenet));
 }
 
 void
@@ -131,9 +152,11 @@ process_options(int argc, char** argv)
       case 't':
         opt::tile_length = strtoul(optarg, &end, 10);
         break;
-      case 'T':
-        opt::target_size = strtoul(optarg, &end, 10);
+      case 'T': {
+        std::string sci_notation = optarg;
+        opt::target_size = SItoull(sci_notation);
         break;
+      }
       case 'u': {
         opt::unassigned_min = strtoul(optarg, &end, 10);
         break;

@@ -27,7 +27,6 @@ x=10
 h=3
 j=48
 s=1011011110110111101101
-T=3000000000 
 r=0.9 
 M=5
 p1=w$(w)_x$(x)
@@ -185,7 +184,7 @@ $(p1)_golden_path_all.fq: $(p1)_golden_path_$(M).fq
 	cat $(p1)_golden_path_*.fq > $(p1)_golden_path_all.fq
 
 $(p1)_golden_path_$(M).fq: $(long_reads)
-	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p1) -i $(long_reads)  -h $(h) -j $(j) -x$(x) -P $(P) -s $(s) -T $(T) -r $(r) --new_temp_mode -M $(M) -m $(m)
+	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p1) -i $(long_reads)  -h $(h) -j $(j) -x$(x) -P $(P) -s $(s) -T $(G) -r $(r) --new_temp_mode -M $(M) -m $(m)
 
 
 # Run racon 
