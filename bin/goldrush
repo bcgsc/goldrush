@@ -160,11 +160,11 @@ clean:
 	@echo "Clean Done"
 
 # Set-up pipelines 
-run: wp2-tigmint-ntlink
-wp2-racon: racon
-wp2-ntLink: ntLink-with-wp2
-wp2-tigmint: tigmint
-wp2-tigmint-ntJoin: ntJoin
+run: wp2-tigmint-ntlink check-G
+wp2-racon: racon check-G
+wp2-ntLink: ntLink-with-wp2 check-G
+wp2-tigmint: tigmint check-G
+wp2-tigmint-ntJoin: ntJoin check-G
 
 ntlink_targets = $(shell for i in `seq 2 $(rounds)`; do printf "$(p2)_golden_path_1.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink)"; for j in `seq 1 $$i`; do printf ".ntLink"; done; printf ".fa "; done)
 wp2-tigmint-ntLink: ntLink1 $(ntlink_targets) ntLink_softlink
@@ -190,7 +190,7 @@ $(p1)_golden_path_$(M).fq: $(long_reads)
 
 
 # Run racon 
-racon: $(p2)_golden_path_1.racon-polished.fa
+racon: $(p2)_golden_path_1.racon-polished.fa check-G
 
 $(p2)_golden_path_1.racon-polished.fa: $(long_reads) $(p2)_golden_path_1.fq $(p2)_golden_path_1.fq.$(long_reads).sam
 	$(time) racon -u -t48 $(long_reads) $(p2)_golden_path_1.fq.$(long_reads).sam $(p2)_golden_path_1.fq > $@
@@ -202,7 +202,7 @@ $(p2)_golden_path_1.fq.$(long_reads).sam: $(p2)_golden_path_1.fq $(long_reads)
 
 
 # Run ntLink after wp2
-ntLink-with-wp2: $(p2)_golden_path_1.racon-polished.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa
+ntLink-with-wp2: $(p2)_golden_path_1.racon-polished.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa check-G
 
 %.racon-polished.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa: %.racon-polished.fa $(long_reads)
 	$(time) ntLink scaffold target=$< reads=$(long_reads) t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z 
@@ -223,7 +223,7 @@ $(p2)_golden_path_1.racon-polished.span$(span).dist$(dist).tigmint.fa: $(p2)_gol
 
 
 # Run ntJoin after tigmint
-ntJoin: $(p2)_golden_path_1.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntJoin).w$(w_ntJoin).n1.all.scaffolds.fa
+ntJoin: $(p2)_golden_path_1.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntJoin).w$(w_ntJoin).n1.all.scaffolds.fa check-G
 
 %.span$(span).dist$(dist).tigmint.fa.k$(k_ntJoin).w$(w_ntJoin).n1.all.scaffolds.fa: %.span$(span).dist$(dist).tigmint.fa ref.config
 	$(time) ntJoin assemble target=$< k=$(k_ntJoin) w=$(w_ntJoin) reference_config=ref.config no_cut=$(no_cut)
@@ -235,7 +235,7 @@ ref.config: $(p2)_golden_path_1.fa
 
 
 # Run ntLink rounds after tigmint
-ntLink1: $(p2)_golden_path_1.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink.fa
+ntLink1: $(p2)_golden_path_1.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink.fa check-G
 
 $(p2)_golden_path_1.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink.fa: $(p2)_golden_path_1.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.scaffolds.gap_fill.fa
 	ln -sf $< $@
@@ -247,7 +247,7 @@ $(p2)_golden_path_1.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLin
 		$(time) ntLink scaffold gap_fill target=$< reads="$(long_reads)" t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z
 		ln -sf $<.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.scaffolds.gap_fill.fa $@
 
-ntLink_softlink: $(p2)_golden_path_1.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink$(rounds).fa
+ntLink_softlink: $(p2)_golden_path_1.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink$(rounds).fa check-G
 
 $(p2)_golden_path_1.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink$(rounds).fa: ntLink1 $(ntlink_targets)
 	ln -sf $(lastword $^) $@
