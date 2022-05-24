@@ -172,7 +172,7 @@ wp2-tigmint-ntLink: ntLink1 $(ntlink_targets) ntLink_softlink
 
 check-G:
 ifndef G
-	$(error G is undefined. Try goldrush help for more information)
+	$(error G is a required parameter. Run 'goldrush help' for more information)
 endif
 
 
