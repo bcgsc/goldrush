@@ -34,25 +34,20 @@ std::string filter_file = "";
 
 }
 
-uint64_t
-SItoull(std::string SI)
-{
-  size_t e_idx = 0;
-  for (size_t i = 0; i < SI.size(); ++i) {
-    if (SI.at(i) == 'e') {
-      e_idx = i;
+uint64_t SItoull (std::string SI) {
+    size_t e_idx = 0;
+    for (size_t i = 0; i < SI.size(); ++i) {
+        if (SI.at(i) == 'e'){
+            e_idx = i;
+        }
     }
-  }
-  if (e_idx == 0) {
-    std::cerr
-      << "Please ensure the target genome size is of the format xey where x "
-         "and y are both integers. E.g. 3e9 for the human genome"
-      << std::endl;
-    exit(1);
-  }
-  double base = stod(SI.substr(0, e_idx));
-  size_t exponenet = stoul(SI.substr(e_idx + 1, std::string::npos));
-  return (uint64_t)(base * pow(10, exponenet));
+    if (e_idx == 0) {
+      std::cerr << "Please ensure the target genome size is of the format xey where x can be an integer or a double and y is an integer. E.g. 3e9 for the human genome" << std::endl;
+      exit(1);
+    }
+    double base = stod(SI.substr(0, e_idx));
+    size_t exponenet = stoul(SI.substr(e_idx + 1, std::string::npos));
+    return (uint64_t)(base * pow(10, exponenet));
 }
 
 void
@@ -152,7 +147,7 @@ process_options(int argc, char** argv)
       case 't':
         opt::tile_length = strtoul(optarg, &end, 10);
         break;
-      case 'T': {
+      case 'T':{
         std::string sci_notation = optarg;
         opt::target_size = SItoull(sci_notation);
         break;
