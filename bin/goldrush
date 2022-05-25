@@ -201,7 +201,7 @@ $(p2)_golden_path_1.fq.$(long_reads).sam: $(p2)_golden_path_1.fq $(long_reads)
 
 
 
-# Run ntLink after Path
+# Run ntLink after GoldRush-Path
 ntLink-with-path: $(p2)_golden_path_1.racon-polished.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa check-G
 
 %.racon-polished.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa: %.racon-polished.fa $(long_reads)
