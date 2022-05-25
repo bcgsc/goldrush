@@ -1,0 +1,3 @@
+[submodule "subprojects/goldrush-edit"]
+	path = subprojects/goldrush-edit
+	url = ssh+git://git@github.com/bcgsc/goldrush-edit
