@@ -86,7 +86,7 @@ time=command memusg -t -o $@.time
 endif
 endif
 
-.PHONY: help run clean path-tigmint-ntlink path-racon GoldRush-path racon path-ntLink ntLink-with-path path-tigmint tigmint path-tigmint-ntlink1 ntLink-with-tigmint path-tigmint-ntLink2 ntLink2 path-tigmint-ntLink3 ntLink3 path-tigmint-ntLink4 ntLink4 path-tigmint-ntLink5 ntLink5 path-tigmint-ntJoin ntJoin check-G
+.PHONY: help run clean path-tigmint-ntlink path-racon goldrush-path racon path-ntLink ntLink-with-path path-tigmint tigmint path-tigmint-ntlink1 ntLink-with-tigmint path-tigmint-ntLink2 ntLink2 path-tigmint-ntLink3 ntLink3 path-tigmint-ntLink4 ntLink4 path-tigmint-ntLink5 ntLink5 path-tigmint-ntJoin ntJoin check-G
 .DELETE_ON_ERROR:
 .SECONDARY:
 
