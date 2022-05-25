@@ -160,7 +160,7 @@ clean:
 	@echo "Clean Done"
 
 # Set-up pipelines 
-run: path-tigmint-ntlink check-G
+run: path-tigmint-ntLink check-G
 path-racon: racon check-G
 path-ntLink: ntLink-with-path check-G
 path-tigmint: tigmint check-G
