@@ -104,7 +104,7 @@ help:
 	@echo "	run     	        run default GoldRush pipeline: GoldRush-Path + Racon + Tigmint + ntLink"
 	@echo ""
 	@echo "	goldrush-path	  	run GoldRush-Path"
-	@echo "	path-racon		run goldrush-Path, then racon"
+	@echo "	path-racon		run GoldRush-Path, then racon"
 	@echo "	path-ntLink		run GoldRush-Path, then racon, then ntLink"
 	@echo "	path-tigmint		run GoldRush-Path, then racon, then tigmint"
 	@echo "	path-tigmint-ntLink	run GoldRush-Path, then racon, then tigmint, then ntLink (default 5 rounds)"
