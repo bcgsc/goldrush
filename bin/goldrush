@@ -210,7 +210,7 @@ ntLink-with-path: $(p2)_golden_path_1.racon-polished.fa.k$(k_ntLink).w$(w_ntLink
 
 
 
-# Run tigmint after Path
+# Run tigmint after GoldRush-Path
 tigmint: $(p2)_golden_path_1.racon-polished.span$(span).dist$(dist).tigmint.fa check-G
 
 $(p2)_golden_path_1.racon-polished.span$(span).dist$(dist).tigmint.fa: $(p2)_golden_path_1.racon-polished.cut$(cut).tigmint.fa
