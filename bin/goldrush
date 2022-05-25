@@ -86,7 +86,7 @@ time=command memusg -t -o $@.time
 endif
 endif
 
-.PHONY: help run clean Path-tigmint-ntlink Path-racon GoldRush-Path racon Path-ntLink ntLink-with-Path Path-tigmint tigmint Path-tigmint-ntlink1 ntLink-with-tigmint Path-tigmint-ntLink2 ntLink2 Path-tigmint-ntLink3 ntLink3 Path-tigmint-ntLink4 ntLink4 Path-tigmint-ntLink5 ntLink5 Path-tigmint-ntJoin ntJoin check-G
+.PHONY: help run clean path-tigmint-ntlink path-racon GoldRush-path racon path-ntLink ntLink-with-path path-tigmint tigmint path-tigmint-ntlink1 ntLink-with-tigmint path-tigmint-ntLink2 ntLink2 path-tigmint-ntLink3 ntLink3 path-tigmint-ntLink4 ntLink4 path-tigmint-ntLink5 ntLink5 path-tigmint-ntJoin ntJoin check-G
 .DELETE_ON_ERROR:
 .SECONDARY:
 
@@ -103,12 +103,12 @@ help:
 	@echo ""
 	@echo "	run     	        run default Gold Rush pipeline: GoldRush-Path + Racon + Tigmint + ntLink"
 	@echo ""
-	@echo "	GoldRush-Path	  	run GoldRush-Path"
-	@echo "	Path-racon		run goldrush-Path, then racon"
-	@echo "	Path-ntLink		run GoldRush-Path, then racon, then ntLink"
-	@echo "	Path-tigmint		run GoldRush-Path, then racon, then tigmint"
-	@echo "	Path-tigmint-ntLink	run GoldRush-Path, then racon, then tigmint, then ntLink (default 5 rounds)"
-	@echo "	Path-tigmint-ntJoin	run GoldRush-Path, then racon, then tigmint, then ntJoin"
+	@echo "	goldrush-path	  	run GoldRush-Path"
+	@echo "	path-racon		run goldrush-Path, then racon"
+	@echo "	path-ntLink		run GoldRush-Path, then racon, then ntLink"
+	@echo "	path-tigmint		run GoldRush-Path, then racon, then tigmint"
+	@echo "	path-tigmint-ntLink	run GoldRush-Path, then racon, then tigmint, then ntLink (default 5 rounds)"
+	@echo "	path-tigmint-ntJoin	run GoldRush-Path, then racon, then tigmint, then ntJoin"
 	@echo ""
 	@echo "	General options (required):"
 	@echo "	reads			read name [reads]. File must have .fq.gz or .fa.gz extension"
@@ -160,14 +160,14 @@ clean:
 	@echo "Clean Done"
 
 # Set-up pipelines 
-run: Path-tigmint-ntlink check-G
-Path-racon: racon check-G
-Path-ntLink: ntLink-with-Path check-G
-Path-tigmint: tigmint check-G
-Path-tigmint-ntJoin: ntJoin check-G
+run: path-tigmint-ntlink check-G
+path-racon: racon check-G
+path-ntLink: ntLink-with-path check-G
+path-tigmint: tigmint check-G
+path-tigmint-ntJoin: ntJoin check-G
 
 ntlink_targets = $(shell for i in `seq 2 $(rounds)`; do printf "$(p2)_golden_path_1.racon-polished.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink)"; for j in `seq 1 $$i`; do printf ".ntLink"; done; printf ".fa "; done)
-Path-tigmint-ntLink: ntLink1 $(ntlink_targets) ntLink_softlink
+path-tigmint-ntLink: ntLink1 $(ntlink_targets) ntLink_softlink
 
 check-G:
 ifndef G
@@ -176,7 +176,7 @@ endif
 
 
 # Run GoldRush-Path
-GoldRush-Path: $(p2)_golden_path_1.fq check-G
+goldrush-path: $(p2)_golden_path_1.fq check-G
 
 $(p2)_golden_path_1.fq: $(p1)_golden_path_all.fq 
 	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p2) -i $(p1)_golden_path_all.fq -h $(h) -j $(j) -P $(P) -x$(x) -s $(s) -m 0 
@@ -202,7 +202,7 @@ $(p2)_golden_path_1.fq.$(long_reads).sam: $(p2)_golden_path_1.fq $(long_reads)
 
 
 # Run ntLink after Path
-ntLink-with-Path: $(p2)_golden_path_1.racon-polished.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa check-G
+ntLink-with-path: $(p2)_golden_path_1.racon-polished.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa check-G
 
 %.racon-polished.fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa: %.racon-polished.fa $(long_reads)
 	$(time) ntLink scaffold target=$< reads=$(long_reads) t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z 
