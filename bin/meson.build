@@ -1,0 +1,1 @@
+install_data('goldrush', install_dir : 'bin')

@@ -15,6 +15,8 @@ divsufsort64_dep = compiler.find_library('divsufsort64')
 sdsl_dep = compiler.find_library('sdsl')
 
 subdir('goldrush_path')
+subdir('bin')
+subproject('goldrush-edit')
 
 rootpath = meson.source_root()
 
