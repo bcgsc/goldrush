@@ -2,7 +2,7 @@
 ![Conda](PH)
 
 
-![Logo](https://github.com/bcgsc/GoldRush/blob/main/img/GoldRush-logo.png)
+![Logo](https://github.com/bcgsc/GoldRush/blob/readme/img/GoldRush-logo.png)
 
 # Long Read Genome Assembler
 
@@ -130,8 +130,6 @@ GoldRush run reads=long_reads G=3e9
 The final assembly will have the suffix `*goldrush.assembly.fa` (will implement this)
 
 
-```
-
 See the wiki page for more details.
 
 **For more information about the GoldRush algorithm and tips for running GoldRush see our [wiki](https://github.com/bcgsc/goldrush/wiki)** (will make this])
@@ -151,12 +149,12 @@ See the wiki page for more details.
  
  Installing from source code:
  ```
-git clone https://github.com/bcgsc/goldrush.git
-cd goldrush
-meson build
-cd build
-ninja
-```
+  git clone https://github.com/bcgsc/goldrush.git
+  cd goldrush
+  meson build
+  cd build
+  ninja
+ ```
 
 #### Testing your installation
 To test your GoldRush installation: #add tests
