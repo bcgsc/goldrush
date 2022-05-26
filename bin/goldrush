@@ -104,7 +104,7 @@ help:
 	@echo ""
 	@echo "	Commands:"
 	@echo ""
-	@echo "	run                   run default GoldRush pipeline: GoldRush-Path + $(polisher) + Tigmint + ntLink"
+	@echo "	run                   run default GoldRush pipeline: GoldRush-Path + Polisher (GoldRush-Edit by default) + Tigmint + ntLink"
 	@echo ""
 	@echo "	goldrush-path	  	  run GoldRush-Path"
 	@echo "	path-polish           run GoldRush-Path, then $(polisher)"
@@ -164,7 +164,7 @@ clean:
 
 # Set-up pipelines 
 run: path-tigmint-ntLink check-G
-path-polish: polish check-G
+path-polish: $(polisher) check-G
 path-ntLink: ntLink-with-path check-G
 path-tigmint: tigmint check-G
 path-tigmint-ntJoin: ntJoin check-G
