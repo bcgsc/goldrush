@@ -191,8 +191,8 @@ $(p1)_golden_path_all.fq: $(p1)_golden_path_$(M).fq
 $(p1)_golden_path_$(M).fq: $(long_reads)
 	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p1) -i $(long_reads)  -h $(h) -j $(j) -x$(x) -P $(P) -s $(s) -T $(G) -r $(r) --new_temp_mode -M $(M) -m $(m)
 
-%.racon-polished.fa: %.fq %.fq.$(long_reads).sam
-	$(time) racon -u -t$(t) $(long_reads) $(word 2,$^) $< > $@
+%.racon-polished.fa: %.fq.$(long_reads).sam %.fq
+	$(time) racon -u -t$(t) $(long_reads) $^ > $@
 	echo "Done GoldRush-Path + $(polisher)! $(polisher) polished golden path can be found in: $@"
 
 %.goldrush-edit-polished.fa: %.fq $(long_reads)
