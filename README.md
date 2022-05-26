@@ -15,19 +15,16 @@ GoldRush iterates through the reads and collect reads to constitute ~1X of the g
 1. GR-Path: assembling the genome
     1. Iterates through the reads to generate a Multi-index Bloom Filter with no IDs inserted
     2. Iterates through the reads and insert reads that are not found in the MiBF
-![alt text](https://github.com/bcgsc/GoldRush/blob/readme/img/GR-Path.png)
 2. GR-Edit: polishing the genome
     1. Identify regions of the assembly that requires polishing using ntEdit
     2. Map reads to these erroneous regions
     3. Correct these regions individually with their mapped reads using Sealer
-![alt text](https://github.com/bcgsc/GoldRush/blob/readme/img/GR-Edit.png)
 3. Tigmint-long: correcting the genome
     1. Break regions in the genome unsupported by other reads
 4. GR-Link: scafolding the genome
     1. Scaffold the genome using minimizers
     2. Overlapping regions are trimmed by mapping minizers of the overlaped region together
     3. Fill in gaps by identifying reads that support the scaffold joins
-![alt text](https://github.com/bcgsc/GoldRush/blob/readme/img/GR-Link.png)
 
 
 ## Credits
