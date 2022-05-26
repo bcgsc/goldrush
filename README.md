@@ -39,7 +39,9 @@ Logo Design: Rene L. Warren
 
 ## Publications
 Wong, J., Nikolic, V., Coombe, L., Warren, R., & Birol, I. (2022, July 10–14). GoldRush-Path: A de novo assembler for long reads with linear time complexity [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States. PH
+
 Nikolic, V., Coombe, L., Wong, J., Birol, I., & Warren, R. (2022, July 10–14). GoldRush-Edit : A targeted, alignment-free polishing & finishing pipeline for long read assembly, using long read k-mers [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WO, United States. PH
+
 Coombe, L., Warren, R., Nikolic, V., Wong, J., & Birol, I. (2022, July 10–14). GoldRush-Link: Integrating minimizer-based overlap detection and gap-filling to the ntLink long read scaffolder [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WO, United States. PH
 
 ## Citing GoldRush
@@ -173,7 +175,7 @@ pip3 install -r requirements.txt
 ```
 
 ## License
-GoldRush Copyright (c) 2020 British Columbia Cancer Agency Branch. All rights reserved.
+GoldRush Copyright (c) 2022 British Columbia Cancer Agency Branch. All rights reserved.
 
 GoldRush is released under the GNU General Public License v3
 
