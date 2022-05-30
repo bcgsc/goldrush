@@ -6,7 +6,8 @@
 # GoldRush: memory-efficient _de novo_ assembly of long reads
 
 ## Description of the algorithm
-GoldRush iterates through the input long reads to produce a "golden path" of reads comprising ~1-fold coverage of the target genome. These "golden path" reads, or "goldtigs" are then polished, corrected for misassemblies, and finally scaffolded to generate the final genome assembly. GoldRush is memory-efficient, and has a linear time complexity in the number of reads.
+GoldRush iterates through the input long reads to produce a "golden path" of reads comprising ~1-fold coverage of the target genome. These "golden path" reads, or "goldtigs", are then polished, corrected for misassemblies, and finally scaffolded to generate the final genome assembly. GoldRush is memory-efficient, and has a linear time complexity in the number of reads.
+
 
 ### General steps in the algorithm:
 1. GoldRush-Path: selecting the golden path reads
