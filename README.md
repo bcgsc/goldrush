@@ -99,7 +99,8 @@ Notes:
 
 Running `goldrush help` prints the help documentation.
 
-* Input reads files must be in fastq 
+* Input reads files must be in uncompressed fastq format
+
 
 ### Example
 Input files:
