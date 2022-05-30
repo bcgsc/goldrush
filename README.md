@@ -16,7 +16,7 @@ GoldRush iterates through the input long reads to produce a "golden path" of rea
 
 
 ## Credits
-Concept: Inanc Birol
+Concept: Inanc Birol and Rene L. Warren
 
 Design and implementation: Johnathan Wong, Vladimir Nikolic, and Lauren Coombe
 
@@ -25,9 +25,9 @@ Logo Design: Rene L. Warren
 ## Presentations
 Wong, J., Nikolic, V., Coombe, L., Warren, R., & Birol, I. (2022, July 10–14). GoldRush-Path: A de novo assembler for long reads with linear time complexity [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States.  
 
-Nikolic, V., Coombe, L., Wong, J., Birol, I., & Warren, R. (2022, July 10–14). GoldRush-Edit : A targeted, alignment-free polishing & finishing pipeline for long read assembly, using long read k-mers [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WO, United States. 
+Nikolic, V., Coombe, L., Wong, J., Birol, I., & Warren, R. (2022, July 10–14). GoldRush-Edit : A targeted, alignment-free polishing & finishing pipeline for long read assembly, using long read k-mers [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States. 
 
-Coombe, L., Warren, R., Nikolic, V., Wong, J., & Birol, I. (2022, July 10–14). GoldRush-Link: Integrating minimizer-based overlap detection and gap-filling to the ntLink long read scaffolder [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WO, United States. 
+Coombe, L., Warren, R., Nikolic, V., Wong, J., & Birol, I. (2022, July 10–14). GoldRush-Link: Integrating minimizer-based overlap detection and gap-filling to the ntLink long read scaffolder [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States. 
 
 ## Usage
 ```
@@ -40,14 +40,14 @@ goldrush run reads=reads G=gsize
 
         Commands:
 
-        run                     run default GoldRush pipeline: GoldRush-Path + Racon + Tigmint + ntLink
+        run                   run default GoldRush pipeline: GoldRush-Path + Polisher (GoldRush-Edit by default) + Tigmint + ntLink
 
-        goldrush-path           run GoldRush-Path
-        path-racon              run GoldRush-Path, then racon
-        path-ntLink             run GoldRush-Path, then racon, then ntLink
-        path-tigmint            run GoldRush-Path, then racon, then tigmint
-        path-tigmint-ntLink     run GoldRush-Path, then racon, then tigmint, then ntLink (default 5 rounds)
-        path-tigmint-ntJoin     run GoldRush-Path, then racon, then tigmint, then ntJoin
+        goldrush-path             run GoldRush-Path
+        path-polish           run GoldRush-Path, then goldrush-edit
+        path-ntLink           run GoldRush-Path, then goldrush-edit, then ntLink
+        path-tigmint          run GoldRush-Path, then goldrush-edit, then tigmint
+        path-tigmint-ntLink   run GoldRush-Path, then goldrush-edit, then tigmint, then ntLink (default 5 rounds)
+        path-tigmint-ntJoin   run GoldRush-Path, then goldrush-edit, then tigmint, then ntJoin
 
         General options (required):
         reads                   read name [reads]. File must have .fq.gz or .fa.gz extension
