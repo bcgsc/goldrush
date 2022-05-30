@@ -102,6 +102,7 @@ Running `goldrush help` prints the help documentation.
 ### Example
 Input files:
 * long read file `long_reads.fq`
+Required Parameters:
 * genome size `3e9`
 
 GoldRush command:
