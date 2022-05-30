@@ -99,7 +99,7 @@ Notes:
 
 Running `goldrush help` prints the help documentation.
 
-* Input reads files can be gzipped(not yet implemented) or not, and in fastq 
+* Input reads files must be in fastq 
 
 ### Example
 Input files:
@@ -111,8 +111,6 @@ GoldRush command:
 ```
 goldrush run reads=long_reads G=3e9
 ```
-
-See the wiki page for more details.
 
 **For more information about the GoldRush algorithm and tips for running GoldRush see our [wiki](https://github.com/bcgsc/goldrush/wiki)** 
 
