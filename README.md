@@ -12,7 +12,8 @@ GoldRush iterates through the input long reads to produce a "golden path" of rea
 1. GoldRush-Path: selecting the golden path reads
 2. GoldRush-Edit: polishing the genome
 3. Tigmint-long: correcting the genome
-4. GoldRush-Link: scafolding the genome
+4. GoldRush-Link: scaffolding the genome
+
 
 
 ## Credits
