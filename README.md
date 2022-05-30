@@ -1,30 +1,18 @@
-![GitHub release (latest by date)](PH)
-![Conda](PH)
+![GitHub release (latest by date)]
 
 
 ![Logo](https://github.com/bcgsc/GoldRush/blob/readme/img/GoldRush-logo.png)
 
-# Long Read Genome Assembler
-
-## Memory-efficient genome assembly with a linear time complexity in number of reads 
+# GoldRush: memory-efficient _de novo_ assembly of long reads
 
 ## Description of the algorithm
-GoldRush iterates through the reads and collect reads to constitute ~1X of the genome. These reads are then polished, miassembly corrected, and scaffolded. 
+GoldRush iterates through the input long reads to produce a "golden path" of reads comprising ~1-fold coverage of the target genome. These "golden path" reads, or "goldtigs" are then polished, corrected for misassemblies, and finally scaffolded to generate the final genome assembly. GoldRush is memory-efficient, and has a linear time complexity in the number of reads.
 
 ### General steps in the algorithm:
-1. GR-Path: assembling the genome
-    1. Iterates through the reads to generate a Multi-index Bloom Filter with no IDs inserted
-    2. Iterates through the reads and insert reads that are not found in the MiBF
-2. GR-Edit: polishing the genome
-    1. Identify regions of the assembly that requires polishing using ntEdit
-    2. Map reads to these erroneous regions
-    3. Correct these regions individually with their mapped reads using Sealer
+1. GoldRush-Path: selecting the golden path reads
+2. GoldRush-Edit: polishing the genome
 3. Tigmint-long: correcting the genome
-    1. Break regions in the genome unsupported by other reads
-4. GR-Link: scafolding the genome
-    1. Scaffold the genome using minimizers
-    2. Overlapping regions are trimmed by mapping minizers of the overlaped region together
-    3. Fill in gaps by identifying reads that support the scaffold joins
+4. GoldRush-Link: scafolding the genome
 
 
 ## Credits
@@ -35,16 +23,11 @@ Design and implementation: Johnathan Wong, Vladimir Nikolic, and Lauren Coombe
 Logo Design: Rene L. Warren
 
 ## Presentations
-Wong, J., Nikolic, V., Coombe, L., Warren, R., & Birol, I. (2022, July 10–14). GoldRush-Path: A de novo assembler for long reads with linear time complexity [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States.  (PH link to poster or video if public)
+Wong, J., Nikolic, V., Coombe, L., Warren, R., & Birol, I. (2022, July 10–14). GoldRush-Path: A de novo assembler for long reads with linear time complexity [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States.  
 
-Nikolic, V., Coombe, L., Wong, J., Birol, I., & Warren, R. (2022, July 10–14). GoldRush-Edit : A targeted, alignment-free polishing & finishing pipeline for long read assembly, using long read k-mers [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WO, United States. (PH link to poster or video if public)
+Nikolic, V., Coombe, L., Wong, J., Birol, I., & Warren, R. (2022, July 10–14). GoldRush-Edit : A targeted, alignment-free polishing & finishing pipeline for long read assembly, using long read k-mers [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WO, United States. 
 
-Coombe, L., Warren, R., Nikolic, V., Wong, J., & Birol, I. (2022, July 10–14). GoldRush-Link: Integrating minimizer-based overlap detection and gap-filling to the ntLink long read scaffolder [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WO, United States.  (PH link to poster or video if public)
-
-## Citing GoldRush
-If you use GoldRush in your research, please cite:
-
-PH bioxriv citation
+Coombe, L., Warren, R., Nikolic, V., Wong, J., & Birol, I. (2022, July 10–14). GoldRush-Link: Integrating minimizer-based overlap detection and gap-filling to the ntLink long read scaffolder [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WO, United States. 
 
 ## Usage
 ```
@@ -118,34 +101,21 @@ Running `goldrush help` prints the help documentation.
 
 ### Example
 Input files:
-* long read file `long_reads.fq.gz`
+* long read file `long_reads.fq`
 * genome size `3e9`
 
 GoldRush command:
 ```
-GoldRush run reads=long_reads G=3e9
+goldrush run reads=long_reads G=3e9
 ```
-
-The final assembly will have the suffix `*goldrush.assembly.fa` (will implement this)
-
 
 See the wiki page for more details.
 
-**For more information about the GoldRush algorithm and tips for running GoldRush see our [wiki](https://github.com/bcgsc/goldrush/wiki)** (will make this])
+**For more information about the GoldRush algorithm and tips for running GoldRush see our [wiki](https://github.com/bcgsc/goldrush/wiki)** 
 
  ## Installation
- GoldRush is available from conda and homebrew package managers.
- 
- Installing using conda:
- ```
- conda install -c bioconda goldrush #PH
- ```
- 
- Installing using brew:
- ```
- brew install brewsci/bio/goldrush #PH
- ```
- 
+ GoldRush is available from github.
+  
  Installing from source code:
  ```
   git clone https://github.com/bcgsc/goldrush.git
@@ -154,22 +124,6 @@ See the wiki page for more details.
   cd build
   ninja
  ```
-
-#### Testing your installation
-To test your GoldRush installation: #add tests
-```
-cd tests
-./test_installation.sh
-```
-The expected output files can be found in: `tests/expected_outputs`
-
-## Dependencies
-will compile a list of dependencies
-
-Python dependencies can be installed with:
-```
-pip3 install -r requirements.txt
-```
 
 ## License
 GoldRush Copyright (c) 2022 British Columbia Cancer Agency Branch. All rights reserved.
