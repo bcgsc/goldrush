@@ -116,7 +116,6 @@ See the wiki page for more details.
 **For more information about the GoldRush algorithm and tips for running GoldRush see our [wiki](https://github.com/bcgsc/goldrush/wiki)** 
 
  ## Installation
- GoldRush is available from github.
   
  Installing from source code:
  ```
