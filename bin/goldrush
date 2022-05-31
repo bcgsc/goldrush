@@ -158,7 +158,7 @@ help:
 	@echo "	rounds			number of rounds of ntLink [5]"
 	@echo ""
 	@echo "	GoldRush-Edit options:"
-	@echo "	polisher_mapper		Whether to use ntlink or minimap2 for mappings. [ntlink]"
+	@echo "	polisher_mapper		Whether to use ntlink or minimap2 for mappings [ntlink]"
 	@echo ""
 	@echo "	ntJoin options:"
 	@echo "	k_ntJoin		k-mer size for minimizers [24]"
