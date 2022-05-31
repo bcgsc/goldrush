@@ -1,7 +1,7 @@
 ![GitHub release (latest by date)]
 
 
-![Logo](https://github.com/bcgsc/GoldRush/blob/readme/img/GoldRush-logo.png)
+![Logo](https://github.com/bcgsc/GoldRush/blob/main/img/GoldRush-logo.png)
 
 # GoldRush: memory-efficient _de novo_ assembly of long reads
 
