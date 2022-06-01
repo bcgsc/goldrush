@@ -46,7 +46,6 @@ goldrush run reads=reads G=gsize
 
         goldrush-path             run GoldRush-Path
         path-polish           run GoldRush-Path, then goldrush-edit
-        path-ntLink           run GoldRush-Path, then goldrush-edit, then ntLink
         path-tigmint          run GoldRush-Path, then goldrush-edit, then tigmint
         path-tigmint-ntLink   run GoldRush-Path, then goldrush-edit, then tigmint, then ntLink (default 5 rounds)
         path-tigmint-ntJoin   run GoldRush-Path, then goldrush-edit, then tigmint, then ntJoin
