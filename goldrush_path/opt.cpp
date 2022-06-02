@@ -39,6 +39,7 @@ print_usage(const std::string& progname)
     << "  -k K -w W -i INPUT -g G [-p prefix] [-P PHRED_AVG] [-o O] [-t T] [-f F] [-h H] [-u U] [-m M] [-H HASH_UNIVERSE] [-s S] [-x X] [-M MAX_PATHS]"
        "[-a A] [-j J] [-b B] [--silver_path] [-ntcard] [--help] \n\n"
        "  -i INPUT    find golden paths from INPUT [required]\n"
+       "  -g G    estimated genome size [required]\n"
        "  -b B    every B tiles will be given the same ID [10]\n"
        "  -d D    remove reads with greater or equal then D phred average between first half and second half of the read [5]\n"
        "  -f F    don't use reads from F. one read per line [optional]\n"
