@@ -54,7 +54,7 @@ print_usage(const std::string& progname)
        "  -a A        A maximum assigned tiles for read to be unassigned [5]\n"
        "  -p prefix   write output to files with prefix, e.g.\n"
        "prefix_golden_path_0.fa []\n"
-       "  -P PHRED_AVG    minimum PHRED_AVG score for each read\n"
+       "  -P PHRED_AVG    minimum average phred score for each read\n"
        "  -j J        use J number of threads [1]\n"
        "  -s S        use S seed preset. Must be consistent with k and w [n/a, generate one randomly based on k and w]\n"
        "  -x X        require X hits for a tile to be assigned [10]\n"
