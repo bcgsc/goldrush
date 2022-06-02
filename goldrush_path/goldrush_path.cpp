@@ -512,13 +512,6 @@ process_read(const btllib::SeqReader::Record& record,
       num_assigned_tiles <= opt::assigned_max) {
     assigned = false;
   }
-  if (opt::second_pass) {
-    if (num_assigned_tiles == num_tiles) {
-      assigned = true;
-    } else {
-      assigned = false;
-    }
-  }
 
   if (!assigned) {
     if (verbose) {
@@ -553,7 +546,7 @@ process_read(const btllib::SeqReader::Record& record,
                        << record.qual << std::endl;
 
     inserted_bases += record.seq.size();
-    if (opt::temp_mode || opt::new_temp_mode) {
+    if (opt::silver_path) {
       if (target_bases < inserted_bases) {
         ++curr_path;
         if (opt::max_paths < curr_path) {
@@ -572,10 +565,7 @@ process_read(const btllib::SeqReader::Record& record,
     }
 
   } else {
-    if (opt::temp_mode) {
-      return;
-    }
-    if (num_assigned_tiles == num_tiles || opt::second_pass == true) {
+    if (num_assigned_tiles == num_tiles) {
       if (verbose) {
         std::cerr << "complete assignment" << std::endl;
       }
@@ -833,7 +823,7 @@ process_read(const btllib::SeqReader::Record& record,
         inserted_bases += new_seq.size();
       }
 
-      if (opt::temp_mode || opt::new_temp_mode) {
+      if (opt::silver_path) {
         if (target_bases < inserted_bases) {
           ++curr_path;
           if (opt::max_paths < curr_path) {
@@ -871,9 +861,6 @@ main(int argc, char** argv)
   omp_set_num_threads(opt::jobs);
 #endif
 
-  if (opt::second_pass) {
-    std::cerr << "second_pass" << std::endl;
-  }
 
   // srand (1); // for testing, change to srand(time(NULL)) for actual code
   const auto seed_string_vec = make_seed_pattern(

@@ -31,16 +31,12 @@ extern std::string seed_preset;
 extern std::string filter_file;
 extern int help;
 extern int ntcard;
-extern int second_pass;
-extern int temp_mode;
-extern int new_temp_mode;
+extern int silver_path;
 
 }
 
 static const struct option longopts[] = {
-  { "new_temp_mode", no_argument, &opt::new_temp_mode, 1 },
-  { "temp_mode", no_argument, &opt::temp_mode, 1 },
-  { "second_pass", no_argument, &opt::second_pass, 1 },
+  { "silver_path", no_argument, &opt::silver_path, 1 },
   { "help", no_argument, &opt::help, 1 },
   { "ntcard", no_argument, &opt::ntcard, 1 },
   { nullptr, 0, nullptr, 0 }

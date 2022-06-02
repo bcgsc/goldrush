@@ -7,16 +7,6 @@ reads=reads
 
 polisher=goldrush-edit
 polished_infix=$(polisher)-polished
-# ntlink or minimap2
-polisher_mapper=ntlink
-
-ifeq ($(polisher_mapper),ntlink)
-goldrush_edit_opts=--ntlink
-else ifeq ($(polisher_mapper),minimap2)
-goldrush_edit_opts=--minimap2
-else
-$(error "Unknown mapper: $(polisher_mapper)")
-endif
 
 # Find the complete long read file name
 fastq=$(shell test -f $(reads).fq.gz && echo "true")
@@ -157,9 +147,6 @@ help:
 	@echo "	w_ntLink		window size for minimizers [1000]"
 	@echo "	rounds			number of rounds of ntLink [5]"
 	@echo ""
-	@echo "	GoldRush-Edit options:"
-	@echo "	polisher_mapper		Whether to use ntlink or minimap2 for mappings [ntlink]"
-	@echo ""
 	@echo "	ntJoin options:"
 	@echo "	k_ntJoin		k-mer size for minimizers [24]"
 	@echo "	w_ntJoin		window size for minimizers [50]"
@@ -202,14 +189,14 @@ $(p1)_golden_path_all.fq: $(p1)_golden_path_$(M).fq
 	cat $(p1)_golden_path_*.fq > $(p1)_golden_path_all.fq
 
 $(p1)_golden_path_$(M).fq: $(long_reads)
-	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p1) -i $(long_reads)  -h $(h) -j $(j) -x$(x) -P $(P) -s $(s) -T $(G) -r $(r) --new_temp_mode -M $(M) -m $(m)
+	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p1) -i $(long_reads)  -h $(h) -j $(j) -x$(x) -P $(P) -s $(s) -T $(G) -r $(r) --silver_path -M $(M) -m $(m)
 
 %.racon-polished.fa: %.fq.$(long_reads).sam %.fq
 	$(time) racon -u -t$(t) $(long_reads) $^ > $@
 	echo "Done GoldRush-Path + $(polisher)! $(polisher) polished golden path can be found in: $@"
 
 %.goldrush-edit-polished.fa: %.fq $(long_reads)
-	$(time) goldrush-edit $(goldrush_edit_opts) -t$(t) $< $(long_reads) $@
+	$(time) goldrush-edit -t$(t) $< $(long_reads) $@
 	echo "Done GoldRush-Path + $(polisher)! $(polisher) polished golden path can be found in: $@"
 
 # Run racon 

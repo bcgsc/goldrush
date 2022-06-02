@@ -27,9 +27,7 @@ std::string input = "";
 std::string seed_preset = "";
 int help = 0;
 int ntcard = 0;
-int second_pass = 0;
-int temp_mode = 0;
-int new_temp_mode = 0;
+int silver_path = 0;
 std::string filter_file = "";
 
 }
