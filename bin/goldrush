@@ -28,7 +28,7 @@ ifeq ($(fastq_uncompressed), true)
 long_reads=$(reads).fq
 endif
 
-# Default parameters GoldRush-Path 
+# Default parameters GoldRush-Path
 k=22
 w=16
 tile=1000
@@ -40,13 +40,13 @@ x=10
 h=3
 j=48
 s=1011011110110111101101
-r=0.9 
+r=0.9
 M=5
 p1=w$(w)_x$(x)
 p2=$(p1)_second
 P=10
 m=5000
-# Common parameters for scaffolding and correction tools 
+# Common parameters for scaffolding and correction tools
 z=1000
 t=8
 
@@ -134,15 +134,15 @@ help:
 	@echo "	GoldRush-Path options:"
 	@echo "	k		        base k value to generated hash [22]"
 	@echo "	w        		weight of spaced seed (number of 1's) [16]"
-	@echo "	tile			tile size to use in GoldRush-Path [1000]"	
+	@echo "	tile			tile size to use in GoldRush-Path [1000]"
 	@echo "	u			minimum number of unassigned tiles for the read to be considered unassigned [5]"
 	@echo "	a			maximum number of tiles that can be assigned, minimum number of overlapping tiles kept after trimming [5]"
 	@echo "	l		        number fo golden paths to produce [1]"
 	@echo "	o       		occupancy of the miBF [0.1]"
-	@echo "	x			threshold for number of hits in miBF for a given frame to be considered assigned [10]"	
+	@echo "	x			threshold for number of hits in miBF for a given frame to be considered assigned [10]"
 	@echo "	h			the number of seed patterns to use [3]"
 	@echo "	j			number of threads to use [48]"
-	@echo "	s       		spaced seed design [1011011110110111101101]"	
+	@echo "	s       		spaced seed design [1011011110110111101101]"
 	@echo "	M			maximum number of silver paths to generate [5]"
 	@echo "	r			ratio of full genome in golden path [0.9]"
 	@echo "	p1			prefix to use for the silver paths [w$(w)_x$(x)]"
@@ -163,7 +163,7 @@ help:
 	@echo "	k_ntJoin		k-mer size for minimizers [24]"
 	@echo "	w_ntJoin		window size for minimizers [50]"
 	@echo "	no_cut			If True, will not cut contigs at putative misassemblies [False]"
-	@echo "	ref_weight		Weight of the reference assemblies [2]"	
+	@echo "	ref_weight		Weight of the reference assemblies [2]"
 	@echo ""
 	@echo "Notes:"
 	@echo "	- GoldRush-Path runs the new protocol which generates silver paths before generating the golden path"
@@ -174,7 +174,7 @@ clean:
 	rm -f *.amb *.ann *.bwt *.pac *.sa *.dist.gv *.fai *.bed *.molecule.tsv *.sortbx.bai *.k$(k).w$(w).tsv *.k$(k).w$(w).tsv
 	@echo "Clean Done"
 
-# Set-up pipelines 
+# Set-up pipelines
 run: path-tigmint-ntLink check-G
 path-polish: $(polisher) check-G
 path-tigmint: tigmint check-G
@@ -191,15 +191,15 @@ endif
 # Run GoldRush-Path
 goldrush-path: $(p2)_golden_path_1.fq check-G
 
-$(p2)_golden_path_1.fq: $(p1)_golden_path_all.fq 
-	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p2) -i $(p1)_golden_path_all.fq -h $(h) -j $(j) -P $(P) -x$(x) -s $(s) -m 0 
+$(p2)_golden_path_1.fq: $(p1)_golden_path_all.fq
+	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p2) -i $(p1)_golden_path_all.fq -h $(h) -j $(j) -P $(P) -x$(x) -s $(s) -m 0
 	echo "Done GoldRush-Path! Golden path can be found in: $@"
 
 $(p1)_golden_path_all.fq: $(p1)_golden_path_$(M).fq
 	cat $(p1)_golden_path_*.fq > $(p1)_golden_path_all.fq
 
 $(p1)_golden_path_$(M).fq: $(long_reads)
-	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p1) -i $(long_reads)  -h $(h) -j $(j) -x$(x) -P $(P) -s $(s) -T $(G) -r $(r) --new_temp_mode -M $(M) -m $(m)
+	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p1) -i $(long_reads)  -h $(h) -j $(j) -x$(x) -P $(P) -s $(s) -g $(G) -r $(r) --silver_path -M $(M) -m $(m)
 
 %.racon-polished.fa: %.fq.$(long_reads).sam %.fq
 	$(time) racon -u -t$(t) $(long_reads) $^ > $@
@@ -209,7 +209,7 @@ $(p1)_golden_path_$(M).fq: $(long_reads)
 	$(time) goldrush-edit $(goldrush_edit_opts) -t$(t) $< $(long_reads) $@
 	echo "Done GoldRush-Path + $(polisher)! $(polisher) polished golden path can be found in: $@"
 
-# Run racon 
+# Run racon
 racon: $(p2)_golden_path_1.racon-polished.fa check-G
 
 goldrush-edit: $(p2)_golden_path_1.goldrush-edit-polished.fa check-G
@@ -228,8 +228,6 @@ $(p2)_golden_path_1.$(polished_infix).span$(span).dist$(dist).tigmint.fa: $(p2)_
 %.$(polished_infix).cut$(cut).tigmint.fa: %.$(polished_infix).fa $(long_reads)
 	$(time) tigmint-make tigmint-long draft=$(p2)_golden_path_1.polished reads=$(reads) cut=$(cut) t=$t G=$G span=$(span) dist=$(dist)
 
-
-
 # Run ntJoin after tigmint
 ntJoin: $(p2)_golden_path_1.$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntJoin).w$(w_ntJoin).n1.all.scaffolds.fa check-G
 
@@ -243,7 +241,6 @@ ref.config: $(p2)_golden_path_1.fa
 
 # Run ntLink rounds after tigmint
 ntLink_all_rounds: $(p2)_golden_path_1.$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa check-G
-
 
 %.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa: %.fa $(long_reads)
 	$(time) ntLink_rounds run_rounds_gaps target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z rounds=$(rounds)
