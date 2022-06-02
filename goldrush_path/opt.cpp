@@ -7,7 +7,7 @@ namespace opt {
 size_t assigned_max = 5;
 size_t unassigned_min = 5;
 size_t tile_length = 1000;
-uint64_t genome_size = 0;
+uint64_t hash_universe = 0;
 uint64_t target_size = 0;
 size_t kmer_size = 0;
 size_t weight = 0;
@@ -15,14 +15,13 @@ size_t min_length = 5000;
 size_t hash_num = 1;
 double occupancy = 0.1;
 double ratio = 0.1;
-size_t levels = 1;
 size_t jobs = 1;
 size_t block_size = 10;
 size_t max_paths = 1;
 size_t threshold = 10;
 uint32_t phred_min = 10;
 uint32_t phred_delta = 5;
-std::string prefix_file = "workpackage2";
+std::string prefix_file = "";
 std::string input = "";
 std::string seed_preset = "";
 int help = 0;
@@ -38,7 +37,7 @@ print_usage(const std::string& progname)
   std::cout
     << "Usage:  " << progname
     << "  -k K -w W -i INPUT [-p prefix] [-o O] [-t T] [-h H] [-u U] [-m M]  "
-       "[-a A] [-l L] [-j J]\n\n"
+       "[-a A] [-j J]\n\n"
        "  -i INPUT    find golden paths from INPUT [required]\n"
        "  -o O        use O as occupancy[0.1]\n"
        "  -h H        use h as number of spaced seed patterns [1]\n"
@@ -49,7 +48,6 @@ print_usage(const std::string& progname)
        "  -u U        U minimum unassigned tiles for read to be unassigned "
        "[5]\n"
        "  -a A        A maximum assigned tiles for read to be unassigned [5]\n"
-       "  -l L        output L golden paths [1]\n"
        "  -p prefix   write output to files with prefix, e.g.\n"
        "  -P phred    minimum averge phred score for each read\n"
        "prefix_golden_path_0.fa [workpackage2]\n"
@@ -57,6 +55,7 @@ print_usage(const std::string& progname)
        "  -x X        require X hits for a tile to be assigned [10]\n"
        "  --ntcard    use ntcard to estimate genome size [false, assume max "
        "entries]\n"
+       "  --silver_path    generate silver path instead of golden path. Silver paths terminate when the number bases recruited equals or exceeds T * r"
        "  --help      display this help and exit\n";
 }
 
@@ -68,7 +67,7 @@ process_options(int argc, char** argv)
   char* end = nullptr;
   while ((c = getopt_long(argc,
                           argv,
-                          "a:b:d:f:g:h:i:j:k:l:m:M:o:r:s:t:u:w:x:p:P:T:",
+                          "a:b:d:f:g:h:i:j:k:m:M:o:r:s:t:u:w:x:p:P:T:",
                           longopts,
                           &optindex)) != -1) {
     switch (c) {
@@ -88,7 +87,7 @@ process_options(int argc, char** argv)
         opt::filter_file = optarg;
         break;
       case 'g':
-        opt::genome_size = strtoull(optarg, &end, 10);
+        opt::hash_universe = strtoull(optarg, &end, 10);
         break;
       case 'h':
         opt::hash_num = strtoul(optarg, &end, 10);
@@ -101,9 +100,6 @@ process_options(int argc, char** argv)
         break;
       case 'k':
         opt::kmer_size = strtoul(optarg, &end, 10);
-        break;
-      case 'l':
-        opt::levels = strtoul(optarg, &end, 10);
         break;
       case 'm':
         opt::min_length = strtoul(optarg, &end, 10);

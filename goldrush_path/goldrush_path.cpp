@@ -866,19 +866,25 @@ main(int argc, char** argv)
   const auto seed_string_vec = make_seed_pattern(
     opt::seed_preset, opt::kmer_size, opt::weight, opt::hash_num);
 
-  if (opt::genome_size == 0) {
+  if (opt::hash_universe == 0) {
     if (opt::ntcard) {
-      opt::genome_size = calc_ntcard_genome_size(
+      opt::hash_universe = calc_ntcard_genome_size(
         opt::input, opt::kmer_size, seed_string_vec, opt::jobs);
     } else {
       static const uint8_t BASES = 4;
       static const float HASH_UNIVERSE_COEFFICIENT = 0.5;
-      opt::genome_size =
+      opt::hash_universe =
         pow(BASES, opt::weight) * HASH_UNIVERSE_COEFFICIENT * opt::hash_num;
     }
   }
+  std::string num_and_type_path_log = "";
+  if (opt::silver_path) {
+    num_and_type_path_log = std::to_string(opt::max_paths) + " silver path(s)";
+  } else {
+    num_and_type_path_log =  "the golden path";
+  }
 
-  std::cerr << "Calculating " << opt::levels << " golden path(s)"
+  std::cerr << "Calculating " << num_and_type_path_log
             << "\n"
             << "Using:"
             << "\n"
@@ -889,7 +895,7 @@ main(int argc, char** argv)
             << "base seed pattern: " << seed_string_vec[0] << "\n"
             << "minimum unassigned tiles: " << opt::unassigned_min << "\n"
             << "maximum assigned tiles: " << opt::assigned_max << "\n"
-            << "genome size: " << opt::genome_size << "\n"
+            << "genome size: " << opt::hash_universe << "\n"
             << "minimum average phred quality score: " << opt::phred_min << "\n"
             << "occupancy: " << opt::occupancy << "\n"
             << "jobs: " << opt::jobs << std::endl;
@@ -914,9 +920,9 @@ main(int argc, char** argv)
   std::cerr << "allocating bit vector" << std::endl;
 
   size_t filter_size = MIBloomFilter<uint32_t>::calcOptimalSize(
-    opt::genome_size, 1, opt::occupancy);
+    opt::hash_universe, 1, opt::occupancy);
   MIBFConstructSupport<uint32_t, multiLensfrHashIterator> miBFCS(
-    opt::genome_size,
+    opt::hash_universe,
     opt::kmer_size,
     seed_string_vec.size(),
     opt::occupancy,
