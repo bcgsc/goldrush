@@ -61,7 +61,7 @@ print_usage(const std::string& progname)
        "  -M MAX_PATHS        Output MAX_PATHS [5, used with --silver_path]\n"
        "  --ntcard    use ntcard to estimate genome size [false, assume max "
        "entries]\n"
-       "  --silver_path    generate silver path instead of golden path. Silver paths terminate when the number bases recruited equals or exceeds T * r"
+       "  --silver_path    generate silver path(s) instead of golden path. Silver paths terminate when the number bases recruited equals or exceeds T * r"
        "  --help      display this help and exit\n";
 }
 
