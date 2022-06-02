@@ -197,7 +197,7 @@ $(p2)_1.fq: $(p1)_all.fq
 	echo "Done GoldRush-Path! Golden path can be found in: $@"
 
 $(p1)_all.fq: $(p1)_$(M).fq
-	cat $(p1)_*.fq > $(p1)_all.fq
+	cat $(p1)_*.fq > $@
 
 $(p1)_$(M).fq: $(long_reads)
 	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p1) -i $(long_reads)  -h $(h) -j $(j) -x$(x) -P $(P) -s $(s) -g $(G) -r $(r) --silver_path -M $(M) -m $(m)
