@@ -192,14 +192,14 @@ endif
 # Run GoldRush-Path
 goldrush-path: $(p2)_1.fq check-G
 
-$(p2)_1.fq: $(p1)_path_all.fq
+$(p2)_1.fq: $(p1)_all.fq
 	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p2) -i $(p1)_path_all.fq -h $(h) -j $(j) -P $(P) -x$(x) -s $(s) -m 0
 	echo "Done GoldRush-Path! Golden path can be found in: $@"
 
-$(p1)_all.fq: $(p1)_path_$(M).fq
+$(p1)_all.fq: $(p1)_$(M).fq
 	cat $(p1)_*.fq > $(p1)_all.fq
 
-$(p1)_golden_path_$(M).fq: $(long_reads)
+$(p1)_$(M).fq: $(long_reads)
 	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p1) -i $(long_reads)  -h $(h) -j $(j) -x$(x) -P $(P) -s $(s) -g $(G) -r $(r) --silver_path -M $(M) -m $(m)
 
 %.racon-polished.fa: %.fq.$(long_reads).sam %.fq
