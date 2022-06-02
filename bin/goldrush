@@ -15,7 +15,7 @@ ifeq ($(fastq_uncompressed), true)
 long_reads=$(reads).fq
 endif
 
-# Default parameters GoldRush-Path 
+# Default parameters GoldRush-Path
 k=22
 w=16
 tile=1000
@@ -33,7 +33,7 @@ p1=w$(w)_x$(x)
 p2=$(p1)_second
 P=10
 m=5000
-# Common parameters for scaffolding and correction tools 
+# Common parameters for scaffolding and correction tools
 z=1000
 t=8
 
@@ -179,7 +179,7 @@ endif
 goldrush-path: $(p2)_golden_path_1.fq check-G
 
 $(p2)_golden_path_1.fq: $(p1)_golden_path_all.fq
-	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p2) -i $(p1)_golden_path_all.fq -h $(h) -j $(j) -P $(P) -x$(x) -s $(s) -m 0 
+	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p2) -i $(p1)_golden_path_all.fq -h $(h) -j $(j) -P $(P) -x$(x) -s $(s) -m 0
 	echo "Done GoldRush-Path! Golden path can be found in: $@"
 
 $(p1)_golden_path_all.fq: $(p1)_golden_path_$(M).fq
