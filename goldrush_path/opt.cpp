@@ -44,7 +44,7 @@ print_usage(const std::string& progname)
        "  -f F    don't use reads from F. one read per line [optional]\n"
        "  -o O        use O as occupancy[0.1]\n"
        "  -h H        use h as number of spaced seed patterns [1]\n"
-       "  -H HASH_UNIVERSE        Determinge MiBF size based on HASH_UNIVERSE [Calculated based on W and h]\n"
+       "  -H HASH_UNIVERSE        Determine MiBF size based on HASH_UNIVERSE [Calculated based on W and h]\n"
        "  -t T        use T as tile length [1000]\n"
        "  -k K        use K as span of spaced seed [required]\n"
        "  -w W        use W as weight of spaced seed [required]\n"
