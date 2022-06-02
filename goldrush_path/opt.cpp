@@ -36,8 +36,8 @@ print_usage(const std::string& progname)
 {
   std::cout
     << "Usage:  " << progname
-    << "  -k K -w W -i INPUT [-p prefix] [-o O] [-t T] [-h H] [-u U] [-m M]  "
-       "[-a A] [-j J]\n\n"
+    << "  -k K -w W -i INPUT -g G [-p prefix] [-P PHRED_AVG] [-o O] [-t T] [-f F] [-h H] [-u U] [-m M] [-H HASH_UNIVERSE] [-s S] [-x X] [-M MAX_PATHS]"
+       "[-a A] [-j J] [-b B] [--silver_path] [-ntcard] [--help] \n\n"
        "  -i INPUT    find golden paths from INPUT [required]\n"
        "  -b B    every B tiles will be given the same ID [10]\n"
        "  -d D    remove reads with greater or equal then D phred average between first half and second half of the read [5]\n"
@@ -53,8 +53,8 @@ print_usage(const std::string& progname)
        "[5]\n"
        "  -a A        A maximum assigned tiles for read to be unassigned [5]\n"
        "  -p prefix   write output to files with prefix, e.g.\n"
-       "  -P phred    minimum averge phred score for each read\n"
        "prefix_golden_path_0.fa []\n"
+       "  -P PHRED_AVG    minimum PHRED_AVG score for each read\n"
        "  -j J        use J number of threads [1]\n"
        "  -s S        use S seed preset. Must be consistent with k and w [n/a, generate one randomly based on k and w]\n"
        "  -x X        require X hits for a tile to be assigned [10]\n"
