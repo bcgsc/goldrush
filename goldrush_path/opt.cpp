@@ -150,19 +150,19 @@ process_options(int argc, char** argv)
   }
 
   if (opt::help) {
-    print_usage("workpackage2");
+    print_usage("goldrush_path");
     exit(0);
   }
 
   if (!opt::kmer_size) {
     std::cerr << "span of spaced seed cannot be 0" << std::endl;
-    print_usage("workpackage2");
+    print_usage("goldrush_path");
     exit(0);
   }
 
   if (!opt::weight) {
     std::cerr << "weight of spaced seed cannot be 0" << std::endl;
-    print_usage("workpackage2");
+    print_usage("goldrush_path");
     exit(0);
   }
 }
