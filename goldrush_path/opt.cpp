@@ -8,7 +8,7 @@ size_t assigned_max = 5;
 size_t unassigned_min = 5;
 size_t tile_length = 1000;
 uint64_t hash_universe = 0;
-uint64_t target_size = 0;
+uint64_t genome_size = 0;
 size_t kmer_size = 0;
 size_t weight = 0;
 size_t min_length = 5000;
@@ -67,7 +67,7 @@ process_options(int argc, char** argv)
   char* end = nullptr;
   while ((c = getopt_long(argc,
                           argv,
-                          "a:b:d:f:g:h:i:j:k:m:M:o:r:s:t:u:w:x:p:P:T:",
+                          "a:b:d:f:g:h:i:j:k:m:M:o:r:s:t:u:w:x:p:P:H:",
                           longopts,
                           &optindex)) != -1) {
     switch (c) {
@@ -86,7 +86,7 @@ process_options(int argc, char** argv)
       case 'f':
         opt::filter_file = optarg;
         break;
-      case 'g':
+      case 'H':
         opt::hash_universe = strtoull(optarg, &end, 10);
         break;
       case 'h':
@@ -125,8 +125,8 @@ process_options(int argc, char** argv)
       case 't':
         opt::tile_length = strtoul(optarg, &end, 10);
         break;
-      case 'T':
-        opt::target_size = (uint64_t)strtod(optarg, &end);
+      case 'g':
+        opt::genome_size = (uint64_t)strtod(optarg, &end);
         break;
       case 'u': {
         opt::unassigned_min = strtoul(optarg, &end, 10);

@@ -12,7 +12,7 @@ extern size_t unassigned_min;
 extern size_t tile_length;
 extern size_t block_size;
 extern uint64_t hash_universe;
-extern uint64_t target_size;
+extern uint64_t genome_size;
 extern size_t kmer_size;
 extern uint32_t phred_min;
 extern uint32_t phred_delta;

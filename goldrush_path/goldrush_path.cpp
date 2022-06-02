@@ -959,7 +959,7 @@ main(int argc, char** argv)
                      filter_out_reads);
 
   uint64_t inserted_bases = 0;
-  uint64_t target_bases = opt::ratio * opt::target_size;
+  uint64_t target_bases = opt::ratio * opt::genome_size;
   uint64_t curr_path = 1;
   uint32_t id = 1;
   uint32_t ids_inserted = 0;

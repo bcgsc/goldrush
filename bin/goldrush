@@ -186,7 +186,7 @@ $(p1)_golden_path_all.fq: $(p1)_golden_path_$(M).fq
 	cat $(p1)_golden_path_*.fq > $(p1)_golden_path_all.fq
 
 $(p1)_golden_path_$(M).fq: $(long_reads)
-	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p1) -i $(long_reads)  -h $(h) -j $(j) -x$(x) -P $(P) -s $(s) -T $(G) -r $(r) --new_temp_mode -M $(M) -m $(m)
+	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -l $(l) -o $(o) -p $(p1) -i $(long_reads)  -h $(h) -j $(j) -x$(x) -P $(P) -s $(s) -g $(G) -r $(r) --silver_path -M $(M) -m $(m)
 
 
 # Run racon
