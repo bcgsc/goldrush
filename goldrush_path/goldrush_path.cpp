@@ -558,7 +558,7 @@ process_read(const btllib::SeqReader::Record& record,
           std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF())));
         golden_path_vec.pop_back();
         golden_path_vec.emplace_back(
-          std::ofstream(opt::prefix_file + "_golden_path_" +
+          std::ofstream(opt::prefix_file + "_" +
                         std::to_string(curr_path) + ".fq"));
         ids_inserted = 0;
       }
@@ -835,7 +835,7 @@ process_read(const btllib::SeqReader::Record& record,
             std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF())));
           golden_path_vec.pop_back();
           golden_path_vec.emplace_back(
-            std::ofstream(opt::prefix_file + "_golden_path_" +
+            std::ofstream(opt::prefix_file + "_" +
                           std::to_string(curr_path) + ".fq"));
           ids_inserted = 0;
         }
@@ -914,7 +914,7 @@ main(int argc, char** argv)
   std::vector<std::ofstream> golden_path_vec;
 
   golden_path_vec.emplace_back(
-    std::ofstream(opt::prefix_file + "_golden_path_1.fq"));
+    std::ofstream(opt::prefix_file + "_1.fq"));
 
   double sTime = omp_get_wtime();
   std::cerr << "allocating bit vector" << std::endl;
