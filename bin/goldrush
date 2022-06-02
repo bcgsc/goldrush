@@ -99,7 +99,7 @@ time=command memusg -t -o $@.time
 endif
 endif
 
-.PHONY: help run clean path-tigmint-ntlink path-polish goldrush-path racon goldrush-edit path-ntLink ntLink-with-path path-tigmint tigmint path-tigmint-ntlink1 ntLink-with-tigmint path-tigmint-ntLink2 ntLink2 path-tigmint-ntLink3 ntLink3 path-tigmint-ntLink4 ntLink4 path-tigmint-ntLink5 ntLink5 path-tigmint-ntJoin ntJoin check-G
+.PHONY: help run clean path-tigmint-ntlink path-polish goldrush-path racon goldrush-edit path-tigmint tigmint ntLink-with-tigmint path-tigmint-ntJoin ntJoin check-G
 .DELETE_ON_ERROR:
 .SECONDARY:
 
@@ -118,7 +118,6 @@ help:
 	@echo ""
 	@echo "	goldrush-path	  	  run GoldRush-Path"
 	@echo "	path-polish           run GoldRush-Path, then $(polisher)"
-	@echo "	path-ntLink           run GoldRush-Path, then $(polisher), then ntLink"
 	@echo "	path-tigmint          run GoldRush-Path, then $(polisher), then tigmint"
 	@echo "	path-tigmint-ntLink   run GoldRush-Path, then $(polisher), then tigmint, then ntLink (default 5 rounds)"
 	@echo "	path-tigmint-ntJoin   run GoldRush-Path, then $(polisher), then tigmint, then ntJoin"
@@ -178,12 +177,10 @@ clean:
 # Set-up pipelines
 run: path-tigmint-ntLink check-G
 path-polish: $(polisher) check-G
-path-ntLink: ntLink-with-path check-G
 path-tigmint: tigmint check-G
 path-tigmint-ntJoin: ntJoin check-G
 
-ntlink_targets = $(shell for i in `seq 2 $(rounds)`; do printf "$(p2)_golden_path_1.$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink)"; for j in `seq 1 $$i`; do printf ".ntLink"; done; printf ".fa "; done)
-path-tigmint-ntLink: ntLink1 $(ntlink_targets) ntLink_softlink
+path-tigmint-ntLink: ntLink_all_rounds ntLink_softlink
 
 check-G:
 ifndef G
@@ -221,16 +218,6 @@ $(p2)_golden_path_1.fq.$(long_reads).sam: $(p2)_golden_path_1.fq $(long_reads)
 	$(time) minimap2 -t 48 -a -x map-ont  $< $(long_reads) > $@
 
 
-
-# Run ntLink after GoldRush-Path
-ntLink-with-path: $(p2)_golden_path_1.$(polished_infix).fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa check-G
-
-%.$(polished_infix).fa.k$(k_ntLink).w$(w_ntLink).z$z.stitch.abyss-scaffold.fa: %.$(polished_infix).fa $(long_reads)
-	$(time) ntLink scaffold target=$< reads=$(long_reads) t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z
-	echo "Done GoldRush-Path + $(polisher) + ntLink! Scaffolds can be found in: $@"
-
-
-
 # Run tigmint after GoldRush-Path
 tigmint: $(p2)_golden_path_1.$(polished_infix).span$(span).dist$(dist).tigmint.fa check-G
 
@@ -240,8 +227,6 @@ $(p2)_golden_path_1.$(polished_infix).span$(span).dist$(dist).tigmint.fa: $(p2)_
 
 %.$(polished_infix).cut$(cut).tigmint.fa: %.$(polished_infix).fa $(long_reads)
 	$(time) tigmint-make tigmint-long draft=$(p2)_golden_path_1.polished reads=$(reads) cut=$(cut) t=$t G=$G span=$(span) dist=$(dist)
-
-
 
 # Run ntJoin after tigmint
 ntJoin: $(p2)_golden_path_1.$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntJoin).w$(w_ntJoin).n1.all.scaffolds.fa check-G
@@ -254,22 +239,14 @@ ref.config: $(p2)_golden_path_1.fa
 	echo "$(p1)_golden_path_1.fa,$(ref_weight)" > ref.config
 	echo "$(p1)_golden_path_2.fa,$(ref_weight)" >> ref.config
 
-
 # Run ntLink rounds after tigmint
-ntLink1: $(p2)_golden_path_1.$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink.fa check-G
+ntLink_all_rounds: $(p2)_golden_path_1.$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa check-G
 
-$(p2)_golden_path_1.$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink.fa: $(p2)_golden_path_1.$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.scaffolds.gap_fill.fa
-	ln -sf $< $@
+%.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa: %.fa $(long_reads)
+	$(time) ntLink_rounds run_rounds_gaps target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z rounds=$(rounds)
 
-%.span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.scaffolds.gap_fill.fa: %.span$(span).dist$(dist).tigmint.fa $(long_reads)
-	$(time) ntLink scaffold gap_fill target=$< reads=$(long_reads) t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z
+ntLink_softlink: $(p2)_golden_path_1.$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa check-G
 
-%.ntLink.fa: %.fa
-		$(time) ntLink scaffold gap_fill target=$< reads="$(long_reads)" t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z
-		ln -sf $<.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.scaffolds.gap_fill.fa $@
-
-ntLink_softlink: $(p2)_golden_path_1.$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink$(rounds).fa check-G
-
-$(p2)_golden_path_1.$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink$(rounds).fa: ntLink1 $(ntlink_targets)
+%.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa: %.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa
 	ln -sf $(lastword $^) $@
 	echo "Done GoldRush-Path + $(polisher) + tigmint + $(rounds) ntLink rounds! Scaffolds can be found in: $@"
