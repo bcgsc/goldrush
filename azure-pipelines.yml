@@ -1,19 +1,23 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+jobs:
+- job:
+  displayName: ubuntu-latest
+  pool:
+    vmImage: 'ubuntu-latest'
 
-trigger:
-- main
-
-pool:
-  vmImage: ubuntu-latest
-
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
-
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+  steps:
+  - script: echo "##vso[task.prependpath]$CONDA/bin"
+    displayName: Add conda to PATH
+  - script: conda create --yes --quiet --name goldrush_CI
+    displayName: Create Anaconda environment
+  - script: |
+      source activate goldrush_CI
+      conda install --yes -c conda-forge mamba 
+      mamba install --yes -c conda-forge compilers meson gperftools libdivsufsort sdsl-lite google-sparsehash boost
+      mamba install --yes -c bioconda btllib
+    displayName: Install dependencies
+  - script: |
+      meson build
+      cd build
+      ninja
+    displayName: Compile ARCS
+    
