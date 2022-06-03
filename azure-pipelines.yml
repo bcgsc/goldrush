@@ -17,6 +17,7 @@ jobs:
       mamba install --yes -c bioconda -c conda-forge btllib 
     displayName: Install dependencies
   - script: |
+      source activate goldrush_CI
       meson build
       cd build
       ninja
