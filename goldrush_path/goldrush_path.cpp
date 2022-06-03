@@ -539,11 +539,17 @@ process_read(const btllib::SeqReader::Record& record,
       uint32_t(record.seq.size() / (opt::tile_length * opt::block_size));
     // output read to golden path
     const auto phred_stats = calc_phred_average(record.qual);
-    golden_path_vec[0] << "@" << record.id << '_' << phred_stats.first << '_'
-                       << phred_stats.second << '\n'
-                       << record.seq << '\n'
-                       << '+' << '\n'
-                       << record.qual << std::endl;
+    if (opt::silver_path) {
+      golden_path_vec[0] << "@" << record.id << '_' << phred_stats.first << '_'
+                        << phred_stats.second << '\n'
+                        << record.seq << '\n'
+                        << '+' << '\n'
+                        << record.qual << std::endl;
+    } else {
+      golden_path_vec[0] << ">" << record.id << '_' << phred_stats.first << '_'
+                        << phred_stats.second << '\n'
+                        << record.seq << std::endl;
+    }
 
     inserted_bases += record.seq.size();
     if (opt::silver_path) {
@@ -799,12 +805,19 @@ process_read(const btllib::SeqReader::Record& record,
         std::string new_qual = record.qual.substr(
           trim_start_idx * opt::tile_length, std::string::npos);
         const auto phred_stats = calc_phred_average(new_qual);
+        if (opt::silver_path) {
         golden_path_vec[0] << "@trimmed" << record.id << '_'
                            << phred_stats.first << '_' << phred_stats.second
                            << '\n'
                            << new_seq << '\n'
                            << '+' << '\n'
                            << new_qual << std::endl;
+        } else {
+        golden_path_vec[0] << ">trimmed" << record.id << '_'
+                           << phred_stats.first << '_' << phred_stats.second
+                           << '\n'
+                           << new_seq << std::endl;
+        }
         inserted_bases += new_seq.size();
       } else {
         std::string new_seq = record.seq.substr(
@@ -814,12 +827,19 @@ process_read(const btllib::SeqReader::Record& record,
           trim_start_idx * opt::tile_length,
           (trim_end_idx - trim_start_idx + 1) * opt::tile_length);
         const auto phred_stats = calc_phred_average(new_qual);
+        if (opt::silver_path) {
         golden_path_vec[0] << "@trimmed" << record.id << '_'
                            << phred_stats.first << '_' << phred_stats.second
                            << '\n'
                            << new_seq << '\n'
                            << '+' << '\n'
                            << new_qual << std::endl;
+        } else {
+        golden_path_vec[0] << ">trimmed" << record.id << '_'
+                           << phred_stats.first << '_' << phred_stats.second
+                           << '\n'
+                           << new_seq << std::endl;
+        }
         inserted_bases += new_seq.size();
       }
 
@@ -912,10 +932,13 @@ main(int argc, char** argv)
   }
 
   std::vector<std::ofstream> golden_path_vec;
-
-  golden_path_vec.emplace_back(
-    std::ofstream(opt::prefix_file + "_1.fq"));
-
+  if (opt::silver_path) {
+    golden_path_vec.emplace_back(
+      std::ofstream(opt::prefix_file + "_1.fq"));
+  } else {
+    golden_path_vec.emplace_back(
+      std::ofstream(opt::prefix_file + ".fa"));
+  }
   double sTime = omp_get_wtime();
   std::cerr << "allocating bit vector" << std::endl;
 
