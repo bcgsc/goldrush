@@ -513,6 +513,11 @@ process_read(const btllib::SeqReader::Record& record,
     assigned = false;
   }
 
+  std::string header_first_char = ">";
+  if (opt::silver_path) {
+    header_first_char = "@";
+  }
+
   if (!assigned) {
     if (verbose) {
       std::cerr << "unassigned" << std::endl;
@@ -538,21 +543,12 @@ process_read(const btllib::SeqReader::Record& record,
       ids_inserted +
       uint32_t(record.seq.size() / (opt::tile_length * opt::block_size));
     // output read to golden path
-    const auto phred_stats = calc_phred_average(record.qual);
-    if (opt::silver_path) {
-      golden_path_vec[0] << "@" << record.id << '_' << phred_stats.first << '_'
-                        << phred_stats.second << '\n'
-                        << record.seq << '\n'
-                        << '+' << '\n'
-                        << record.qual << std::endl;
-    } else {
-      golden_path_vec[0] << ">" << record.id << '_' << phred_stats.first << '_'
-                        << phred_stats.second << '\n'
-                        << record.seq << std::endl;
-    }
-
+    golden_path_vec[0] << header_first_char << record.id << "_untrimmed\n"
+      << record.seq << std::endl;
     inserted_bases += record.seq.size();
-    if (opt::silver_path) {
+    if (opt::silver_path){
+      golden_path_vec[0] << "+\n"
+        << record.qual << std::endl;
       if (target_bases < inserted_bases) {
         ++curr_path;
         if (opt::max_paths < curr_path) {
@@ -799,51 +795,31 @@ process_read(const btllib::SeqReader::Record& record,
       ids_inserted = ids_inserted + uint32_t((trim_end_idx - trim_start_idx) /
                                              opt::block_size);
       // output read to golden path
+      std::string new_seq = "";
+      std::string new_qual = "";
       if (trim_end_idx == num_tiles - 1) {
-        std::string new_seq = record.seq.substr(
+        new_seq = record.seq.substr(
           trim_start_idx * opt::tile_length, std::string::npos);
-        std::string new_qual = record.qual.substr(
+        new_qual = record.qual.substr(
           trim_start_idx * opt::tile_length, std::string::npos);
-        const auto phred_stats = calc_phred_average(new_qual);
-        if (opt::silver_path) {
-        golden_path_vec[0] << "@trimmed" << record.id << '_'
-                           << phred_stats.first << '_' << phred_stats.second
-                           << '\n'
-                           << new_seq << '\n'
-                           << '+' << '\n'
-                           << new_qual << std::endl;
-        } else {
-        golden_path_vec[0] << ">trimmed" << record.id << '_'
-                           << phred_stats.first << '_' << phred_stats.second
-                           << '\n'
-                           << new_seq << std::endl;
-        }
         inserted_bases += new_seq.size();
       } else {
-        std::string new_seq = record.seq.substr(
+        new_seq = record.seq.substr(
           trim_start_idx * opt::tile_length,
           (trim_end_idx - trim_start_idx + 1) * opt::tile_length);
-        std::string new_qual = record.qual.substr(
+        new_qual = record.qual.substr(
           trim_start_idx * opt::tile_length,
           (trim_end_idx - trim_start_idx + 1) * opt::tile_length);
-        const auto phred_stats = calc_phred_average(new_qual);
-        if (opt::silver_path) {
-        golden_path_vec[0] << "@trimmed" << record.id << '_'
-                           << phred_stats.first << '_' << phred_stats.second
-                           << '\n'
-                           << new_seq << '\n'
-                           << '+' << '\n'
-                           << new_qual << std::endl;
-        } else {
-        golden_path_vec[0] << ">trimmed" << record.id << '_'
-                           << phred_stats.first << '_' << phred_stats.second
-                           << '\n'
-                           << new_seq << std::endl;
-        }
-        inserted_bases += new_seq.size();
       }
+      inserted_bases += new_seq.size();
+      golden_path_vec[0] << header_first_char << record.id << "trimmed_\n"
+                          << new_seq << std::endl;
 
+                          
       if (opt::silver_path) {
+        golden_path_vec[0] << "+\n"
+                          << new_qual << std::endl;
+
         if (target_bases < inserted_bases) {
           ++curr_path;
           if (opt::max_paths < curr_path) {
