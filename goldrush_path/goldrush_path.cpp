@@ -802,7 +802,6 @@ process_read(const btllib::SeqReader::Record& record,
           trim_start_idx * opt::tile_length, std::string::npos);
         new_qual = record.qual.substr(
           trim_start_idx * opt::tile_length, std::string::npos);
-        inserted_bases += new_seq.size();
       } else {
         new_seq = record.seq.substr(
           trim_start_idx * opt::tile_length,
@@ -812,7 +811,7 @@ process_read(const btllib::SeqReader::Record& record,
           (trim_end_idx - trim_start_idx + 1) * opt::tile_length);
       }
       inserted_bases += new_seq.size();
-      golden_path_vec[0] << header_first_char << record.id << "trimmed_\n"
+      golden_path_vec[0] << header_first_char << record.id << "_trimmed\n"
                           << new_seq << std::endl;
 
                           
