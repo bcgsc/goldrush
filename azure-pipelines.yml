@@ -19,5 +19,4 @@ jobs:
       meson build
       cd build
       ninja
-    displayName: Compile ARCS
-    
+    displayName: Compile GoldRush
