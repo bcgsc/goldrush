@@ -259,8 +259,6 @@ public:
       uint64_t rank = miBF.getRankPos(hash);
       T count = __sync_add_and_fetch(&m_counts[rank], 1);
       T randomNum = std::hash<T>{}(randomSeed) % count;
-      // std::cerr << "id: " << id << " randomNum: " << randomNum << "
-      // randomSeed: " << randomSeed <<std::endl;
       if (randomNum == count - 1) {
         miBF.setData(rank, id);
       }
