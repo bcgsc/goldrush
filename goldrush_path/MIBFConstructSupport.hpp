@@ -246,7 +246,11 @@ public:
     // assert(m_isBVMade & !m_isMIBFMade);
     // get positions
     size_t vec_size = hash_vec[0].size();
-    size_t num_elements = (end - start) * vec_size;
+    size_t num_elements = 0;
+    for (size_t i = start; i < end; ++i) {
+      num_elements += hash_vec[i].size();
+    }
+
 
 #if _OPENMP
 #pragma omp parallel for
