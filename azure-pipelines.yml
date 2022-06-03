@@ -7,7 +7,6 @@ jobs:
   steps:
   - checkout: self
     persistCredentials: true
-    submodules: true
   - script: echo "##vso[task.prependpath]$CONDA/bin"
     displayName: Add conda to PATH
   - script: conda create --yes --quiet --name goldrush_CI
@@ -20,6 +19,8 @@ jobs:
       mamba install --yes -c bioconda -c conda-forge btllib 
     displayName: Install dependencies
   - script: |
+      git config --global user.email "johnathanwong4@gmail.com"
+      git config --global user.name "jowong4"
       source activate goldrush_CI
       meson build
       cd build
