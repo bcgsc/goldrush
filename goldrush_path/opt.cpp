@@ -160,37 +160,37 @@ process_options(int argc, char** argv)
   if (!opt::kmer_size) {
     std::cerr << "span of spaced seed cannot be 0" << std::endl;
     print_usage("goldrush_path");
-    exit(0);
+    exit(1);
   }
 
   if (!opt::weight) {
     std::cerr << "weight of spaced seed cannot be 0" << std::endl;
     print_usage("goldrush_path");
-    exit(0);
+    exit(1);
   }
 
-  if (opt::genome_size == 0) {
+  if (opt::genome_size == 0 && opt::silver_path) {
     std::cerr << "genome size cannot be 0" << std::endl;
     print_usage("goldrush_path");
-    exit(0);
+    exit(1);
   }
 
   if (!opt::seed_preset.empty()) {
     if (opt::kmer_size != opt::seed_preset.size()) {
       std::cerr << "seed preset must be the same size of k" << std::endl;
       print_usage("goldrush_path");
-      exit(0);
+      exit(1);
     }
     uint8_t num_1s_in_seed = 0;
     for (char c : opt::seed_preset) {
-      if (c == 'i') {
+      if (c == '1') {
         ++num_1s_in_seed;
       }
     }
     if (opt::weight != num_1s_in_seed) {
       std::cerr << "seed preset must have the same weight as w" << std::endl;
       print_usage("goldrush_path");
-      exit(0);
+      exit(1);
     }
   }
 }
