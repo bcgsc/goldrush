@@ -41,7 +41,7 @@ static const struct option longopts[] = {
   { nullptr, 0, nullptr, 0 }
 };
 
-static constexpr bool verbose = true;
+static constexpr bool verbose = false;
 
 void
 process_options(int argc, char** argv);
