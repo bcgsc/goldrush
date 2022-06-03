@@ -236,6 +236,38 @@ public:
     }
   }
 
+
+  void insertMIBF(MIBloomFilter<T>& miBF,
+                  const std::vector<std::vector<uint64_t>>& hash_vec,
+                  size_t start,
+                  size_t end,
+                  T id)
+  {
+    // assert(m_isBVMade & !m_isMIBFMade);
+    // get positions
+    size_t vec_size = hash_vec[0].size();
+    size_t num_elements = (end - start) * vec_size;
+
+#if _OPENMP
+#pragma omp parallel for
+#endif
+    for (size_t i = 0; i < num_elements; ++i) {
+      size_t vec_num = i / vec_size;
+      size_t hash_loc = i % vec_size;
+      const auto& hash = hash_vec[start + vec_num][hash_loc];
+      uint64_t randomSeed = hash ^ id;
+      uint64_t rank = miBF.getRankPos(hash);
+      T count = __sync_add_and_fetch(&m_counts[rank], 1);
+      T randomNum = std::hash<T>{}(randomSeed) % count;
+      // std::cerr << "id: " << id << " randomNum: " << randomNum << "
+      // randomSeed: " << randomSeed <<std::endl;
+      if (randomNum == count - 1) {
+        miBF.setData(rank, id);
+      }
+    }
+  }
+
+
   void insertMIBF(MIBloomFilter<T>& miBF,
                   H& itr,
                   T id,

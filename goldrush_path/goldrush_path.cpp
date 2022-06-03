@@ -528,15 +528,7 @@ process_read(const btllib::SeqReader::Record& record,
       size_t block_end = std::min(block_start + opt::block_size, num_tiles);
       uint32_t curr_ids_inserted =
         ids_inserted + uint32_t((block_start) / opt::block_size);
-      std::vector<uint64_t> hashed_values_new_array;
-      hashed_values_new_array.reserve(hashed_values[block_start].size() *
-                                      opt::block_size);
-      for (size_t i = block_start; i < block_end; ++i) {
-        hashed_values_new_array.insert(hashed_values_new_array.end(),
-                                       hashed_values[i].begin(),
-                                       hashed_values[i].end());
-      }
-      miBFCS.insertMIBF(*miBF, hashed_values_new_array, curr_ids_inserted);
+      miBFCS.insertMIBF(*miBF, hashed_values, block_start, block_end, curr_ids_inserted);
       block_start = block_start + opt::block_size;
     }
     ids_inserted =
@@ -781,15 +773,7 @@ process_read(const btllib::SeqReader::Record& record,
         uint32_t curr_ids_inserted =
           ids_inserted +
           uint32_t((block_start - trim_start_idx + 1) / opt::block_size);
-        std::vector<uint64_t> hashed_values_new_array;
-        hashed_values_new_array.reserve(hashed_values[block_start].size() *
-                                        opt::block_size);
-        for (size_t i = block_start; i <= block_end; ++i) {
-          hashed_values_new_array.insert(hashed_values_new_array.end(),
-                                         hashed_values[i].begin(),
-                                         hashed_values[i].end());
-        }
-        miBFCS.insertMIBF(*miBF, hashed_values_new_array, curr_ids_inserted);
+        miBFCS.insertMIBF(*miBF, hashed_values, block_start, block_end + 1, curr_ids_inserted);
         block_start = block_start + opt::block_size;
       }
       ids_inserted = ids_inserted + uint32_t((trim_end_idx - trim_start_idx) /
