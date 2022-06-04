@@ -44,7 +44,7 @@ jobs:
       mamba install --yes -c conda-forge compilers meson gperftools sdsl-lite boost
       mamba install --yes -c conda-forge gfortran
       mamba install --yes -c anaconda -c conda-forge libgcc
-      mamba install --yes -c bioconda libdivsufsort google-sparsehash 
+      mamba install --yes -c bioconda libdivsufsort google-sparsehash sparsehash
       mamba install --yes -c bioconda -c conda-forge btllib 
     displayName: Install dependencies
   - script: |
