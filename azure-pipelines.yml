@@ -40,8 +40,9 @@ jobs:
     displayName: Create Anaconda environment
   - script: |
       source activate goldrush_CI
-      conda install --yes -c conda-forge mamba 
+      conda install --yes -c conda-forge mamba
       mamba install --yes -c conda-forge compilers meson gperftools sdsl-lite boost
+      mamba install --yes -c conda-forge gfortran
       mamba install --yes -c anaconda libgcc
       mamba install --yes -c bioconda libdivsufsort google-sparsehash 
       mamba install --yes -c bioconda -c conda-forge btllib 
