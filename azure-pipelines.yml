@@ -31,6 +31,9 @@ jobs:
     vmImage: 'macOS-latest'
 
   steps:
+    - checkout: self
+    persistCredentials: true
+    submodules: true
   - script: echo "##vso[task.prependpath]$CONDA/bin"
     displayName: Add conda to PATH
   - script: conda create --yes --quiet --name goldrush_CI
