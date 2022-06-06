@@ -147,7 +147,7 @@ help:
 	@echo "	M			maximum number of silver paths to generate [5]"
 	@echo "	r			ratio of full genome in golden path [0.9]"
 	@echo "	P			minimum average phred score for each read [10]"
-	@echo "	d			remove reads with greater or equal then D phred average between first half and second half of the read [5]"
+	@echo "	d			remove reads with greater or equal than d difference between average phred quality of first half and second half of the read [5]"
 	@echo "	p1			prefix to use for the silver paths [w$(w)_x$(x)]"
 	@echo ""
 	@echo "	Tigmint options:"
