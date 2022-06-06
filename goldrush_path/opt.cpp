@@ -38,7 +38,7 @@ print_usage(const std::string& progname)
     << "Usage:  " << progname
     << "  -k K -w W -i INPUT -g G [-p prefix] [-P PHRED_AVG] [-o O] [-t T] [-f "
        "F] [-h H] [-u U] [-m M] [-H HASH_UNIVERSE] [-s S] [-x X] [-M MAX_PATHS]"
-       "[-a A] [-j J] [-b B] [--silver_path] [-ntcard] [--help] \n\n"
+       "[-a A] [-j J] [-b B] [-d D] [--silver_path] [-ntcard] [--help] \n\n"
        "  -i INPUT    find golden paths from INPUT [required]\n"
        "  -g G    estimated genome size [required]\n"
        "  -b B    every B tiles will be given the same ID [10]\n"
