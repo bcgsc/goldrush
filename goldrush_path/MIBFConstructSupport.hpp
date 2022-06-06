@@ -236,7 +236,6 @@ public:
     }
   }
 
-
   void insertMIBF(MIBloomFilter<T>& miBF,
                   const std::vector<std::vector<uint64_t>>& hash_vec,
                   size_t start,
@@ -250,7 +249,6 @@ public:
     for (size_t i = start; i < end; ++i) {
       num_elements += hash_vec[i].size();
     }
-
 
 #if _OPENMP
 #pragma omp parallel for
@@ -268,7 +266,6 @@ public:
       }
     }
   }
-
 
   void insertMIBF(MIBloomFilter<T>& miBF,
                   H& itr,
