@@ -51,7 +51,15 @@ log_tile_states(std::vector<uint32_t>& tiles_assigned_id_vec,
   std::cerr << std::endl;
 }
 
-void silver_path_check(std::vector<std::ofstream>& golden_path_vec, std::vector<std::unique_ptr<MIBloomFilter<uint32_t>>>& mibf_vec, const uint64_t target_bases, uint64_t& inserted_bases, uint64_t& curr_path, uint32_t& ids_inserted, MIBFConstructSupport<uint32_t, multiLensfrHashIterator>& miBFCS)
+void
+silver_path_check(
+  std::vector<std::ofstream>& golden_path_vec,
+  std::vector<std::unique_ptr<MIBloomFilter<uint32_t>>>& mibf_vec,
+  const uint64_t target_bases,
+  uint64_t& inserted_bases,
+  uint64_t& curr_path,
+  uint32_t& ids_inserted,
+  MIBFConstructSupport<uint32_t, multiLensfrHashIterator>& miBFCS)
 {
   if (target_bases < inserted_bases) {
     ++curr_path;
@@ -63,9 +71,8 @@ void silver_path_check(std::vector<std::ofstream>& golden_path_vec, std::vector<
     mibf_vec.emplace_back(std::move(
       std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF())));
     golden_path_vec.pop_back();
-    golden_path_vec.emplace_back(
-      std::ofstream(opt::prefix_file + "_" +
-                    std::to_string(curr_path) + ".fq"));
+    golden_path_vec.emplace_back(std::ofstream(
+      opt::prefix_file + "_" + std::to_string(curr_path) + ".fq"));
     ids_inserted = 0;
   }
 }
@@ -76,7 +83,8 @@ sort_by_sec(const pair<size_t, size_t>& a, const pair<size_t, size_t>& b)
   return (a.second > b.second);
 }
 
-std::pair<ssize_t, ssize_t> find_longest_stretch(const std::vector<uint8_t>& tiles_assigned_bool_vec)
+std::pair<ssize_t, ssize_t>
+find_longest_stretch(const std::vector<uint8_t>& tiles_assigned_bool_vec)
 {
   size_t start_idx = 0;
   size_t end_idx = 0;
@@ -90,12 +98,11 @@ std::pair<ssize_t, ssize_t> find_longest_stretch(const std::vector<uint8_t>& til
       start_idx = i;
       curr_stretch = 1;
     } else if ((!tiles_assigned_bool_vec[i] &&
-                tiles_assigned_bool_vec[i] ==
-                  tiles_assigned_bool_vec[i - 1]) &&
-                (i + 1 != num_tiles - 1)) {
+                tiles_assigned_bool_vec[i] == tiles_assigned_bool_vec[i - 1]) &&
+               (i + 1 != num_tiles - 1)) {
       ++curr_stretch;
     } else if (tiles_assigned_bool_vec[i] &&
-                tiles_assigned_bool_vec[i] != tiles_assigned_bool_vec[i - 1]) {
+               tiles_assigned_bool_vec[i] != tiles_assigned_bool_vec[i - 1]) {
       end_idx = i - 1;
       if (longest_stretch < curr_stretch) {
         longest_stretch = curr_stretch;
@@ -155,7 +162,11 @@ fill_bit_vector(const std::string& input_file,
             << "\n";
 }
 
-std::tuple<bool, size_t, size_t> eval_flanks(ssize_t longest_start_idx, ssize_t longest_end_idx, std::vector<uint32_t> tiles_assigned_id_vec) {
+std::tuple<bool, size_t, size_t>
+eval_flanks(ssize_t longest_start_idx,
+            ssize_t longest_end_idx,
+            std::vector<uint32_t> tiles_assigned_id_vec)
+{
   std::vector<std::pair<size_t, size_t>> left_flank_vec;
   std::vector<std::pair<size_t, size_t>> right_flank_vec;
   std::map<size_t, size_t> right_flank;
@@ -174,8 +185,8 @@ std::tuple<bool, size_t, size_t> eval_flanks(ssize_t longest_start_idx, ssize_t 
   if (num_tiles < 15) {
     bool good_right_flank = false;
     bool good_left_flank = false;
-    
-    //collect flanks ids
+
+    // collect flanks ids
     for (ssize_t i = longest_start_idx - 1; i >= 0; --i) {
       if (left_flank.find(tiles_assigned_id_vec[i]) != left_flank.end()) {
         ++left_flank[tiles_assigned_id_vec[i]];
@@ -188,7 +199,7 @@ std::tuple<bool, size_t, size_t> eval_flanks(ssize_t longest_start_idx, ssize_t 
       left_flank_vec.push_back(std::make_pair(myPair.first, myPair.second));
     }
     sort(left_flank_vec.begin(), left_flank_vec.end(), sort_by_sec);
-  
+
     if (left_flank_vec.size() != 0) {
       if (left_flank_vec[0].second >= 2) {
         if (longest_start_idx != 0) {
@@ -198,25 +209,22 @@ std::tuple<bool, size_t, size_t> eval_flanks(ssize_t longest_start_idx, ssize_t 
         }
         good_left_flank = true;
       } else if (left_flank_vec.size() >= 2 &&
-                  (left_flank_vec[0].second + left_flank_vec[1].second > 3 &&
+                 (left_flank_vec[0].second + left_flank_vec[1].second > 3 &&
                   (left_flank_vec[0].first - left_flank_vec[1].first == 1 ||
-                    left_flank_vec[1].first - left_flank_vec[0].first == 1))) {
+                   left_flank_vec[1].first - left_flank_vec[0].first == 1))) {
         if (longest_start_idx != 0) {
           trim_start_idx = longest_start_idx - 1;
         } else {
           trim_start_idx = longest_start_idx;
         }
         good_left_flank = true;
-      } 
+      }
     }
-  
+
     if (trim_start_idx == 0) {
       good_left_flank = true;
     }
 
-
-
-    
     for (ssize_t i = longest_end_idx + 1; i < (ssize_t)num_tiles; ++i) {
       if (right_flank.find(tiles_assigned_id_vec[i]) != right_flank.end()) {
         ++right_flank[tiles_assigned_id_vec[i]];
@@ -233,14 +241,12 @@ std::tuple<bool, size_t, size_t> eval_flanks(ssize_t longest_start_idx, ssize_t 
         trim_end_idx = longest_end_idx + 1;
         good_right_flank = true;
       } else if (right_flank_vec.size() >= 2 &&
-                  (right_flank_vec[0].second + right_flank_vec[1].second > 3 &&
+                 (right_flank_vec[0].second + right_flank_vec[1].second > 3 &&
                   (right_flank_vec[0].first - right_flank_vec[1].first == 1 ||
-                    right_flank_vec[1].first - right_flank_vec[0].first ==
-                      1))) {
+                   right_flank_vec[1].first - right_flank_vec[0].first == 1))) {
         trim_end_idx = longest_end_idx + 1;
         good_right_flank = true;
-
-      } 
+      }
     }
     if (trim_end_idx == num_tiles - 1) {
       good_right_flank = true;
@@ -261,7 +267,6 @@ std::tuple<bool, size_t, size_t> eval_flanks(ssize_t longest_start_idx, ssize_t 
         }
       }
 
-      
       for (const auto& myPair : left_flank) {
         left_flank_vec.push_back(std::make_pair(myPair.first, myPair.second));
       }
@@ -276,7 +281,7 @@ std::tuple<bool, size_t, size_t> eval_flanks(ssize_t longest_start_idx, ssize_t 
         }
         good_flank = true;
       } else if (left_flank_vec[0].second + left_flank_vec[1].second > 3 &&
-                  (left_flank_vec[0].first - left_flank_vec[1].first == 1 ||
+                 (left_flank_vec[0].first - left_flank_vec[1].first == 1 ||
                   left_flank_vec[1].first - left_flank_vec[0].first == 1)) {
         if (longest_start_idx != 0) {
           trim_start_idx = longest_start_idx - 1;
@@ -300,10 +305,9 @@ std::tuple<bool, size_t, size_t> eval_flanks(ssize_t longest_start_idx, ssize_t 
           right_flank[tiles_assigned_id_vec[i]] = 1;
         }
       }
-      
+
       for (const auto& myPair : right_flank) {
-        right_flank_vec.push_back(
-          std::make_pair(myPair.first, myPair.second));
+        right_flank_vec.push_back(std::make_pair(myPair.first, myPair.second));
       }
       sort(right_flank_vec.begin(), right_flank_vec.end(), sort_by_sec);
 
@@ -311,7 +315,7 @@ std::tuple<bool, size_t, size_t> eval_flanks(ssize_t longest_start_idx, ssize_t 
         trim_end_idx = longest_end_idx + 1;
         good_flank = true;
       } else if (right_flank_vec[0].second + right_flank_vec[1].second > 3 &&
-                  (right_flank_vec[0].first - right_flank_vec[1].first == 1 ||
+                 (right_flank_vec[0].first - right_flank_vec[1].first == 1 ||
                   right_flank_vec[1].first - right_flank_vec[0].first == 1)) {
         trim_end_idx = longest_end_idx + 1;
         good_flank = true;
@@ -757,7 +761,8 @@ process_read(const btllib::SeqReader::Record& record,
       size_t block_end = std::min(block_start + opt::block_size, num_tiles);
       uint32_t curr_ids_inserted =
         ids_inserted + uint32_t((block_start) / opt::block_size);
-      miBFCS.insertMIBF(*miBF, hashed_values, block_start, block_end, curr_ids_inserted);
+      miBFCS.insertMIBF(
+        *miBF, hashed_values, block_start, block_end, curr_ids_inserted);
       block_start = block_start + opt::block_size;
     }
     ids_inserted =
@@ -765,12 +770,17 @@ process_read(const btllib::SeqReader::Record& record,
       uint32_t(record.seq.size() / (opt::tile_length * opt::block_size));
     // output read to golden path
     golden_path_vec[0] << header_first_char << record.id << "_untrimmed\n"
-      << record.seq << std::endl;
+                       << record.seq << std::endl;
     inserted_bases += record.seq.size();
-    if (opt::silver_path){
-      golden_path_vec[0] << "+\n"
-        << record.qual << std::endl;
-      silver_path_check(golden_path_vec, mibf_vec, target_bases, inserted_bases, curr_path, ids_inserted, miBFCS);
+    if (opt::silver_path) {
+      golden_path_vec[0] << "+\n" << record.qual << std::endl;
+      silver_path_check(golden_path_vec,
+                        mibf_vec,
+                        target_bases,
+                        inserted_bases,
+                        curr_path,
+                        ids_inserted,
+                        miBFCS);
     }
 
   } else {
@@ -781,16 +791,16 @@ process_read(const btllib::SeqReader::Record& record,
       return;
     }
 
-
     auto longest_idx_pair = find_longest_stretch(tiles_assigned_bool_vec);
     ssize_t longest_start_idx = longest_idx_pair.first;
     ssize_t longest_end_idx = longest_idx_pair.second;
-    
-    auto flank_and_idx = eval_flanks(longest_start_idx, longest_end_idx, tiles_assigned_id_vec);
+
+    auto flank_and_idx =
+      eval_flanks(longest_start_idx, longest_end_idx, tiles_assigned_id_vec);
     auto good_flank = std::get<0>(flank_and_idx);
     auto trim_start_idx = std::get<1>(flank_and_idx);
     auto trim_end_idx = std::get<2>(flank_and_idx);
-  
+
     if (good_flank) {
       assigned = false;
       if (verbose) {
@@ -804,26 +814,34 @@ process_read(const btllib::SeqReader::Record& record,
         uint32_t curr_ids_inserted =
           ids_inserted +
           uint32_t((block_start - trim_start_idx + 1) / opt::block_size);
-        miBFCS.insertMIBF(*miBF, hashed_values, block_start, block_end + 1, curr_ids_inserted);
+        miBFCS.insertMIBF(
+          *miBF, hashed_values, block_start, block_end + 1, curr_ids_inserted);
         block_start = block_start + opt::block_size;
       }
       ids_inserted = ids_inserted + uint32_t((trim_end_idx - trim_start_idx) /
                                              opt::block_size);
       // output read to golden path
-      size_t end_pos =  (trim_end_idx == num_tiles - 1) ? std::string::npos : (trim_end_idx - trim_start_idx + 1) * opt::tile_length;
-      std::string new_seq = record.seq.substr(
-        trim_start_idx * opt::tile_length, end_pos);
-      std::string new_qual = record.qual.substr(
-        trim_start_idx * opt::tile_length, end_pos);
+      size_t end_pos =
+        (trim_end_idx == num_tiles - 1)
+          ? std::string::npos
+          : (trim_end_idx - trim_start_idx + 1) * opt::tile_length;
+      std::string new_seq =
+        record.seq.substr(trim_start_idx * opt::tile_length, end_pos);
+      std::string new_qual =
+        record.qual.substr(trim_start_idx * opt::tile_length, end_pos);
       inserted_bases += new_seq.size();
       golden_path_vec[0] << header_first_char << record.id << "_trimmed\n"
-                          << new_seq << std::endl;
+                         << new_seq << std::endl;
 
-                          
       if (opt::silver_path) {
-        golden_path_vec[0] << "+\n"
-                  << new_qual << std::endl;
-        silver_path_check(golden_path_vec, mibf_vec, target_bases, inserted_bases, curr_path, ids_inserted, miBFCS);
+        golden_path_vec[0] << "+\n" << new_qual << std::endl;
+        silver_path_check(golden_path_vec,
+                          mibf_vec,
+                          target_bases,
+                          inserted_bases,
+                          curr_path,
+                          ids_inserted,
+                          miBFCS);
       }
     }
   }
@@ -846,7 +864,6 @@ main(int argc, char** argv)
   omp_set_num_threads(opt::jobs);
 #endif
 
-
   // srand (1); // for testing, change to srand(time(NULL)) for actual code
   const auto seed_string_vec = make_seed_pattern(
     opt::seed_preset, opt::kmer_size, opt::weight, opt::hash_num);
@@ -866,11 +883,10 @@ main(int argc, char** argv)
   if (opt::silver_path) {
     num_and_type_path_log = std::to_string(opt::max_paths) + " silver path(s)";
   } else {
-    num_and_type_path_log =  "the golden path";
+    num_and_type_path_log = "the golden path";
   }
 
-  std::cerr << "Calculating " << num_and_type_path_log
-            << "\n"
+  std::cerr << "Calculating " << num_and_type_path_log << "\n"
             << "Using:"
             << "\n"
             << "tile length: " << opt::tile_length << "\n"
@@ -898,11 +914,9 @@ main(int argc, char** argv)
 
   std::vector<std::ofstream> golden_path_vec;
   if (opt::silver_path) {
-    golden_path_vec.emplace_back(
-      std::ofstream(opt::prefix_file + "_1.fq"));
+    golden_path_vec.emplace_back(std::ofstream(opt::prefix_file + "_1.fq"));
   } else {
-    golden_path_vec.emplace_back(
-      std::ofstream(opt::prefix_file + ".fa"));
+    golden_path_vec.emplace_back(std::ofstream(opt::prefix_file + ".fa"));
   }
   double sTime = omp_get_wtime();
   std::cerr << "allocating bit vector" << std::endl;
