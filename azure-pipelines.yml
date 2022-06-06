@@ -15,7 +15,7 @@ jobs:
   - script: |
       source activate goldrush_CI
       conda install --yes -c conda-forge mamba 
-      mamba install --yes -c conda-forge -c bioconda compilers meson gperftools sdsl-lite boost btllib google-sparsehash libdivsufsort
+      mamba install --yes -c conda-forge -c bioconda compilers meson gperftools sdsl-lite boost-cpp btllib google-sparsehash libdivsufsort
     displayName: Install dependencies
   - script: |
       source activate goldrush_CI
