@@ -175,7 +175,7 @@ process_options(int argc, char** argv)
     exit(1);
   }
 
-  if (opt::genome_size == 0 && opt::silver_path) {
+  if (opt::genome_size == 0) {
     std::cerr << "genome size cannot be 0" << std::endl;
     print_usage("goldrush_path");
     exit(1);

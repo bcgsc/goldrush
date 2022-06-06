@@ -883,8 +883,10 @@ main(int argc, char** argv)
     } else {
       static const uint8_t BASES = 4;
       static const float HASH_UNIVERSE_COEFFICIENT = 0.5;
+      static const uint8_t GENOME_SIZE_MULTIPLIER = 2;
+      size_t hash_universe_base = std::min((uint64_t)(pow(BASES, opt::weight)), GENOME_SIZE_MULTIPLIER * opt::genome_size);
       opt::hash_universe =
-        pow(BASES, opt::weight) * HASH_UNIVERSE_COEFFICIENT * opt::hash_num;
+        hash_universe_base * HASH_UNIVERSE_COEFFICIENT * opt::hash_num;
     }
   }
   std::string num_and_type_path_log = "";
