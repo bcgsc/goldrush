@@ -19,11 +19,7 @@ $(error "Unknown mapper: $(polisher_mapper)")
 endif
 
 # Find the complete long read file name
-fastq=$(shell test -f $(reads).fq.gz && echo "true")
 fastq_uncompressed=$(shell test -f $(reads).fq && echo "true")
-ifeq ($(fastq), true)
-long_reads=$(reads).fq.gz
-endif
 ifeq ($(fastq_uncompressed), true)
 long_reads=$(reads).fq
 endif
