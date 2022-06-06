@@ -21,7 +21,7 @@ endif
 # Find the complete long read file name
 fastq_uncompressed=$(shell test -f $(reads).fastq && echo "true")
 ifeq ($(fastq_uncompressed), true)
-long_reads=$(reads).fq
+long_reads=$(reads).fastq
 endif
 fastq_uncompressed=$(shell test -f $(reads).fq && echo "true")
 ifeq ($(fastq_uncompressed), true)
