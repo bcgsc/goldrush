@@ -181,8 +181,12 @@ eval_flanks(ssize_t longest_start_idx,
   }
   size_t trim_end_idx = longest_end_idx + 1;
 
+  static const uint8_t  SMALL_READ_THRESHOLD = 15;
+  static const uint8_t  MAX_TILES_TO_CHECK = 5;
+  static const uint8_t  MIN_IDS_IN_FLANK = 2;
+
   bool good_flank = false;
-  if (num_tiles < 15) {
+  if (num_tiles < SMALL_READ_THRESHOLD) {
     bool good_right_flank = false;
     bool good_left_flank = false;
 
@@ -201,15 +205,16 @@ eval_flanks(ssize_t longest_start_idx,
     sort(left_flank_vec.begin(), left_flank_vec.end(), sort_by_sec);
 
     if (left_flank_vec.size() != 0) {
-      if (left_flank_vec[0].second >= 2) {
+      if (left_flank_vec[0].second >= MIN_IDS_IN_FLANK) {
         if (longest_start_idx != 0) {
           trim_start_idx = longest_start_idx - 1;
         } else {
           trim_start_idx = longest_start_idx;
         }
         good_left_flank = true;
+        // Requirement to consider a flank is good is increased when the tiles are not the same. Instead of requiring the same amount of the previous, it requires a + 1
       } else if (left_flank_vec.size() >= 2 &&
-                 (left_flank_vec[0].second + left_flank_vec[1].second > 3 &&
+                 (left_flank_vec[0].second + left_flank_vec[1].second > MIN_IDS_IN_FLANK + 1 &&
                   (left_flank_vec[0].first - left_flank_vec[1].first == 1 ||
                    left_flank_vec[1].first - left_flank_vec[0].first == 1))) {
         if (longest_start_idx != 0) {
@@ -237,11 +242,12 @@ eval_flanks(ssize_t longest_start_idx,
     }
     sort(right_flank_vec.begin(), right_flank_vec.end(), sort_by_sec);
     if (right_flank_vec.size() != 0) {
-      if (right_flank_vec[0].second >= 2) {
+      if (right_flank_vec[0].second >= MIN_IDS_IN_FLANK) {
         trim_end_idx = longest_end_idx + 1;
         good_right_flank = true;
+        // Requirement to consider a flank is good is increased when the tiles are not the same. Instead of requiring the same amount of the previous, it requires a + 1
       } else if (right_flank_vec.size() >= 2 &&
-                 (right_flank_vec[0].second + right_flank_vec[1].second > 3 &&
+                 (right_flank_vec[0].second + right_flank_vec[1].second > MIN_IDS_IN_FLANK + 1 &&
                   (right_flank_vec[0].first - right_flank_vec[1].first == 1 ||
                    right_flank_vec[1].first - right_flank_vec[0].first == 1))) {
         trim_end_idx = longest_end_idx + 1;
@@ -258,8 +264,8 @@ eval_flanks(ssize_t longest_start_idx,
 
   } else {
 
-    if (longest_start_idx - 5 >= 1) {
-      for (ssize_t i = longest_start_idx - 5; i < longest_start_idx; ++i) {
+    if (longest_start_idx - MAX_TILES_TO_CHECK >= 1) {
+      for (ssize_t i = longest_start_idx - MAX_TILES_TO_CHECK; i < longest_start_idx; ++i) {
         if (left_flank.find(tiles_assigned_id_vec[i]) != left_flank.end()) {
           ++left_flank[tiles_assigned_id_vec[i]];
         } else {
@@ -273,14 +279,15 @@ eval_flanks(ssize_t longest_start_idx,
 
       sort(left_flank_vec.begin(), left_flank_vec.end(), sort_by_sec);
 
-      if (left_flank_vec[0].second >= 2) {
+      if (left_flank_vec[0].second >= MIN_IDS_IN_FLANK) {
         if (longest_start_idx != 0) {
           trim_start_idx = longest_start_idx - 1;
         } else {
           trim_start_idx = longest_start_idx;
         }
         good_flank = true;
-      } else if (left_flank_vec[0].second + left_flank_vec[1].second > 3 &&
+      // Requirement to consider a flank is good is increased when the tiles are not the same. Instead of requiring the same amount of the previous, it requires a + 1
+      } else if (left_flank_vec[0].second + left_flank_vec[1].second > MIN_IDS_IN_FLANK + 1 &&
                  (left_flank_vec[0].first - left_flank_vec[1].first == 1 ||
                   left_flank_vec[1].first - left_flank_vec[0].first == 1)) {
         if (longest_start_idx != 0) {
@@ -297,8 +304,8 @@ eval_flanks(ssize_t longest_start_idx,
       trim_start_idx = 0;
     }
 
-    if (longest_end_idx + 5 < (ssize_t)num_tiles - 1) {
-      for (ssize_t i = longest_end_idx + 5; i > longest_end_idx; --i) {
+    if (longest_end_idx + MAX_TILES_TO_CHECK < (ssize_t)num_tiles - 1) {
+      for (ssize_t i = longest_end_idx + MAX_TILES_TO_CHECK; i > longest_end_idx; --i) {
         if (right_flank.find(tiles_assigned_id_vec[i]) != right_flank.end()) {
           ++right_flank[tiles_assigned_id_vec[i]];
         } else {
@@ -311,10 +318,11 @@ eval_flanks(ssize_t longest_start_idx,
       }
       sort(right_flank_vec.begin(), right_flank_vec.end(), sort_by_sec);
 
-      if (right_flank_vec[0].second >= 2) {
+      if (right_flank_vec[0].second >= MIN_IDS_IN_FLANK) {
         trim_end_idx = longest_end_idx + 1;
         good_flank = true;
-      } else if (right_flank_vec[0].second + right_flank_vec[1].second > 3 &&
+      // Requirement to consider a flank is good is increased when the tiles are not the same. Instead of requiring the same amount of the previous, it requires a + 1
+      } else if (right_flank_vec[0].second + right_flank_vec[1].second > MIN_IDS_IN_FLANK + 1 &&
                  (right_flank_vec[0].first - right_flank_vec[1].first == 1 ||
                   right_flank_vec[1].first - right_flank_vec[0].first == 1)) {
         trim_end_idx = longest_end_idx + 1;
