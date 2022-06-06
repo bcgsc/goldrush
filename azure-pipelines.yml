@@ -14,7 +14,6 @@ jobs:
     displayName: Create Anaconda environment
   - script: |
       source activate goldrush_CI
-      conda install --yes -c conda-forge mamba 
       conda install --yes -c conda-forge -c bioconda compilers meson gperftools sdsl-lite boost-cpp btllib sparsehash libdivsufsort
     displayName: Install dependencies
   - script: |
