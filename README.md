@@ -124,16 +124,16 @@ Installing from source code:
  ```
  
 ## Dependencies
- *GXX6+ with OpenMP
- *[zlib](https://zlib.net/)
- *[meson](https://mesonbuild.com/Getting-meson.html)
- *[ninja](https://github.com/ninja-build/ninja/)
- *[tcmalloc](https://google.github.io/tcmalloc/quickstart.html)
- *[sdsl](https://github.com/simongog/sdsl-lite)
- *[boost](https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
- *[libdivsufsort](https://github.com/y-256/libdivsufsort)
- *[google-sparsehash](https://github.com/justinsb/google-sparsehash)
- *[btllib](https://github.com/bcgsc/btllib)
+ * GXX6+ with OpenMP
+ * [zlib](https://zlib.net/)
+ * [meson](https://mesonbuild.com/Getting-meson.html)
+ * [ninja](https://github.com/ninja-build/ninja/)
+ * [tcmalloc](https://google.github.io/tcmalloc/quickstart.html)
+ * [sdsl](https://github.com/simongog/sdsl-lite)
+ * [boost](https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
+ * [libdivsufsort](https://github.com/y-256/libdivsufsort)
+ * [google-sparsehash](https://github.com/justinsb/google-sparsehash)
+ * [btllib](https://github.com/bcgsc/btllib)
 
 ## License
 GoldRush Copyright (c) 2022 British Columbia Cancer Agency Branch. All rights reserved.
