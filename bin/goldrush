@@ -11,7 +11,9 @@ polished_infix=$(polisher)-polished
 polisher_mapper=ntlink
 
 ifeq ($(polisher), goldrush-edit)
-polisher_help_page=GoldRush-Edit
+polisher_logs=GoldRush-Edit
+else
+polisher_logs=$(polisher)
 endif
 
 ifeq ($(polisher_mapper),ntlink)
@@ -115,9 +117,9 @@ help:
 	@echo "	run			run default GoldRush pipeline: GoldRush-Path + Polisher (GoldRush-Edit by default) + Tigmint-long + ntLink (default 5 rounds)"
 	@echo ""
 	@echo "	goldrush-path		run GoldRush-Path"
-	@echo "	path-polish		run GoldRush-Path, then $(polisher_help_page)"
-	@echo "	path-tigmint		run GoldRush-Path, then $(polisher_help_page), then Tigmint-long"
-	@echo "	path-tigmint-ntLink	run GoldRush-Path, then $(polisher_help_page), then Tigmint-long, then ntLink (default 5 rounds)"
+	@echo "	path-polish		run GoldRush-Path, then $(polisher_logs)"
+	@echo "	path-tigmint		run GoldRush-Path, then $(polisher_logs), then Tigmint-long"
+	@echo "	path-tigmint-ntLink	run GoldRush-Path, then $(polisher_logs), then Tigmint-long, then ntLink (default 5 rounds)"
 	@echo ""
 	@echo "	General options (required):"
 	@echo "	reads			read name [reads]. File must have .fq or .fastq extension"
@@ -193,11 +195,11 @@ $(p1)_$(M).fq: $(long_reads)
 
 %.racon-polished.fa: %.fa.$(long_reads).sam %.fa
 	$(time) racon -u -t$(t) $(long_reads) $^ > $@
-	echo "Done GoldRush-Path + $(polisher)! $(polisher) polished golden path can be found in: $@"
+	echo "Done GoldRush-Path + $(polisher_logs)! $(polisher_logs) polished golden path can be found in: $@"
 
 %.goldrush-edit-polished.fa: %.fa $(long_reads)
 	$(time) goldrush-edit $(goldrush_edit_opts) -t$(t) $< $(long_reads) $@
-	echo "Done GoldRush-Path + $(polisher)! $(polisher) polished golden path can be found in: $@"
+	echo "Done GoldRush-Path + $(polisher_logs)! $(polisher_logs) polished golden path can be found in: $@"
 
 # Run racon
 racon: $(p2).racon-polished.fa check-G
@@ -213,7 +215,7 @@ tigmint: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa check-G
 
 $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa: $(p2).$(polished_infix).cut$(cut).tigmint.fa
 	ln -sf $< $@
-	echo "Done GoldRush-Path + $(polisher) + tigmint! Post-tigmint golden path can be found in: $@"
+	echo "Done GoldRush-Path + $(polisher_logs) + Tigmint-long! Post-Tigmint-long golden path can be found in: $@"
 
 %.$(polished_infix).cut$(cut).tigmint.fa: %.$(polished_infix).fa $(long_reads)
 	$(time) tigmint-make tigmint-long draft=$(p2).$(polished_infix) reads=$(reads) cut=$(cut) t=$t G=$G span=$(span) dist=$(dist)
@@ -228,4 +230,4 @@ ntLink_softlink: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k
 
 %.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa: %.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa
 	ln -sf $(lastword $^) $@
-	echo "Done GoldRush-Path + $(polisher) + tigmint + $(rounds) ntLink rounds! Scaffolds can be found in: $@"
+	echo "Done GoldRush-Path + $(polisher_logs) + Tigmint-long + $(rounds) ntLink rounds! Scaffolds can be found in: $@"
