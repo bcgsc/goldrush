@@ -140,6 +140,17 @@ Installing from source code:
  * [minimap2](https://github.com/lh3/minimap2)
  * [racon](https://github.com/isovic/racon)(optional)
 
+Installing Dependencies with Conda
+
+```
+# We recommend creating a freash environment
+conda create --name goldrush
+# Due to the high number of depenencies we also recommend installing mamba. Mamba speeds up the installation by quite a bit
+conda install -c conda-forge mamba
+@ Finally installing all the dependencies
+mamba install -c conda-forge -c bioconda compilers meson gperftools sdsl-lite boost  libdivsufsort google-sparsehash btllib python=3.9 minimap2 racon tigmint ntlink
+```
+
 ## License
 GoldRush Copyright (c) 2022 British Columbia Cancer Agency Branch. All rights reserved.
 
