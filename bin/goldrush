@@ -19,11 +19,11 @@ $(error "Unknown mapper: $(polisher_mapper)")
 endif
 
 # Find the complete long read file name
-fastq=$(shell test -f $(reads).fq.gz && echo "true")
-fastq_uncompressed=$(shell test -f $(reads).fq && echo "true")
-ifeq ($(fastq), true)
-long_reads=$(reads).fq.gz
+fastq_uncompressed=$(shell test -f $(reads).fastq && echo "true")
+ifeq ($(fastq_uncompressed), true)
+long_reads=$(reads).fastq
 endif
+fastq_uncompressed=$(shell test -f $(reads).fq && echo "true")
 ifeq ($(fastq_uncompressed), true)
 long_reads=$(reads).fq
 endif
@@ -37,7 +37,6 @@ a=5
 o=0.1
 x=10
 h=3
-j=48
 s=1011011110110111101101
 r=0.9
 M=5
@@ -49,7 +48,7 @@ d=5
 m=5000
 # Common parameters for scaffolding and correction tools
 z=1000
-t=8
+t=48
 
 # Default Tigmint parameters
 span=2
@@ -128,7 +127,7 @@ help:
 	@echo "	G			haploid genome size (bp) (e.g. '3e9' for human genome)"
 	@echo ""
 	@echo "	General options (optional):"
-	@echo "	t			number of threads for scaffolding and correction tools [8]"
+	@echo "	t			number of threads [48]"
 	@echo "	z			minimum size of contig (bp) to scaffold [1000]"
 	@echo "	track_time		If 1 then track the run time and memory usage, if 0 then don't [0]"
 	@echo ""
@@ -142,7 +141,6 @@ help:
 	@echo "	o       		occupancy of the miBF [0.1]"
 	@echo "	x			threshold for number of hits in miBF for a given frame to be considered assigned [10]"
 	@echo "	h			the number of seed patterns to use [3]"
-	@echo "	j			number of threads to use [48]"
 	@echo "	s       		spaced seed design [1011011110110111101101]"
 	@echo "	M			maximum number of silver paths to generate [5]"
 	@echo "	r			ratio of full genome in golden path [0.9]"
@@ -202,7 +200,7 @@ $(p1)_all.fq: $(p1)_$(M).fq
 	cat $(p1)_*.fq > $@
 
 $(p1)_$(M).fq: $(long_reads)
-	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(j) -x$(x) -P $(P) -d $(d) -s $(s) -g $(G) -r $(r) --silver_path -M $(M) -m $(m)
+	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(t) -x$(x) -P $(P) -d $(d) -s $(s) -g $(G) -r $(r) --silver_path -M $(M) -m $(m)
 
 %.racon-polished.fa: %.fa.$(long_reads).sam %.fa
 	$(time) racon -u -t$(t) $(long_reads) $^ > $@
@@ -229,7 +227,7 @@ $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa: $(p2).$(polished_inf
 	echo "Done GoldRush-Path + $(polisher) + tigmint! Post-tigmint golden path can be found in: $@"
 
 %.$(polished_infix).cut$(cut).tigmint.fa: %.$(polished_infix).fa $(long_reads)
-	$(time) tigmint-make tigmint-long draft=$(p2).polished reads=$(reads) cut=$(cut) t=$t G=$G span=$(span) dist=$(dist)
+	$(time) tigmint-make tigmint-long draft=$(p2).$(polished_infix) reads=$(reads) cut=$(cut) t=$t G=$G span=$(span) dist=$(dist)
 
 # Run ntJoin after tigmint
 ntJoin: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntJoin).w$(w_ntJoin).n1.all.scaffolds.fa check-G
@@ -246,7 +244,7 @@ ref.config: $(p2).fa
 ntLink_all_rounds: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa check-G
 
 %.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa: %.fa $(long_reads)
-	$(time) ntLink_rounds run_rounds_gaps target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z rounds=$(rounds)
+	$(time) ntLink_rounds run_rounds_gaps target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z rounds=$(rounds) reads=$(long_reads)
 
 ntLink_softlink: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa check-G
 
