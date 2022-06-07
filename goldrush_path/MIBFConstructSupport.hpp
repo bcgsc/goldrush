@@ -177,7 +177,6 @@ public:
     MIBloomFilter<T>* miBF =
       new MIBloomFilter<T>(m_h, m_k, m_bv_il, m_rankSupport, m_spacedSeeds);
     m_counts = vector<T>(miBF->getPop(), 0);
-    std::cerr << "popcount: " << miBF->getPop() << std::endl;
     return miBF;
   }
 
