@@ -127,7 +127,7 @@ help:
 	@echo "	G			haploid genome size (bp) (e.g. '3e9' for human genome)"
 	@echo ""
 	@echo "	General options (optional):"
-	@echo "	t			number of threads for scaffolding and correction tools [48]"
+	@echo "	t			number of threads [48]"
 	@echo "	z			minimum size of contig (bp) to scaffold [1000]"
 	@echo "	track_time		If 1 then track the run time and memory usage, if 0 then don't [0]"
 	@echo ""
