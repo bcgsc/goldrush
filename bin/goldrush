@@ -193,7 +193,7 @@ endif
 goldrush-path: $(p2).fa check-G
 
 $(p2).fa: $(p1)_all.fq
-	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -s $(s) -m 0
+	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(j) -P $(P) -d $(d) -x$(x) -s $(s) -g $(G) -m 0
 	echo "Done GoldRush-Path! Golden path can be found in: $@"
 
 $(p1)_all.fq: $(p1)_$(M).fq
