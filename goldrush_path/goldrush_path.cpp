@@ -906,8 +906,9 @@ main(int argc, char** argv)
             << "base seed pattern: " << seed_string_vec[0] << "\n"
             << "minimum unassigned tiles: " << opt::unassigned_min << "\n"
             << "maximum assigned tiles: " << opt::assigned_max << "\n"
-            << "genome size: " << opt::hash_universe << "\n"
+            << "expected hash space: " << opt::hash_universe << "\n"
             << "minimum average phred quality score: " << opt::phred_min << "\n"
+            << "maximum average phred delta between first and second half of read: " << opt::phred_delta << "\n"
             << "occupancy: " << opt::occupancy << "\n"
             << "jobs: " << opt::jobs << std::endl;
 
