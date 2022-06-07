@@ -134,6 +134,10 @@ Installing from source code:
  * [libdivsufsort](https://github.com/y-256/libdivsufsort)
  * [google-sparsehash](https://github.com/justinsb/google-sparsehash)
  * [btllib](https://github.com/bcgsc/btllib)
+ * [Tigmint](https://github.com/bcgsc/tigmint)
+ * [ntLink](https://github.com/bcgsc/ntlink)
+ * [minimap2](https://github.com/lh3/minimap2)
+ * [racon](https://github.com/isovic/racon)(optional)
 
 ## License
 GoldRush Copyright (c) 2022 British Columbia Cancer Agency Branch. All rights reserved.
