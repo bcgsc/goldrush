@@ -229,7 +229,7 @@ $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa: $(p2).$(polished_inf
 	echo "Done GoldRush-Path + $(polisher) + tigmint! Post-tigmint golden path can be found in: $@"
 
 %.$(polished_infix).cut$(cut).tigmint.fa: %.$(polished_infix).fa $(long_reads)
-	$(time) tigmint-make tigmint-long draft=$(p2).polished reads=$(reads) cut=$(cut) t=$t G=$G span=$(span) dist=$(dist)
+	$(time) tigmint-make tigmint-long draft=$(p2).$(polished_infix) reads=$(reads) cut=$(cut) t=$t G=$G span=$(span) dist=$(dist)
 
 # Run ntJoin after tigmint
 ntJoin: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntJoin).w$(w_ntJoin).n1.all.scaffolds.fa check-G
@@ -246,7 +246,7 @@ ref.config: $(p2).fa
 ntLink_all_rounds: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa check-G
 
 %.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa: %.fa $(long_reads)
-	$(time) ntLink_rounds run_rounds_gaps target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z rounds=$(rounds)
+	$(time) ntLink_rounds run_rounds_gaps target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z rounds=$(rounds) reads=$(long_reads)
 
 ntLink_softlink: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa check-G
 
