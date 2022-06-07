@@ -129,7 +129,8 @@ Installing from source code:
  * [meson](https://mesonbuild.com/Getting-meson.html)
  * [ninja](https://github.com/ninja-build/ninja/)
  * [tcmalloc](https://google.github.io/tcmalloc/quickstart.html)
- * [sdsl](https://github.com/simongog/sdsl-lite)
+ * [sdsl-lite](https://github.com/simongog/sdsl-lite)
+
  * [boost](https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
  * [libdivsufsort](https://github.com/y-256/libdivsufsort)
  * [google-sparsehash](https://github.com/justinsb/google-sparsehash)
