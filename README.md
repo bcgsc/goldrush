@@ -35,65 +35,61 @@ Coombe, L., Warren, R., Nikolic, V., Wong, J., & Birol, I. (2022, July 10–14).
 ```
 GoldRush
 
-Usage: ./goldrush [COMMAND] [OPTION=VALUE]…
+Usage: goldrush [COMMAND] [OPTION=VALUE]…
 
-For example, to run the default pipeline on reads reads.fa.gz and a genome size of gsize:
+For example, to run the default pipeline on reads 'reads.fq' with a genome size of gsize:
 goldrush run reads=reads G=gsize
 
-        Commands:
+	Commands:
 
-        run                   run default GoldRush pipeline: GoldRush-Path + Polisher (GoldRush-Edit by default) + Tigmint + ntLink
+	run			run default GoldRush pipeline: GoldRush-Path + Polisher (GoldRush-Edit by default) + Tigmint-long + ntLink (default 5 rounds)
 
-        goldrush-path             run GoldRush-Path
-        path-polish           run GoldRush-Path, then goldrush-edit
-        path-tigmint          run GoldRush-Path, then goldrush-edit, then tigmint
-        path-tigmint-ntLink   run GoldRush-Path, then goldrush-edit, then tigmint, then ntLink (default 5 rounds)
-        path-tigmint-ntJoin   run GoldRush-Path, then goldrush-edit, then tigmint, then ntJoin
+	goldrush-path		run GoldRush-Path
+	path-polish		run GoldRush-Path, then GoldRush-Edit
+	path-tigmint		run GoldRush-Path, then GoldRush-Edit, then Tigmint-long
+	path-tigmint-ntLink	run GoldRush-Path, then GoldRush-Edit, then Tigmint-long, then ntLink (default 5 rounds)
 
-        General options (required):
-        reads                   read name [reads]. File must have .fq.gz or .fa.gz extension
-        G                       haploid genome size (bp) (e.g. '3e9' for human genome)
+	General options (required):
+	reads			read name [reads]. File must have .fq or .fastq extension
+	G			haploid genome size (bp) (e.g. '3e9' for human genome)
 
-        General options (optional):
-        t                       number of threads for scaffolding and correction tools [8]
-        z                       minimum size of contig (bp) to scaffold [1000]
-        track_time              If 1 then track the run time and memory usage, if 0 then don't [0]
+	General options (optional):
+	t			number of threads [48]
+	z			minimum size of contig (bp) to scaffold [1000]
+	track_time		If 1 then track the run time and memory usage, if 0 then don't [0]
 
-        GoldRush-Path options:
-        k                       base k value to generated hash [22]
-        w                       weight of spaced seed (number of 1's) [16]
-        tile                    tile size to use in GoldRush-Path [1000]
-        u                       minimum number of unassigned tiles for the read to be considered unassigned [5]
-        a                       maximum number of tiles that can be assigned, minimum number of overlapping tiles kept after trimming [5]
-        l                       number fo golden paths to produce [1]
-        o                       occupancy of the miBF [0.1]
-        x                       threshold for number of hits in miBF for a given frame to be considered assigned [10]
-        h                       the number of seed patterns to use [3]
-        j                       number of threads to use [48]
-        s                       spaced seed design [1011011110110111101101]
-        M                       maximum number of silver paths to generate [5]
-        r                       ratio of full genome in golden path [0.9]
-        p1                      prefix to use for the silver paths [w16_x10]
+	GoldRush-Path options:
+	k			base k value to generate hash [22]
+	w			weight of spaced seed (number of 1's) [16]
+	tile			tile size [1000]
+	u			minimum number of unassigned tiles for the read to be considered unassigned [5]
+	a			maximum number of tiles that can be assigned, minimum number of overlapping tiles kept after trimming [5]
+	l			number of golden paths to produce [1]
+	o			occupancy of the miBF [0.1]
+	x			threshold for number of hits in miBF for a given frame to be considered assigned [10]
+	h			number of seed patterns to use [3]
+	s			spaced seed design [1011011110110111101101]
+	M			maximum number of silver paths to generate [5]
+	r			ratio of full genome in golden path [0.9]
+	P			minimum average phred score for each read [10]
+	d			remove reads with greater or equal than d difference between average phred quality of first half and second half of the read [5]
+	p			prefix to use for the output paths [w16_x10]
 
-        Tigmint options:
-        span                    min number of spanning molecules to be considered correctly assembled [2]
-        dist                    maximum distance between alignments to be considered the same molecule [1000]
+	Tigmint-long options:
+	span			min number of spanning molecules [2]
+	dist			maximum distance between alignments to be considered the same molecule [1000]
 
-        ntLink options:
-        k_ntLink                k-mer size for minimizers [64]
-        w_ntLink                window size for minimizers [1000]
-        rounds                  number of rounds of ntLink [5]
+	ntLink options:
+	k_ntLink		k-mer size for minimizers [64]
+	w_ntLink		window size for minimizers [1000]
+	rounds			number of rounds of ntLink [5]
 
-        ntJoin options:
-        k_ntJoin                k-mer size for minimizers [24]
-        w_ntJoin                window size for minimizers [50]
-        no_cut                  If True, will not cut contigs at putative misassemblies [False]
-        ref_weight              Weight of the reference assemblies [2]
+	GoldRush-Edit options:
+	polisher_mapper		Whether to use ntlink or minimap2 for mappings [ntlink]
 
 Notes:
-        - GoldRush-Path runs the new protocol which generates silver paths before generating the golden path
-        - ntJoin runs with the two silver paths instead of the full five
-        - Ensure that all input files are in the current working directory, making soft-links if needed
+	- GoldRush-Path generates silver paths before generating the golden path
+	- Ensure that all input files are in the current working directory, making soft-links if needed
 ```
 
 Running `goldrush help` prints the help documentation.
