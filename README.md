@@ -110,16 +110,30 @@ goldrush run reads=long_reads G=3e9
 
 **For more information about the GoldRush algorithm and tips for running GoldRush see our [wiki](https://github.com/bcgsc/goldrush/wiki)** 
 
- ## Installation
-  
- Installing from source code:
+## Installation
+Installing from source code:
  ```
   git clone https://github.com/bcgsc/goldrush.git
   cd goldrush
-  meson build
+  git submodule init
+  git submodule update
+  meson --prefix /path/to/install build
   cd build
   ninja
+  ninja install
  ```
+ 
+## Dependencies
+ *GXX6+ with OpenMP
+ *[zlib](https://zlib.net/)
+ *[meson](https://mesonbuild.com/Getting-meson.html)
+ *[ninja](https://github.com/ninja-build/ninja/)
+ *[tcmalloc](https://google.github.io/tcmalloc/quickstart.html)
+ *[sdsl](https://github.com/simongog/sdsl-lite)
+ *[boost](https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
+ *[libdivsufsort](https://github.com/y-256/libdivsufsort)
+ *[google-sparsehash](https://github.com/justinsb/google-sparsehash)
+ *[btllib](https://github.com/bcgsc/btllib)
 
 ## License
 GoldRush Copyright (c) 2022 British Columbia Cancer Agency Branch. All rights reserved.
