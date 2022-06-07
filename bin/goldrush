@@ -207,7 +207,7 @@ racon: $(p2).racon-polished.fa check-G
 goldrush-edit: $(p2).goldrush-edit-polished.fa check-G
 
 $(p2).fa.$(long_reads).sam: $(p2).fa $(long_reads)
-	$(time) minimap2 -t 48 -a -x map-ont  $< $(long_reads) > $@
+	$(time) minimap2 -t $(t) -a -x map-ont  $< $(long_reads) > $@
 
 
 # Run tigmint after GoldRush-Path
