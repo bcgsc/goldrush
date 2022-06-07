@@ -124,7 +124,7 @@ Installing from source code:
  ```
  
 ## Dependencies
- * GXX6+ with OpenMP
+ * GXX7+ with OpenMP
  * [zlib](https://zlib.net/)
  * [meson](https://mesonbuild.com/Getting-meson.html)
  * [ninja](https://github.com/ninja-build/ninja/)
