@@ -146,10 +146,8 @@ Installing Dependencies with Conda
 # We recommend creating a fresh environment
 
 conda create --name goldrush
-# Due to the high number of depenencies we also recommend installing mamba. Mamba speeds up the installation by quite a bit
-conda install -c conda-forge mamba
-# Finally installing all the dependencies
-mamba install -c conda-forge -c bioconda compilers meson gperftools sdsl-lite boost  libdivsufsort google-sparsehash btllib python=3.9 minimap2 racon tigmint ntlink
+# Installing the dependencies
+conda install -c conda-forge -c bioconda compilers meson gperftools sdsl-lite boost libdivsufsort google-sparsehash btllib python minimap2 racon tigmint ntlink
 ```
 
 ## License
