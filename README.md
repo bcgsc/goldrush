@@ -139,7 +139,6 @@ Installing from source code:
  * [Tigmint](https://github.com/bcgsc/tigmint)
  * [ntLink](https://github.com/bcgsc/ntlink)
  * [minimap2](https://github.com/lh3/minimap2)
- * [racon](https://github.com/isovic/racon)(optional)
 
 Installing Dependencies with Conda
 
