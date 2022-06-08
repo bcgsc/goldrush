@@ -126,7 +126,7 @@ Installing from source code:
 ## Dependencies
  * [GCC 7+](https://gcc.gnu.org/) with [OpenMP](https://www.openmp.org/)
 
- * [python3.9.10+](https://www.python.org/)
+ * [python 3.9+](https://www.python.org/)
  * [zlib](https://zlib.net/)
  * [meson](https://mesonbuild.com/Getting-meson.html)
  * [ninja](https://github.com/ninja-build/ninja/)
