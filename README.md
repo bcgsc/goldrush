@@ -142,12 +142,15 @@ Installing from source code:
 
 Installing Dependencies with Conda
 
-```
-# We recommend creating a fresh environment
 
+We recommend creating a fresh environment
+```
 conda create --name goldrush
-# Installing the dependencies
-conda install -c conda-forge -c bioconda compilers meson gperftools sdsl-lite boost libdivsufsort google-sparsehash btllib python minimap2 racon tigmint ntlink
+```
+
+Installing the dependencies
+```
+conda install -c conda-forge -c bioconda --file requirements.txt
 ```
 
 ## License
