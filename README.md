@@ -143,7 +143,8 @@ Installing from source code:
 Installing Dependencies with Conda
 
 ```
-# We recommend creating a freash environment
+# We recommend creating a fresh environment
+
 conda create --name goldrush
 # Due to the high number of depenencies we also recommend installing mamba. Mamba speeds up the installation by quite a bit
 conda install -c conda-forge mamba
