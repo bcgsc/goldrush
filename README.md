@@ -125,12 +125,12 @@ Installing from source code:
  
 ## Dependencies
  * [GCC7+](https://gcc.gnu.org/) with [OpenMP](https://www.openmp.org/)
+ * [python3.9.10+](https://www.python.org/)
  * [zlib](https://zlib.net/)
  * [meson](https://mesonbuild.com/Getting-meson.html)
  * [ninja](https://github.com/ninja-build/ninja/)
  * [tcmalloc](https://google.github.io/tcmalloc/quickstart.html)
  * [sdsl-lite](https://github.com/simongog/sdsl-lite)
-
  * [boost](https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
  * [libdivsufsort](https://github.com/y-256/libdivsufsort)
  * [google-sparsehash](https://github.com/justinsb/google-sparsehash)
