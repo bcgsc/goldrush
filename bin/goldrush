@@ -230,4 +230,4 @@ ntLink_softlink: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k
 
 %.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa: %.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa
 	ln -sf $(lastword $^) $@
-	echo "Done GoldRush-Path + $(polisher_logs) + Tigmint-long + $(rounds) ntLink rounds! Scaffolds can be found in: $@"
+	echo "Done GoldRush-Path + $(polisher_logs) + Tigmint-long + $(rounds) ntLink rounds! Your final assembly can be found in: $@"
