@@ -8,6 +8,5 @@ google-sparsehash
 btllib
 python
 minimap2
-racon
 tigmint
 ntlink
