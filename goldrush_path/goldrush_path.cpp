@@ -548,8 +548,8 @@ process_read(const btllib::SeqReader::Record& record,
         }
         inserted_bases = 0;
         mibf_vec.pop_back();
-        mibf_vec.emplace_back(std::move(
-          std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF())));
+        mibf_vec.emplace_back(
+          std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF()));
         golden_path_vec.pop_back();
         golden_path_vec.emplace_back(
           std::ofstream(opt::prefix_file + "_" +
@@ -810,8 +810,8 @@ process_read(const btllib::SeqReader::Record& record,
           }
           inserted_bases = 0;
           mibf_vec.pop_back();
-          mibf_vec.emplace_back(std::move(
-            std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF())));
+          mibf_vec.emplace_back(
+            std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF()));
           golden_path_vec.pop_back();
           golden_path_vec.emplace_back(
             std::ofstream(opt::prefix_file + "_" +
