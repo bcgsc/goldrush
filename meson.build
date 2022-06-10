@@ -1,6 +1,6 @@
 project('goldrush', 'cpp',
-        version : '0.9.0',
-        license : 'MIT',
+        version : '0.9.1',
+        license : 'GPL-3',
         default_options : [ 'cpp_std=c++17', 'warning_level=3', 'werror=true' ])
 
 btllib_dep = declare_dependency(include_directories : 'external/btllib/include')
