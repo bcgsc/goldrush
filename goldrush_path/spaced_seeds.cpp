@@ -49,7 +49,7 @@ make_seed_pattern(const std::string& seed_preset,
               << "\n"
               << "with:"
               << "\n"
-              << "\t" << span: " << seed_preset.size() << "\n"
+              << "\t" << "span: " << seed_preset.size() << "\n"
               << "\t" << "weight: "
               << std::count(seed_preset.begin(), seed_preset.end(), '1')
               << std::endl;
