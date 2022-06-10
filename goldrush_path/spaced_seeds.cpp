@@ -49,8 +49,8 @@ make_seed_pattern(const std::string& seed_preset,
               << "\n"
               << "with:"
               << "\n"
-              << "span: " << seed_preset.size() << "\n"
-              << "weight: "
+              << "\t" << "span: " << seed_preset.size() << "\n"
+              << "\t" << "weight: "
               << std::count(seed_preset.begin(), seed_preset.end(), '1')
               << std::endl;
     left_seed_str = seed_preset.substr(0, seed_preset.size() / 2);
