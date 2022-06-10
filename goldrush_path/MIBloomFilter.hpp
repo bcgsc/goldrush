@@ -120,19 +120,6 @@ public:
     return colliCount;
   }
 
-  // TODO: include allowed miss in header
-#pragma pack(1) // to maintain consistent values across platforms
-  struct FileHeader
-  {
-    char magic[8];
-    uint32_t hlen; // header length (including spaced seeds)
-    uint64_t size;
-    uint32_t nhash;
-    uint32_t kmer;
-    uint32_t version;
-    //		uint8_t allowedMiss;
-  };
-
   /*
    * Constructor using a prebuilt bitvector
    */
@@ -658,35 +645,6 @@ private:
   static bool sortbysec(const pair<int, int>& a, const pair<int, int>& b)
   {
     return (a.second < b.second);
-  }
-
-  /*
-   * Helper function for header storage
-   */
-  void writeHeader(ofstream& out) const
-  {
-    FileHeader header;
-    memcpy(header.magic, "MIBLOOMF", 8);
-
-    header.hlen = sizeof(struct FileHeader) + m_kmerSize * m_sseeds.size();
-    header.kmer = m_kmerSize;
-    header.size = m_dSize;
-    header.nhash = m_hashNum;
-    header.version = MIBloomFilter_VERSION;
-
-    //		cerr << "Writing header... magic: " << magic << " hlen: " <<
-    // header.hlen
-    //				<< " nhash: " << header.nhash << " size: " <<
-    // header.size
-    //				<< endl;
-
-    out.write(reinterpret_cast<char*>(&header), sizeof(struct FileHeader));
-
-    for (vector<string>::const_iterator itr = m_sseeds.begin();
-         itr != m_sseeds.end();
-         ++itr) {
-      out.write(itr->c_str(), m_kmerSize);
-    }
   }
 
   /*
