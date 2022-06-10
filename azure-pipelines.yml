@@ -25,3 +25,28 @@ jobs:
       cd build
       ninja
     displayName: Compile GoldRush
+- job:
+  displayName: mac-latest
+  pool:
+    vmImage: 'macOS-latest'
+
+  steps:
+  - checkout: self
+    persistCredentials: true
+    submodules: true
+  - script: echo "##vso[task.prependpath]$CONDA/bin"
+    displayName: Add conda to PATH
+  - script: conda create --yes --quiet --name goldrush_CI
+    displayName: Create Anaconda environment
+  - script: |
+      source activate goldrush_CI
+      conda install --yes -c conda-forge mamba
+      mamba install --yes -c conda-forge -c bioconda compilers meson gperftools sdsl-lite boost-cpp sparsehash btllib libdivsufsort
+    displayName: Install dependencies
+  - script: |
+      source activate goldrush_CI
+      meson build
+      cd build
+      ninja
+    displayName: Compile GoldRush
+
