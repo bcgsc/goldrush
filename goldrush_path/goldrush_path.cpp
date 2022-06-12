@@ -67,9 +67,8 @@ silver_path_check(
       exit(0);
     }
     inserted_bases = 0;
-    mibf_vec.pop_back();
-    mibf_vec.emplace_back(
-      std::unique_ptr<MIBloomFilter<uint32_t>>(miBFCS.getEmptyMIBF()));
+    miBFCS.resetBF();
+    mibf_vec[0]->resetBF();
     golden_path_vec.pop_back();
     golden_path_vec.emplace_back(std::ofstream(
       opt::prefix_file + "_" + std::to_string(curr_path) + ".fq"));
@@ -899,18 +898,18 @@ main(int argc, char** argv)
   std::cerr << "Calculating " << num_and_type_path_log << "\n"
             << "Using:"
             << "\n"
-            << "\t" << "tile length: " << opt::tile_length << "\n"
-            << "\t" << "block size: " << opt::block_size << "\n"
-            << "\t" << "seed patterns: " << opt::hash_num << "\n"
-            << "\t" << "threshold: " << opt::threshold << "\n"
-            << "\t" << "base seed pattern: " << seed_string_vec[0] << "\n"
-            << "\t" << "minimum unassigned tiles: " << opt::unassigned_min << "\n"
-            << "\t" << "maximum assigned tiles: " << opt::assigned_max << "\n"
-            << "\t" << "expected hash space: " << opt::hash_universe << "\n"
-            << "\t" << "minimum average phred quality score: " << opt::phred_min << "\n"
-            << "\t" << "maximum average phred delta between first and second half of read: " << opt::phred_delta << "\n"
-            << "\t" << "occupancy: " << opt::occupancy << "\n"
-            << "\t" << "jobs: " << opt::jobs << std::endl;
+            << "tile length: " << opt::tile_length << "\n"
+            << "block size: " << opt::block_size << "\n"
+            << "seed pattens: " << opt::hash_num << "\n"
+            << "threshold: " << opt::threshold << "\n"
+            << "base seed pattern: " << seed_string_vec[0] << "\n"
+            << "minimum unassigned tiles: " << opt::unassigned_min << "\n"
+            << "maximum assigned tiles: " << opt::assigned_max << "\n"
+            << "expected hash space: " << opt::hash_universe << "\n"
+            << "minimum average phred quality score: " << opt::phred_min << "\n"
+            << "maximum average phred delta between first and second half of read: " << opt::phred_delta << "\n"
+            << "occupancy: " << opt::occupancy << "\n"
+            << "jobs: " << opt::jobs << std::endl;
 
   std::unordered_set<std::string> filter_out_reads;
   if (opt::filter_file != "") {

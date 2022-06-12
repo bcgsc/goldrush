@@ -180,6 +180,11 @@ public:
     return miBF;
   }
 
+  void resetBF()
+  {
+    memset(&m_counts[0], 0, m_counts.size() * sizeof m_counts[0]);
+  }
+
   /*
    * Uses single value Reservoir sampling
    * pair<ID,ID> first ID stores the currentID, and ID stores the current
