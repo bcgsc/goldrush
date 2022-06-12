@@ -141,7 +141,7 @@ public:
       assert(m_sseeds[0].size() == kmerSize);
     }
     m_dSize = getPop();
-    m_data = new T[m_dSize]();
+    m_data = std::vector<T>(m_dSize, 0);
   }
 
   /*
@@ -636,8 +636,14 @@ public:
     }
     return satProp;
   }
+  void emptyBF() {
+    m_data.clear();
+  }
+  void resetBF() {
+    memset(&m_data[0], 0, m_data.size() * sizeof m_data[0]);
+  }
 
-  ~MIBloomFilter() { delete[] m_data; }
+  ~MIBloomFilter() { m_data.clear(); }
 
 private:
   // Driver function to sort the vector elements
@@ -711,7 +717,7 @@ private:
   size_t m_dSize;
 
   sdsl::bit_vector_il<BLOCKSIZE>& m_bv;
-  T* m_data;
+  std::vector<T> m_data;
   sdsl::rank_support_il<1>& m_rankSupport;
 
   unsigned m_hashNum;
