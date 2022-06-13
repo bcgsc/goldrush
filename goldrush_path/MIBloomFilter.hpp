@@ -641,7 +641,7 @@ public:
     memset(&m_data[0], 0, m_data.size() * sizeof m_data[0]);
   }
 
-  ~MIBloomFilter() { m_data.clear(); }
+  ~MIBloomFilter() { }
 
 private:
   // Driver function to sort the vector elements
