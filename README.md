@@ -63,7 +63,7 @@ default 5 rounds)
         k                       base k value to generate hash [22]
         w                       weight of spaced seed (number of 1's) [16]
         tile                    tile size [1000]
-        b                       number of tiles to have the same ID [10]
+        b                       during insertion, number of consecutive tiles to be inserted with the same ID [10]
         u                       minimum number of unassigned tiles for the read to be considered unassigned [5]
         a                       maximum number of tiles that can be assigned, minimum number of overlapping tiles kept after trimming [1]
         o                       occupancy of the miBF [0.1]
