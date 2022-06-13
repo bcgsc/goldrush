@@ -9,7 +9,7 @@ reads=reads
 polisher=goldrush-edit
 polished_infix=$(polisher)-polished
 # ntlink or minimap2
-polisher_mapper=ntlink
+polisher_mapper=minimap2
 
 ifeq ($(polisher), goldrush-edit)
 polisher_logs=GoldRush-Edit
@@ -50,7 +50,7 @@ M=5
 p=w$(w)_x$(x)
 p1=$(p)_silver_path
 p2=$(p)_golden_path
-P=10
+P=15
 d=5
 m=20000
 # Common parameters for scaffolding and correction tools
@@ -59,7 +59,7 @@ t=48
 
 # Default Tigmint parameters
 span=2
-dist=1000
+dist=500
 cut=250
 
 # Default ntLink parameters
@@ -145,13 +145,13 @@ help:
 	@echo "	m			minimum read length [20000]"
 	@echo "	M			maximum number of silver paths to generate [5]"
 	@echo "	r			ratio of full genome in golden path [0.9]"
-	@echo "	P			minimum average phred score for each read [10]"
+	@echo "	P			minimum average phred score for each read [15]"
 	@echo "	d			remove reads with greater or equal than d difference between average phred quality of first half and second half of the read [5]"
 	@echo "	p			prefix to use for the output paths [w$(w)_x$(x)]"
 	@echo ""
 	@echo "	Tigmint-long options:"
 	@echo "	span			min number of spanning molecules [2]"
-	@echo "	dist			maximum distance between alignments to be considered the same molecule [1000]"
+	@echo "	dist			maximum distance between alignments to be considered the same molecule [500]"
 	@echo ""
 	@echo "	ntLink options:"
 	@echo "	k_ntLink		k-mer size for minimizers [64]"
@@ -159,7 +159,7 @@ help:
 	@echo "	rounds			number of rounds of ntLink [5]"
 	@echo ""
 	@echo "	GoldRush-Edit options:"
-	@echo "	polisher_mapper		Whether to use ntlink or minimap2 for mappings [ntlink]"
+	@echo "	polisher_mapper		Whether to use ntlink or minimap2 for mappings [minimap2]"
 	@echo ""
 	@echo "Notes:"
 	@echo "	- GoldRush-Path generates silver paths before generating the golden path"
