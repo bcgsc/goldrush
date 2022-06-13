@@ -146,6 +146,7 @@ help:
 	@echo "	x			threshold for number of hits in miBF for a given frame to be considered assigned [10]"
 	@echo "	h			number of seed patterns to use [3]"
 	@echo "	s			spaced seed design [1011011110110111101101]"
+	@echo "	m			minimum read length [20000]"
 	@echo "	M			maximum number of silver paths to generate [5]"
 	@echo "	r			ratio of full genome in golden path [0.9]"
 	@echo "	P			minimum average phred score for each read [10]"
