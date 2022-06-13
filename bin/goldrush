@@ -67,10 +67,6 @@ k_ntLink=64
 w_ntLink=1000
 rounds=5
 
-# Reference for QUAST run
-ref=None
-quast_t=48
-
 # Determine path to Gold Rush executables
 bin=$(shell dirname `command -v $(MAKEFILE_LIST)`)
 
