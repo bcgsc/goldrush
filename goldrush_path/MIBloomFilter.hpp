@@ -637,7 +637,7 @@ public:
     return satProp;
   }
 
-  void resetBF() {
+  void reset_ID_vector() {
     memset(&m_data[0], 0, m_data.size() * sizeof m_data[0]);
   }
 

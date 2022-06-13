@@ -180,7 +180,7 @@ public:
     return miBF;
   }
 
-  void resetBF()
+  void reset_counts()
   {
     memset(&m_counts[0], 0, m_counts.size() * sizeof m_counts[0]);
   }

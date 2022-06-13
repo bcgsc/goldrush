@@ -67,8 +67,8 @@ silver_path_check(
       exit(0);
     }
     inserted_bases = 0;
-    miBFCS.resetBF();
-    mibf_vec[0]->resetBF();
+    miBFCS.reset_counts();
+    mibf_vec[0]->reset_ID_vector();
     golden_path_vec.pop_back();
     golden_path_vec.emplace_back(std::ofstream(
       opt::prefix_file + "_" + std::to_string(curr_path) + ".fq"));
