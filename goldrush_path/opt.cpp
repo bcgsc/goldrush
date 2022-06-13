@@ -57,7 +57,7 @@ print_usage(const std::string& progname)
        "[5]\n"
        "  -a A        A maximum assigned tiles for read to be unassigned [1]\n"
        "  -p prefix   write output to files with prefix, e.g.\n"
-       "prefix_golden_path_0.fa []\n"
+       "prefix.fa []\n"
        "  -P PHRED_AVG    minimum average phred score for each read\n"
        "  -j J        use J number of threads [1]\n"
        "  -s S        use S seed preset. Must be consistent with k and w [n/a, "
@@ -67,7 +67,7 @@ print_usage(const std::string& progname)
        "  --ntcard    use ntcard to estimate genome size [false, assume max "
        "entries]\n"
        "  --silver_path    generate silver path(s) instead of golden path. "
-       "Silver paths terminate when the number bases recruited equals or "
+       "Silver paths terminate when the number of bases recruited equals or "
        "exceeds T * r"
        "  --help      display this help and exit\n";
 }
