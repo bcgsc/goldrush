@@ -4,14 +4,14 @@
 
 namespace opt {
 
-size_t assigned_max = 5;
+size_t assigned_max = 1;
 size_t unassigned_min = 5;
 size_t tile_length = 1000;
 uint64_t hash_universe = 0;
 uint64_t genome_size = 0;
 size_t kmer_size = 0;
 size_t weight = 0;
-size_t min_length = 5000;
+size_t min_length = 20000;
 size_t hash_num = 1;
 double occupancy = 0.1;
 double ratio = 0.9;
@@ -52,10 +52,10 @@ print_usage(const std::string& progname)
        "  -t T        use T as tile length [1000]\n"
        "  -k K        use K as span of spaced seed [required]\n"
        "  -w W        use W as weight of spaced seed [required]\n"
-       "  -m M        use reads longer than M [5000]\n"
+       "  -m M        use reads longer than M [20000]\n"
        "  -u U        U minimum unassigned tiles for read to be unassigned "
        "[5]\n"
-       "  -a A        A maximum assigned tiles for read to be unassigned [5]\n"
+       "  -a A        A maximum assigned tiles for read to be unassigned [1]\n"
        "  -p prefix   write output to files with prefix, e.g.\n"
        "prefix_golden_path_0.fa []\n"
        "  -P PHRED_AVG    minimum average phred score for each read\n"
