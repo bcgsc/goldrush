@@ -636,9 +636,7 @@ public:
     }
     return satProp;
   }
-  void emptyBF() {
-    m_data.clear();
-  }
+
   void resetBF() {
     memset(&m_data[0], 0, m_data.size() * sizeof m_data[0]);
   }
