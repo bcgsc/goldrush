@@ -41,7 +41,7 @@ print_usage(const std::string& progname)
        "[-a A] [-j J] [-b B] [-d D] [--silver_path] [-ntcard] [--help] \n\n"
        "  -i INPUT    find golden paths from INPUT [required]\n"
        "  -g G    estimated genome size [required]\n"
-       "  -b B    every B tiles will be given the same ID [10]\n"
+       "  -b B    during insertion, number of consecutive tiles to be inserted with the same ID [10]\n"
        "  -d D    remove reads with greater or equal then D phred average "
        "between first half and second half of the read [5]\n"
        "  -f F    don't use reads from F. one read per line [optional]\n"
