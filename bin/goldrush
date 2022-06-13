@@ -137,7 +137,6 @@ help:
 	@echo "	tile			tile size [1000]"
 	@echo "	u			minimum number of unassigned tiles for the read to be considered unassigned [5]"
 	@echo "	a			maximum number of tiles that can be assigned, minimum number of overlapping tiles kept after trimming [1]"
-	@echo "	l			number of golden paths to produce [1]"
 	@echo "	o			occupancy of the miBF [0.1]"
 	@echo "	x			threshold for number of hits in miBF for a given frame to be considered assigned [10]"
 	@echo "	h			number of seed patterns to use [3]"
