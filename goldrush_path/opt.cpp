@@ -12,14 +12,14 @@ uint64_t genome_size = 0;
 size_t kmer_size = 0;
 size_t weight = 0;
 size_t min_length = 20000;
-size_t hash_num = 1;
+size_t hash_num = 3;
 double occupancy = 0.1;
 double ratio = 0.9;
-size_t jobs = 1;
+size_t jobs = 48;
 size_t block_size = 10;
 size_t max_paths = 1;
 size_t threshold = 10;
-uint32_t phred_min = 10;
+uint32_t phred_min = 15;
 uint32_t phred_delta = 5;
 std::string prefix_file = "";
 std::string input = "";
@@ -58,8 +58,8 @@ print_usage(const std::string& progname)
        "  -a A        A maximum assigned tiles for read to be unassigned [1]\n"
        "  -p prefix   write output to files with prefix, e.g.\n"
        "prefix.fa []\n"
-       "  -P PHRED_AVG    minimum average phred score for each read\n"
-       "  -j J        use J number of threads [1]\n"
+       "  -P PHRED_AVG    minimum average phred score for each read[15]\n"
+       "  -j J        use J number of threads [48]\n"
        "  -s S        use S seed preset. Must be consistent with k and w [n/a, "
        "generate one randomly based on k and w]\n"
        "  -x X        require X hits for a tile to be assigned [10]\n"
