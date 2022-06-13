@@ -34,62 +34,65 @@ Coombe, L., Warren, R., Nikolic, V., Wong, J., & Birol, I. (2022, July 10–14).
 ## Usage
 ```
 GoldRush
+v0.9.1
 
 Usage: goldrush [COMMAND] [OPTION=VALUE]…
 
 For example, to run the default pipeline on reads 'reads.fq' with a genome size of gsize:
 goldrush run reads=reads G=gsize
 
-	Commands:
+        Commands:
 
-	run			run default GoldRush pipeline: GoldRush-Path + Polisher (GoldRush-Edit by default) + Tigmint-long + ntLink (default 5 rounds)
+        run                     run default GoldRush pipeline: GoldRush-Path + Polisher (GoldRush-Edit by default) + Tigmint-long + ntLink (
+default 5 rounds)
+        goldrush-path           run GoldRush-Path
+        path-polish             run GoldRush-Path, then GoldRush-Edit
+        path-tigmint            run GoldRush-Path, then GoldRush-Edit, then Tigmint-long
+        path-tigmint-ntLink     run GoldRush-Path, then GoldRush-Edit, then Tigmint-long, then ntLink (default 5 rounds)
 
-	goldrush-path		run GoldRush-Path
-	path-polish		run GoldRush-Path, then GoldRush-Edit
-	path-tigmint		run GoldRush-Path, then GoldRush-Edit, then Tigmint-long
-	path-tigmint-ntLink	run GoldRush-Path, then GoldRush-Edit, then Tigmint-long, then ntLink (default 5 rounds)
+        General options (required):
+        reads                   read name [reads]. File must have .fq or .fastq extension
+        G                       haploid genome size (bp) (e.g. '3e9' for human genome)
 
-	General options (required):
-	reads			read name [reads]. File must have .fq or .fastq extension
-	G			haploid genome size (bp) (e.g. '3e9' for human genome)
+        General options (optional):
+        t                       number of threads [48]
+        z                       minimum size of contig (bp) to scaffold [1000]
+        track_time              If 1 then track the run time and memory usage, if 0 then don't [0]
 
-	General options (optional):
-	t			number of threads [48]
-	z			minimum size of contig (bp) to scaffold [1000]
-	track_time		If 1 then track the run time and memory usage, if 0 then don't [0]
+        GoldRush-Path options:
+        k                       base k value to generate hash [22]
+        w                       weight of spaced seed (number of 1's) [16]
+        tile                    tile size [1000]
+        b                       number of tiles to have the same ID [10]
+        u                       minimum number of unassigned tiles for the read to be considered unassigned [5]
+        a                       maximum number of tiles that can be assigned, minimum number of overlapping tiles kept after trimming [1]
+        o                       occupancy of the miBF [0.1]
+        x                       threshold for number of hits in miBF for a given frame to be considered assigned [10]
+        h                       number of seed patterns to use [3]
+        s                       spaced seed design [1011011110110111101101]
+        m                       minimum read length [20000]
+        M                       maximum number of silver paths to generate [5]
+        r                       ratio of full genome in golden path [0.9]
+        P                       minimum average phred score for each read [15]
+        d                       remove reads with greater or equal than d difference between average phred quality of first half and second half of the read [5]
+        p                       prefix to use for the output paths [w16_x10]
 
-	GoldRush-Path options:
-	k			base k value to generate hash [22]
-	w			weight of spaced seed (number of 1's) [16]
-	tile			tile size [1000]
-	u			minimum number of unassigned tiles for the read to be considered unassigned [5]
-	a			maximum number of tiles that can be assigned, minimum number of overlapping tiles kept after trimming [5]
-	l			number of golden paths to produce [1]
-	o			occupancy of the miBF [0.1]
-	x			threshold for number of hits in miBF for a given frame to be considered assigned [10]
-	h			number of seed patterns to use [3]
-	s			spaced seed design [1011011110110111101101]
-	M			maximum number of silver paths to generate [5]
-	r			ratio of full genome in golden path [0.9]
-	P			minimum average phred score for each read [10]
-	d			remove reads with greater or equal than d difference between average phred quality of first half and second half of the read [5]
-	p			prefix to use for the output paths [w16_x10]
+        Tigmint-long options:
+        span                    min number of spanning molecules [2]
+        dist                    maximum distance between alignments to be considered the same molecule [500]
 
-	Tigmint-long options:
-	span			min number of spanning molecules [2]
-	dist			maximum distance between alignments to be considered the same molecule [1000]
+        ntLink options:
+        k_ntLink                k-mer size for minimizers [64]
+        w_ntLink                window size for minimizers [1000]
+        rounds                  number of rounds of ntLink [5]
 
-	ntLink options:
-	k_ntLink		k-mer size for minimizers [64]
-	w_ntLink		window size for minimizers [1000]
-	rounds			number of rounds of ntLink [5]
-
-	GoldRush-Edit options:
-	polisher_mapper		Whether to use ntlink or minimap2 for mappings [ntlink]
+        GoldRush-Edit options:
+        polisher_mapper         Whether to use ntlink or minimap2 for mappings [minimap2]
 
 Notes:
-	- GoldRush-Path generates silver paths before generating the golden path
-	- Ensure that all input files are in the current working directory, making soft-links if needed
+        - GoldRush-Path generates silver paths before generating the golden path
+        - Ensure that all input files are in the current working directory, making soft-links if needed
+
 ```
 
 Running `goldrush help` prints the help documentation.
