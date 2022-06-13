@@ -40,7 +40,7 @@ k=22
 w=16
 tile=1000
 u=5
-a=5
+a=1
 o=0.1
 x=10
 h=3
@@ -52,7 +52,7 @@ p1=$(p)_silver_path
 p2=$(p)_golden_path
 P=10
 d=5
-m=5000
+m=20000
 # Common parameters for scaffolding and correction tools
 z=1000
 t=48
@@ -140,7 +140,7 @@ help:
 	@echo "	w			weight of spaced seed (number of 1's) [16]"
 	@echo "	tile			tile size [1000]"
 	@echo "	u			minimum number of unassigned tiles for the read to be considered unassigned [5]"
-	@echo "	a			maximum number of tiles that can be assigned, minimum number of overlapping tiles kept after trimming [5]"
+	@echo "	a			maximum number of tiles that can be assigned, minimum number of overlapping tiles kept after trimming [1]"
 	@echo "	l			number of golden paths to produce [1]"
 	@echo "	o			occupancy of the miBF [0.1]"
 	@echo "	x			threshold for number of hits in miBF for a given frame to be considered assigned [10]"
