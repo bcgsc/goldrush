@@ -123,7 +123,8 @@ Installing from source code:
   ninja
   ninja install
  ```
-Downloading releases
+#### Downloading release tarball
+
  ```
   tar -xf goldrush-x.y.z.tar.xz
   cd goldrush-x.y.z
