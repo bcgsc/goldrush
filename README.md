@@ -134,7 +134,8 @@ goldrush run reads=long_reads G=3e9
   ninja
   ninja install
  ```
- Testing Installation
+### Testing Installation
+
  ```
  export PATH=/path/to/install/bin:$PATH
  which goldrush
