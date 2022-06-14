@@ -112,7 +112,7 @@ goldrush run reads=long_reads G=3e9
 
 ## Installation
 Installing from source code:
-Github repo main branch
+#### Github repository main branch
  ```
   git clone https://github.com/bcgsc/goldrush.git
   cd goldrush
