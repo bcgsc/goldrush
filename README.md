@@ -112,6 +112,7 @@ goldrush run reads=long_reads G=3e9
 
 ## Installation
 Installing from source code:
+Github repo main branch
  ```
   git clone https://github.com/bcgsc/goldrush.git
   cd goldrush
@@ -121,6 +122,21 @@ Installing from source code:
   cd build
   ninja
   ninja install
+ ```
+Downloading releases
+ ```
+  tar -xf goldrush-x.y.z.tar.xz
+  cd goldrush-x.y.z
+  meson --prefix /path/to/install build
+  cd build
+  ninja
+  ninja install
+ ```
+ Testing Installation
+ ```
+ export PATH=/path/to/install/bin:$PATH
+ which goldrush
+ goldrush help
  ```
  
 ## Dependencies
