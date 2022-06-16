@@ -4,22 +4,22 @@
 
 namespace opt {
 
-size_t assigned_max = 5;
+size_t assigned_max = 1;
 size_t unassigned_min = 5;
 size_t tile_length = 1000;
 uint64_t hash_universe = 0;
 uint64_t genome_size = 0;
 size_t kmer_size = 0;
 size_t weight = 0;
-size_t min_length = 5000;
-size_t hash_num = 1;
+size_t min_length = 20000;
+size_t hash_num = 3;
 double occupancy = 0.1;
 double ratio = 0.9;
-size_t jobs = 1;
+size_t jobs = 48;
 size_t block_size = 10;
 size_t max_paths = 1;
 size_t threshold = 10;
-uint32_t phred_min = 10;
+uint32_t phred_min = 15;
 uint32_t phred_delta = 5;
 std::string prefix_file = "";
 std::string input = "";
@@ -41,7 +41,7 @@ print_usage(const std::string& progname)
        "[-a A] [-j J] [-b B] [-d D] [--silver_path] [-ntcard] [--help] \n\n"
        "  -i INPUT    find golden paths from INPUT [required]\n"
        "  -g G    estimated genome size [required]\n"
-       "  -b B    during insertion, number of consecutive tiles to be inserted with the same ID [10]\n"
+       "  -b B    during insertion, B number of consecutive tiles to be inserted with the same ID [10]\n"
        "  -d D    remove reads with greater or equal then D phred average "
        "between first half and second half of the read [5]\n"
        "  -f F    don't use reads from F. one read per line [optional]\n"
@@ -52,14 +52,14 @@ print_usage(const std::string& progname)
        "  -t T        use T as tile length [1000]\n"
        "  -k K        use K as span of spaced seed [required]\n"
        "  -w W        use W as weight of spaced seed [required]\n"
-       "  -m M        use reads longer than M [5000]\n"
+       "  -m M        use reads longer than M [20000]\n"
        "  -u U        U minimum unassigned tiles for read to be unassigned "
        "[5]\n"
-       "  -a A        A maximum assigned tiles for read to be unassigned [5]\n"
+       "  -a A        A maximum assigned tiles for read to be unassigned [1]\n"
        "  -p prefix   write output to files with prefix, e.g.\n"
-       "prefix_golden_path_0.fa []\n"
-       "  -P PHRED_AVG    minimum average phred score for each read\n"
-       "  -j J        use J number of threads [1]\n"
+       "prefix.fa []\n"
+       "  -P PHRED_AVG    minimum average phred score for each read[15]\n"
+       "  -j J        use J number of threads [48]\n"
        "  -s S        use S seed preset. Must be consistent with k and w [n/a, "
        "generate one randomly based on k and w]\n"
        "  -x X        require X hits for a tile to be assigned [10]\n"
@@ -67,7 +67,7 @@ print_usage(const std::string& progname)
        "  --ntcard    use ntcard to estimate genome size [false, assume max "
        "entries]\n"
        "  --silver_path    generate silver path(s) instead of golden path. "
-       "Silver paths terminate when the number bases recruited equals or "
+       "Silver paths terminate when the number of bases recruited equals or "
        "exceeds T * r"
        "  --help      display this help and exit\n";
 }
