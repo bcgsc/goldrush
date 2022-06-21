@@ -1,4 +1,4 @@
-![GitHub release (latest by date)]
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/bcgsc/goldrush)
 
 
 ![Logo](https://github.com/bcgsc/GoldRush/blob/main/img/GoldRush-logo.png)
@@ -34,7 +34,7 @@ Coombe, L., Warren, R., Nikolic, V., Wong, J., & Birol, I. (2022, July 10–14).
 ## Usage
 ```
 GoldRush
-v0.9.1
+v0.9.2
 
 Usage: goldrush [COMMAND] [OPTION=VALUE]…
 
