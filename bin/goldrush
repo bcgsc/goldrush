@@ -22,7 +22,7 @@ polisher_logs=$(polisher)
 endif
 
 ifeq ($(polisher_mapper),ntlink)
-goldrush_edit_opts=--ntlink --k_ntLink $(polish_k) --w_ntLink $(polish_w)
+goldrush_edit_opts=--ntlink --k-ntlink $(polish_k) --w-ntlink $(polish_w)
 else ifeq ($(polisher_mapper),minimap2)
 goldrush_edit_opts=--minimap2
 else
