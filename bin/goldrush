@@ -11,6 +11,10 @@ polished_infix=$(polisher)-polished
 # ntlink or minimap2
 polisher_mapper=minimap2
 
+# ntlink mapping parameter (used if polisher_mapper=ntlink)
+polish_k=32
+polish_w=100
+
 ifeq ($(polisher), goldrush-edit)
 polisher_logs=GoldRush-Edit
 else
@@ -18,7 +22,7 @@ polisher_logs=$(polisher)
 endif
 
 ifeq ($(polisher_mapper),ntlink)
-goldrush_edit_opts=--ntlink
+goldrush_edit_opts=--ntlink --k-ntlink $(polish_k) --w-ntlink $(polish_w)
 else ifeq ($(polisher_mapper),minimap2)
 goldrush_edit_opts=--minimap2
 else
