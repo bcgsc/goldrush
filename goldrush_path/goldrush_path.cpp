@@ -949,7 +949,7 @@ main(int argc, char** argv)
 
   fill_bit_vector(
     opt::input, miBFCS, opt::min_length, seed_string_vec, filter_out_reads);
-
+  exit(1);
   // setting up MIBF
   miBFCS.setup();
   std::vector<std::unique_ptr<MIBloomFilter<uint32_t>>> mibf_vec;
