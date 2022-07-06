@@ -5,7 +5,6 @@
 #include "Common/Options.h"
 #include "MIBFConstructSupport.hpp"
 #include "MIBloomFilter.hpp"
-#include "btllib/bloom_filter.hpp"
 #include "btllib/seq_reader.hpp"
 #include "btllib/seq_writer.hpp"
 #include "btllib/util.hpp"

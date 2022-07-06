@@ -19,7 +19,6 @@
 #define MIBFCONSTRUCTSUPPORT_HPP_
 
 #include "MIBloomFilter.hpp"
-#include "btllib/bloom_filter.hpp"
 #include <google/dense_hash_map>
 #include <google/dense_hash_set>
 #include <google/sparse_hash_map>
@@ -112,24 +111,7 @@ public:
     return count;
   }
 
-  void insertBV(H& itr,
-                std::vector<std::unique_ptr<btllib::BloomFilter>>& solid_vec)
-  {
-    // assert(!m_isBVMade);
-    /* init rolling hash state and compute hash values for first k-mer */
-    for (; itr != itr.end(); ++itr) {
-      for (unsigned i = 0; i < m_h; ++i) {
-        const std::vector<uint64_t> hash{ (*itr)[i] };
-        if (solid_vec[i]->contains(hash)) {
-          uint64_t pos = hash[0] % m_bv.size();
-          uint64_t* dataIndex = m_bv.data() + (pos >> 6);
-          uint64_t bitMaskValue = (uint64_t)1 << (pos & 0x3F);
-          (void)(__sync_fetch_and_or(dataIndex, bitMaskValue) >> (pos & 0x3F) &
-                 1);
-        }
-      }
-    }
-  }
+
 
   void insertBV(H& itr)
   {
@@ -271,33 +253,6 @@ public:
     }
   }
 
-  void insertMIBF(MIBloomFilter<T>& miBF,
-                  H& itr,
-                  T id,
-                  std::vector<std::unique_ptr<btllib::BloomFilter>>& solid_vec)
-  {
-    // get positions
-    hashSet values;
-    values.set_empty_key(miBF.size());
-    while (itr != itr.end()) {
-      for (unsigned i = 0; i < m_h; ++i) {
-        const std::vector<uint64_t> hash{ (*itr)[i] };
-        if (solid_vec[i]->contains(hash)) {
-          values.insert(hash[0]);
-        }
-      }
-      ++itr;
-    }
-    for (hashSet::iterator itr = values.begin(); itr != values.end(); itr++) {
-      uint64_t randomSeed = *itr ^ id;
-      uint64_t rank = miBF.getRankPos(*itr);
-      T count = __sync_add_and_fetch(&m_counts[rank], 1);
-      T randomNum = std::hash<T>{}(randomSeed) % count;
-      if (randomNum == count - 1) {
-        miBF.setData(rank, id);
-      }
-    }
-  }
 
   void insertSaturation(MIBloomFilter<T>& miBF, H& itr, T id)
   {
