@@ -2,9 +2,9 @@ compilers
 meson
 gperftools
 sdsl-lite
-boost
+boost-cpp
 libdivsufsort
-google-sparsehash
+sparsehash
 btllib
 python
 minimap2
