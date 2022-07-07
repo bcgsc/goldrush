@@ -68,8 +68,8 @@ dist=500
 cut=250
 
 # Default ntLink parameters
-k_ntLink=64
-w_ntLink=1000
+k_ntLink=40
+w_ntLink=250
 rounds=5
 
 # Determine path to Gold Rush executables
