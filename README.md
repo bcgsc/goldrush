@@ -82,8 +82,8 @@ default 5 rounds)
         dist                    maximum distance between alignments to be considered the same molecule [500]
 
         ntLink options:
-        k_ntLink                k-mer size for minimizers [64]
-        w_ntLink                window size for minimizers [1000]
+        k_ntLink                k-mer size for minimizers [40]
+        w_ntLink                window size for minimizers [250]
         rounds                  number of rounds of ntLink [5]
 
         GoldRush-Edit options:
