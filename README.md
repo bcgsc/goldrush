@@ -156,7 +156,7 @@ goldrush run reads=long_reads G=3e9
  * [sdsl-lite](https://github.com/simongog/sdsl-lite)
  * [boost](https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
  * [libdivsufsort](https://github.com/y-256/libdivsufsort)
- * [google-sparsehash](https://github.com/justinsb/google-sparsehash)
+ * [sparsehash](https://github.com/sparsehash/sparsehash)
  * [btllib](https://github.com/bcgsc/btllib)
  * [Tigmint](https://github.com/bcgsc/tigmint)
  * [ntLink](https://github.com/bcgsc/ntlink)
