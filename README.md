@@ -1,5 +1,5 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/bcgsc/goldrush)
-![Conda](https://img.shields.io/conda/dn/bioconda/goldrush)
+![Conda](https://img.shields.io/conda/dn/bioconda/goldrush?label=Conda)
 
 ![Logo](https://github.com/bcgsc/GoldRush/blob/main/img/GoldRush-logo.png)
 
