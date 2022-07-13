@@ -1,5 +1,5 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/bcgsc/goldrush)
-
+![Conda](https://img.shields.io/conda/dn/bioconda/goldrush)
 
 ![Logo](https://github.com/bcgsc/GoldRush/blob/main/img/GoldRush-logo.png)
 
@@ -114,6 +114,11 @@ goldrush run reads=long_reads G=3e9
 **For more information about the GoldRush algorithm and tips for running GoldRush see our [wiki](https://github.com/bcgsc/goldrush/wiki)** 
 
 ## Installation
+### Installing using conda:
+```
+conda install -c bioconda goldrush
+```
+
 ### Installing from source code:
 
 #### Github repository main branch
