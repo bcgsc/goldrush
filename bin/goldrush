@@ -171,7 +171,7 @@ help:
 	@echo "	- Ensure that all input files are in the current working directory, making soft-links if needed"
 
 clean:
-	rm -f *.amb *.ann *.bwt *.pac *.sa *.dist.gv *.fai *.bed *.molecule.tsv *.sortbx.bai *.k$(k).w$(w).tsv *.k$(k).w$(w).tsv
+	rm -f $(p1)_*.fq
 	@echo "Clean Done"
 
 # Set-up pipelines
@@ -232,6 +232,7 @@ ntLink_all_rounds: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$
 
 %.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa: %.fa $(long_reads)
 	$(time) ntLink_rounds run_rounds_gaps target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z rounds=$(rounds) reads=$(long_reads)
+	ntLink_rounds clean target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z rounds=$(rounds) reads=$(long_reads)
 
 ntLink_softlink: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa check-G
 
