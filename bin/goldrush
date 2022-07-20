@@ -179,7 +179,7 @@ run: path-tigmint-ntLink check-G clean
 path-polish: $(polisher) check-G clean
 path-tigmint: tigmint check-G clean
 
-path-tigmint-ntLink: ntLink_all_rounds ntLink_softlink
+path-tigmint-ntLink: ntLink_all_rounds ntLink_softlink clean
 
 check-G:
 ifndef G
@@ -188,7 +188,7 @@ endif
 
 
 # Run GoldRush-Path
-goldrush-path: $(p2).fa check-G
+goldrush-path: $(p2).fa check-G clean
 
 $(p2).fa: $(p1)_all.fq
 	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -s $(s) -g $(G) -b $(b)  -m 0
