@@ -170,14 +170,14 @@ help:
 	@echo "	- GoldRush-Path generates silver paths before generating the golden path"
 	@echo "	- Ensure that all input files are in the current working directory, making soft-links if needed"
 
-clean:
+clean: $(p2).fa
 	rm -f $(p1)_*.fq
 	@echo "Clean Done"
 
 # Set-up pipelines
-run: path-tigmint-ntLink check-G
-path-polish: $(polisher) check-G
-path-tigmint: tigmint check-G
+run: path-tigmint-ntLink check-G clean
+path-polish: $(polisher) check-G clean
+path-tigmint: tigmint check-G clean
 
 path-tigmint-ntLink: ntLink_all_rounds ntLink_softlink
 
