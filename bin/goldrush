@@ -170,16 +170,16 @@ help:
 	@echo "	- GoldRush-Path generates silver paths before generating the golden path"
 	@echo "	- Ensure that all input files are in the current working directory, making soft-links if needed"
 
-clean:
-	rm -f *.amb *.ann *.bwt *.pac *.sa *.dist.gv *.fai *.bed *.molecule.tsv *.sortbx.bai *.k$(k).w$(w).tsv *.k$(k).w$(w).tsv
+clean: $(p2).fa
+	rm -f $(p1)_*.fq
 	@echo "Clean Done"
 
 # Set-up pipelines
-run: path-tigmint-ntLink check-G
-path-polish: $(polisher) check-G
-path-tigmint: tigmint check-G
+run: path-tigmint-ntLink check-G clean
+path-polish: $(polisher) check-G clean
+path-tigmint: tigmint check-G clean
 
-path-tigmint-ntLink: ntLink_all_rounds ntLink_softlink
+path-tigmint-ntLink: ntLink_all_rounds ntLink_softlink clean
 
 check-G:
 ifndef G
@@ -188,7 +188,7 @@ endif
 
 
 # Run GoldRush-Path
-goldrush-path: $(p2).fa check-G
+goldrush-path: $(p2).fa check-G clean
 
 $(p2).fa: $(p1)_all.fq
 	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -s $(s) -g $(G) -b $(b)  -m 0
@@ -232,6 +232,7 @@ ntLink_all_rounds: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$
 
 %.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa: %.fa $(long_reads)
 	$(time) ntLink_rounds run_rounds_gaps target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z rounds=$(rounds) reads=$(long_reads)
+	ntLink_rounds clean target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z rounds=$(rounds) reads=$(long_reads)
 
 ntLink_softlink: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa check-G
 

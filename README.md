@@ -164,7 +164,7 @@ conda install -c bioconda goldrush
  * [sparsehash](https://github.com/sparsehash/sparsehash)
  * [btllib](https://github.com/bcgsc/btllib)
  * [Tigmint](https://github.com/bcgsc/tigmint)
- * [ntLink](https://github.com/bcgsc/ntlink)
+ * [ntLink 1.3.3+](https://github.com/bcgsc/ntlink)
  * [minimap2](https://github.com/lh3/minimap2)
 
 Installing Dependencies with Conda
