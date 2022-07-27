@@ -103,6 +103,7 @@ Running `goldrush help` prints the help documentation.
 ### Example
 Input files:
 * long read file `long_reads.fq`
+
 Required Parameters:
 * genome size `3e9`
 
@@ -152,7 +153,6 @@ conda install -c bioconda goldrush
  
 ## Dependencies
  * [GCC 7+](https://gcc.gnu.org/) with [OpenMP](https://www.openmp.org/)
-
  * [python 3.9+](https://www.python.org/)
  * [zlib](https://zlib.net/)
  * [meson](https://mesonbuild.com/Getting-meson.html)
@@ -167,8 +167,7 @@ conda install -c bioconda goldrush
  * [ntLink 1.3.3+](https://github.com/bcgsc/ntlink)
  * [minimap2](https://github.com/lh3/minimap2)
 
-Installing Dependencies with Conda
-
+### Installing Dependencies with Conda
 
 We recommend creating a fresh environment
 ```
