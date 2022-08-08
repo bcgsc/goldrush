@@ -34,7 +34,7 @@ Coombe, L., Warren, R., Nikolic, V., Wong, J., & Birol, I. (2022, July 10–14).
 ## Usage
 ```
 GoldRush
-v0.9.3
+v1.0.0
 
 Usage: goldrush [COMMAND] [OPTION=VALUE]…
 
