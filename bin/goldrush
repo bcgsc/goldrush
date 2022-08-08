@@ -106,12 +106,12 @@ endif
 .SECONDARY:
 
 version:
-	@echo "goldrush v0.9.3"
+	@echo "goldrush v1.0.0"
 
 # Help
 help:
 	@echo "GoldRush"
-	@echo "v0.9.3"
+	@echo "v1.0.0"
 	@echo ""
 	@echo "Usage: goldrush [COMMAND] [OPTION=VALUE]…"
 	@echo ""
