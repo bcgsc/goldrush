@@ -157,7 +157,6 @@ conda install -c bioconda goldrush
  * [zlib](https://zlib.net/)
  * [meson](https://mesonbuild.com/Getting-meson.html)
  * [ninja](https://github.com/ninja-build/ninja/)
- * [tcmalloc](https://google.github.io/tcmalloc/quickstart.html)
  * [sdsl-lite](https://github.com/simongog/sdsl-lite)
  * [boost](https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
  * [libdivsufsort](https://github.com/y-256/libdivsufsort)
