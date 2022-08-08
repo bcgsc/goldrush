@@ -1,6 +1,5 @@
 compilers
 meson
-gperftools
 sdsl-lite
 boost-cpp
 libdivsufsort
