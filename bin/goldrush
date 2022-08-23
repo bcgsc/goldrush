@@ -72,6 +72,9 @@ k_ntLink=40
 w_ntLink=250
 rounds=5
 
+# Development mode - retains intermediate files. Specify dev=True to enable.
+dev=False
+
 # Determine path to Gold Rush executables
 bin=$(shell dirname `command -v $(MAKEFILE_LIST)`)
 
@@ -171,7 +174,9 @@ help:
 	@echo "	- Ensure that all input files are in the current working directory, making soft-links if needed"
 
 clean: $(p2).fa
+ifneq ($(dev), True)
 	rm -f $(p1)_*.fq
+endif
 	@echo "Clean Done"
 
 # Set-up pipelines
@@ -232,7 +237,9 @@ ntLink_all_rounds: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$
 
 %.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa: %.fa $(long_reads)
 	$(time) ntLink_rounds run_rounds_gaps target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z rounds=$(rounds) reads=$(long_reads)
+ifneq ($(dev), True)
 	ntLink_rounds clean target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z rounds=$(rounds) reads=$(long_reads)
+endif
 
 ntLink_softlink: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa check-G
 
