@@ -21,7 +21,7 @@ size_t max_paths = 1;
 size_t threshold = 10;
 uint32_t phred_min = 15;
 uint32_t phred_delta = 5;
-std::string prefix_file = "";
+std::string prefix_file = "goldrush_out";
 std::string input = "";
 std::string seed_preset = "";
 int help = 0;
@@ -38,38 +38,38 @@ print_usage(const std::string& progname)
     << "Usage:  " << progname
     << "  -k K -w W -i INPUT -g G [-p prefix] [-P PHRED_AVG] [-o O] [-t T] [-f "
        "F] [-h H] [-u U] [-m M] [-H HASH_UNIVERSE] [-s S] [-x X] [-M MAX_PATHS]"
-       "[-a A] [-j J] [-b B] [-d D] [--silver_path] [-ntcard] [--help] \n\n"
-       "  -i INPUT    find golden paths from INPUT [required]\n"
-       "  -g G    estimated genome size [required]\n"
-       "  -b B    during insertion, B number of consecutive tiles to be inserted with the same ID [10]\n"
-       "  -d D    remove reads with greater or equal then D phred average "
+       "[-a A] [-j J] [-b B] [-d D] [--silver_path] [--ntcard] [--help] \n\n"
+       "  -i INPUT                find golden paths from INPUT [required]\n"
+       "  -g G                    estimated genome size [required]\n"
+       "  -b B                    during insertion, B number of consecutive tiles to be inserted with the same ID [10]\n"
+       "  -d D                    remove reads with greater or equal then D phred average "
        "between first half and second half of the read [5]\n"
-       "  -f F    don't use reads from F. one read per line [optional]\n"
-       "  -o O        use O as occupancy[0.1]\n"
-       "  -h H        use h as number of spaced seed patterns [1]\n"
-       "  -H HASH_UNIVERSE        Determine MiBF size based on HASH_UNIVERSE "
+       "  -f F                    don't use reads from F. Expects one read per line\n"
+       "  -o O                    use O as occupancy [0.1]\n"
+       "  -h H                    use h as number of spaced seed patterns [1]\n"
+       "  -H HASH_UNIVERSE        determine MiBF size based on HASH_UNIVERSE "
        "[Calculated based on W and h]\n"
-       "  -t T        use T as tile length [1000]\n"
-       "  -k K        use K as span of spaced seed [required]\n"
-       "  -w W        use W as weight of spaced seed [required]\n"
-       "  -m M        use reads longer than M [20000]\n"
-       "  -u U        U minimum unassigned tiles for read to be unassigned "
+       "  -t T                    tile length [1000]\n"
+       "  -k K                    span of spaced seed [required]\n"
+       "  -w W                    weight of spaced seed [required]\n"
+       "  -m M                    use reads longer than M [20000]\n"
+       "  -u U                    U minimum unassigned tiles for read to be unassigned "
        "[5]\n"
-       "  -a A        A maximum assigned tiles for read to be unassigned [1]\n"
-       "  -p prefix   write output to files with prefix, e.g.\n"
-       "prefix.fa []\n"
-       "  -P PHRED_AVG    minimum average phred score for each read[15]\n"
-       "  -j J        use J number of threads [48]\n"
-       "  -s S        use S seed preset. Must be consistent with k and w [n/a, "
+       "  -a A                    A maximum assigned tiles for read to be unassigned [1]\n"
+       "  -p prefix               write output to files with prefix "
+       "[goldrush_out]\n"
+       "  -P PHRED_AVG            minimum average phred score for each read [15]\n"
+       "  -j J                    number of threads [48]\n"
+       "  -s S                    use S seed preset. Must be consistent with k and w [n/a, "
        "generate one randomly based on k and w]\n"
-       "  -x X        require X hits for a tile to be assigned [10]\n"
-       "  -M MAX_PATHS        Output MAX_PATHS [5, used with --silver_path]\n"
-       "  --ntcard    use ntcard to estimate genome size [false, assume max "
+       "  -x X                    require X hits for a tile to be assigned [10]\n"
+       "  -M MAX_PATHS            output MAX_PATHS [5, used with --silver_path]\n"
+       "  --ntcard                use ntcard to estimate genome size [false, assume max "
        "entries]\n"
-       "  --silver_path    generate silver path(s) instead of golden path. "
+       "  --silver_path           generate silver path(s) instead of golden path. "
        "Silver paths terminate when the number of bases recruited equals or "
-       "exceeds T * r"
-       "  --help      display this help and exit\n";
+       "exceeds T * r\n"
+       "  --help                  display this help and exit\n";
 }
 
 void

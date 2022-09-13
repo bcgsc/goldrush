@@ -24,6 +24,7 @@ jobs:
       meson build
       cd build
       ninja
+      goldrush_path/goldrush-path --help
     displayName: Compile GoldRush
 - job:
   displayName: mac-latest
@@ -48,5 +49,6 @@ jobs:
       meson build
       cd build
       ninja
+      goldrush_path/goldrush-path --help
     displayName: Compile GoldRush
 
