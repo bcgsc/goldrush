@@ -34,7 +34,8 @@ jobs:
       export PATH=./test_build/bin:$PATH
       echo $(pwd)
       echo $PATH
-      ls ../test_build/bin
+      ls 
+      ls test_build/bin
       cd tests
       ./goldrush_test_demo.sh
     displayName: Test run for GoldRush
