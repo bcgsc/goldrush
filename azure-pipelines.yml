@@ -26,6 +26,13 @@ jobs:
       ninja
       goldrush_path/goldrush-path --help
     displayName: Compile GoldRush
+  - script: |
+      source activate goldrush_CI
+      cd tests
+      ./goldrush_test_demo.sh
+    displayName: Test run for GoldRush
+
+
 - job:
   displayName: mac-latest
   pool:
