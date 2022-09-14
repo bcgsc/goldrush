@@ -31,7 +31,7 @@ jobs:
     displayName: Compile GoldRush
   - script: |
       source activate goldrush_CI
-      export PATH=./test_build/bin:$PATH
+      export PATH=$(pwd)/test_build/bin:$PATH
       echo $(pwd)
       echo $PATH
       ls 
