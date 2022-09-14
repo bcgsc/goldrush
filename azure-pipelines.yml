@@ -26,10 +26,13 @@ jobs:
       cd build
       ninja install
       goldrush_path/goldrush-path --help
+      ls ../
+      echo $p
     displayName: Compile GoldRush
   - script: |
       source activate goldrush_CI
       export PATH=./test_build/bin:$PATH
+      echo $(pwd)
       echo $PATH
       ls ../test_build/bin
       cd tests
