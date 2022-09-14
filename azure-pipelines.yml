@@ -15,27 +15,20 @@ jobs:
   - script: |
       source activate goldrush_CI
       conda install --yes -c conda-forge mamba 
-      mamba install --yes -c conda-forge compilers meson gperftools sdsl-lite boost-cpp
-      mamba install --yes -c bioconda libdivsufsort sparsehash 
+      mamba install --yes -c conda-forge compilers meson gperftools sdsl-lite boost-cpp mlr
+      mamba install --yes -c bioconda libdivsufsort sparsehash minimap2 ntlink tigmint
       mamba install --yes -c bioconda -c conda-forge btllib 
     displayName: Install dependencies
   - script: |
       source activate goldrush_CI
-      p=$(pwd)
       meson build --prefix=$p/test_build
       cd build
       ninja install
       goldrush_path/goldrush-path --help
-      ls ../
-      echo $p
     displayName: Compile GoldRush
   - script: |
       source activate goldrush_CI
       export PATH=$(pwd)/test_build/bin:$PATH
-      echo $(pwd)
-      echo $PATH
-      ls 
-      ls test_build/bin
       cd tests
       ./goldrush_test_demo.sh
     displayName: Test run for GoldRush
