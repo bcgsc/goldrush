@@ -21,7 +21,7 @@ jobs:
     displayName: Install dependencies
   - script: |
       source activate goldrush_CI
-      meson build --prefix=$p/test_build
+      meson build --prefix=$(pwd)/test_build
       cd build
       ninja install
       goldrush_path/goldrush-path --help
@@ -54,13 +54,14 @@ jobs:
     displayName: Install dependencies
   - script: |
       source activate goldrush_CI
-      meson build
+      meson build --prefix=$(pwd)/test_build
       cd build
-      ninja
+      ninja install
       goldrush_path/goldrush-path --help
     displayName: Compile GoldRush
   - script: |
       source activate goldrush_CI
+      export PATH=$(pwd)/test_build/bin:$PATH
       cd tests
       ./goldrush_test_demo.sh
     displayName: Test run for GoldRush
