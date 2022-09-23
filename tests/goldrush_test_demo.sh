@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eux -o pipefail
+set -eu -o pipefail
 
 # Download the test data
 curl -L --output test_reads.fq https://www.bcgsc.ca/downloads/btl/goldrush/test/test_reads.fq
@@ -9,11 +9,13 @@ curl -L --output test_reads.fq https://www.bcgsc.ca/downloads/btl/goldrush/test/
 echo "Launching GoldRush"
 goldrush run reads=test_reads G=1e6 t=4 p=goldrush_test -B
 
-if [ -e goldrush_test_golden_path.goldrush-edit-polished.span2.dist500.tigmint.fa.k40.w250.ntLink-5rounds.fa ]; then
-  echo "Test successful"
+l50=$(abyss-fac goldrush_test_golden_path.goldrush-edit-polished.span2.dist500.tigmint.fa.k40.w250.ntLink-5rounds.fa |mlr --tsv cut -f L50 |tail -n1)
+
+if [ -e goldrush_test_golden_path.goldrush-edit-polished.span2.dist500.tigmint.fa.k40.w250.ntLink-5rounds.fa ] && [ ${l50} -eq 1 ]; then
+  echo -e "\nTest successful!"
 else
-  echo "Final expected file not found - please check your installation"
-  exit(1)
+  echo -e "\nTest failed - please check your installation"
+  exit 1
 fi
 
-exit(0)
+exit 0
