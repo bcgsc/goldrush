@@ -130,7 +130,6 @@ conda install -c bioconda goldrush
   git submodule update
   meson --prefix /path/to/install build
   cd build
-  ninja
   ninja install
  ```
 #### Downloading release tarball
@@ -140,15 +139,14 @@ conda install -c bioconda goldrush
   cd goldrush-x.y.z
   meson --prefix /path/to/install build
   cd build
-  ninja
   ninja install
  ```
 ### Testing Installation
 
  ```
- export PATH=/path/to/install/bin:$PATH
- which goldrush
  goldrush help
+ cd tests
+ ./goldrush_test_demo.sh
  ```
  
 ## Dependencies
