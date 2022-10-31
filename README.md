@@ -32,7 +32,7 @@ Nikolic, V., Coombe, L., Wong, J., Birol, I., & Warren, R. (2022, July 10–14).
 Coombe, L., Warren, R., Nikolic, V., Wong, J., & Birol, I. (2022, July 10–14). GoldRush-Link: Integrating minimizer-based overlap detection and gap-filling to the ntLink long read scaffolder [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States. 
 
 ## News
-### October 31, 2022
+#### October 31, 2022
 We're looking for C++ bioinformatics developers to work on GoldRush and other exciting bioinformatics tools in the Bioinformatics Technology Lab in Vancouver, BC! For more information, check out the [BCGSC website](http://www.birollab.ca/jobs/2022/08/29/ProgrammerJob.html) and our [Birol Lab website](https://bcgsc.ca/careers/research-programmer-birol-labbioinformatics-technology-lab).   
 
 ## Usage
