@@ -33,7 +33,7 @@ Coombe, L., Warren, R., Nikolic, V., Wong, J., & Birol, I. (2022, July 10–14).
 
 ## News
 #### October 31, 2022
-We're looking for C++ bioinformatics developers to work on GoldRush and other exciting bioinformatics tools with the Bioinformatics Technology Lab in Vancouver, BC! For more information, check out the [BCGSC website](http://www.birollab.ca/jobs/2022/08/29/ProgrammerJob.html) and our [Birol Lab website](https://bcgsc.ca/careers/research-programmer-birol-labbioinformatics-technology-lab).   
+We're looking for C++ bioinformatics developers to work on GoldRush and other exciting bioinformatics tools with the Bioinformatics Technology Lab in Vancouver, BC! For more information, check out the [BCGSC website](https://bcgsc.ca/careers/research-programmer-birol-labbioinformatics-technology-lab) and our [Birol Lab website](http://www.birollab.ca/jobs/2022/08/29/ProgrammerJob.html).   
 
 ## Usage
 ```
