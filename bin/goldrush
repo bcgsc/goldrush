@@ -39,6 +39,18 @@ ifeq ($(fastq_uncompressed), true)
 long_reads=$(reads).fq
 endif
 
+define ERROR_MESSAGE
+Reads file not found.
+Expected reads file to be `$(reads).fastq` or `$(reads).fq`, but neither were found in the working directory.
+Please check the supplied `reads` parameter in your goldrush command, and ensure that the `.fq` or `.fastq` suffix is not included.
+For example, if your reads file is `my_reads.fq`, specify `reads=my_reads`
+endef
+
+# Print error if reads file isn't found
+ifeq ($(long_reads),)
+$(error $(ERROR_MESSAGE))
+endif
+
 # Default parameters GoldRush-Path
 k=22
 w=16
@@ -131,7 +143,7 @@ help:
 	@echo "	path-tigmint-ntLink	run GoldRush-Path, then $(polisher_logs), then Tigmint-long, then ntLink (default 5 rounds)"
 	@echo ""
 	@echo "	General options (required):"
-	@echo "	reads			read name [reads]. File must have .fq or .fastq extension"
+	@echo "	reads			read name [reads]. File must have .fq or .fastq extension, but do not include the suffix in the read name specified"
 	@echo "	G			haploid genome size (bp) (e.g. '3e9' for human genome)"
 	@echo ""
 	@echo "	General options (optional):"
