@@ -143,7 +143,7 @@ help:
 	@echo "	path-tigmint-ntLink	run GoldRush-Path, then $(polisher_logs), then Tigmint-long, then ntLink (default 5 rounds)"
 	@echo ""
 	@echo "	General options (required):"
-	@echo "	reads			read name [reads]. File must have .fq or .fastq extension, but do not include the suffix in the read name specified"
+	@echo "	reads			read name [reads]. File must have .fq or .fastq extension, but do not include the suffix in the supplied read name"
 	@echo "	G			haploid genome size (bp) (e.g. '3e9' for human genome)"
 	@echo ""
 	@echo "	General options (optional):"

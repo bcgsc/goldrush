@@ -55,7 +55,7 @@ default 5 rounds)
         path-tigmint-ntLink     run GoldRush-Path, then GoldRush-Edit, then Tigmint-long, then ntLink (default 5 rounds)
 
         General options (required):
-        reads                   read name [reads]. File must have .fq or .fastq extension, but do not include the suffix in the read name specified
+        reads                   read name [reads]. File must have .fq or .fastq extension, but do not include the suffix in the supplied read name
         G                       haploid genome size (bp) (e.g. '3e9' for human genome)
 
         General options (optional):
