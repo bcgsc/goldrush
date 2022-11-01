@@ -46,11 +46,6 @@ Please check the supplied `reads` parameter in your goldrush command, and ensure
 For example, if your reads file is `my_reads.fq`, specify `reads=my_reads`
 endef
 
-# Print error if reads file isn't found
-ifeq ($(long_reads),)
-$(error $(ERROR_MESSAGE))
-endif
-
 # Default parameters GoldRush-Path
 k=22
 w=16
@@ -116,7 +111,7 @@ time=command memusg -t -o $@.time
 endif
 endif
 
-.PHONY: help run version clean path-tigmint-ntlink path-polish goldrush-path racon goldrush-edit path-tigmint tigmint ntLink-with-tigmint check-G
+.PHONY: help run version clean path-tigmint-ntlink path-polish goldrush-path racon goldrush-edit path-tigmint tigmint ntLink-with-tigmint check-G check-reads
 .DELETE_ON_ERROR:
 .SECONDARY:
 
@@ -192,9 +187,9 @@ endif
 	@echo "Clean Done"
 
 # Set-up pipelines
-run: path-tigmint-ntLink check-G clean
-path-polish: $(polisher) check-G clean
-path-tigmint: tigmint check-G clean
+run: path-tigmint-ntLink check-G check-reads clean
+path-polish: $(polisher) check-G check-reads clean
+path-tigmint: tigmint check-G check-reads clean
 
 path-tigmint-ntLink: ntLink_all_rounds ntLink_softlink clean
 
@@ -203,9 +198,15 @@ ifndef G
 	$(error G is a required parameter. Run 'goldrush help' for more information)
 endif
 
+check-reads:
+# Print error if reads file isn't found
+ifeq ($(long_reads),)
+	$(error $(ERROR_MESSAGE))
+endif
+
 
 # Run GoldRush-Path
-goldrush-path: $(p2).fa check-G clean
+goldrush-path: $(p2).fa check-G check-reads clean
 
 $(p2).fa: $(p1)_all.fq
 	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -s $(s) -g $(G) -b $(b)  -m 0
@@ -226,16 +227,16 @@ $(p1)_$(M).fq: $(long_reads)
 	echo "Done GoldRush-Path + $(polisher_logs)! $(polisher_logs) polished golden path can be found in: $@"
 
 # Run racon
-racon: $(p2).racon-polished.fa check-G
+racon: $(p2).racon-polished.fa check-G check-reads
 
-goldrush-edit: $(p2).goldrush-edit-polished.fa check-G
+goldrush-edit: $(p2).goldrush-edit-polished.fa check-G check-reads
 
 $(p2).fa.$(long_reads).sam: $(p2).fa $(long_reads)
 	$(time) minimap2 -t $(t) -a -x map-ont  $< $(long_reads) > $@
 
 
 # Run tigmint after GoldRush-Path
-tigmint: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa check-G
+tigmint: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa check-G check-reads
 
 $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa: $(p2).$(polished_infix).cut$(cut).tigmint.fa
 	ln -sf $< $@
@@ -245,7 +246,7 @@ $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa: $(p2).$(polished_inf
 	$(time) tigmint-make tigmint-long draft=$(p2).$(polished_infix) reads=$(reads) cut=$(cut) t=$t G=$G span=$(span) dist=$(dist)
 
 # Run ntLink rounds after tigmint
-ntLink_all_rounds: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa check-G
+ntLink_all_rounds: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa check-G check-reads
 
 %.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa: %.fa $(long_reads)
 	$(time) ntLink_rounds run_rounds_gaps target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z rounds=$(rounds) reads=$(long_reads)
@@ -253,7 +254,7 @@ ifneq ($(dev), True)
 	ntLink_rounds clean target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z rounds=$(rounds) reads=$(long_reads)
 endif
 
-ntLink_softlink: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa check-G
+ntLink_softlink: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa check-G check-reads
 
 %.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa: %.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa
 	ln -sf $(lastword $^) $@
