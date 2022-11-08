@@ -169,18 +169,6 @@ conda install -c bioconda goldrush
  * [ntLink 1.3.3+](https://github.com/bcgsc/ntlink)
  * [minimap2](https://github.com/lh3/minimap2)
 
-### Installing Dependencies with Conda
-
-We recommend creating a fresh environment
-```
-conda create --name goldrush
-```
-
-Installing the dependencies
-```
-conda install -c conda-forge -c bioconda --file requirements.txt
-```
-
 ## Citation
 If you use GoldRush in your research, please cite:
 
