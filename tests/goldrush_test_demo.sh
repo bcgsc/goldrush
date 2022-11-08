@@ -9,7 +9,7 @@ curl -L --output test_reads.fq https://www.bcgsc.ca/downloads/btl/goldrush/test/
 echo "Launching GoldRush"
 goldrush run reads=test_reads G=1e6 t=4 p=goldrush_test -B
 
-l50=$(abyss-fac goldrush_test_golden_path.goldrush-edit-polished.span2.dist500.tigmint.fa.k40.w250.ntLink-5rounds.fa |mlr --tsv cut -f L50 |tail -n1)
+l50=$(abyss-fac goldrush_test_golden_path.goldrush-edit-polished.span2.dist500.tigmint.fa.k40.w250.ntLink-5rounds.fa |awk '{print $3}' |tail -n1)
 
 if [ -e goldrush_test_golden_path.goldrush-edit-polished.span2.dist500.tigmint.fa.k40.w250.ntLink-5rounds.fa ] && [ ${l50} -eq 1 ]; then
   echo -e "\nTest successful!"
