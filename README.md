@@ -181,6 +181,14 @@ Installing the dependencies
 conda install -c conda-forge -c bioconda --file requirements.txt
 ```
 
+## Citation
+If you use GoldRush in your research, please cite:
+
+Johnathan Wong, Lauren Coombe, Vladimir Nikolić, Emily Zhang, Ka Ming Nip, Puneet Sidhu, René L Warren, and Inanç Birol. 2022. ‘GoldRush: A *de novo* Long Read Genome Assembler with Linear Time Complexity’. BioRxiv. https://doi.org/10.1101/2022.10.25.513734.
+
+
+[![link](https://img.shields.io/badge/GoldRush-manuscript-brightgreen)](https://doi.org/10.1101/2022.10.25.513734)
+
 ## License
 GoldRush Copyright (c) 2022 British Columbia Cancer Agency Branch. All rights reserved.
 
