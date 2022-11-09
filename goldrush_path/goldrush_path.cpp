@@ -169,7 +169,7 @@ fill_bit_vector(const std::string& input_file,
               << num_reads - num_passed_reads << "\n"
               << "num_reads - num_passed_reads / num_reads: "
               << "\n"
-              << (double)(num_reads - num_passed_reads) / num_reads
+              << floor((double)(num_reads - num_passed_reads) / num_reads)
               << std::endl;
   }
 
@@ -177,8 +177,7 @@ fill_bit_vector(const std::string& input_file,
     std::cerr
       << "Error: no reads passed the Phred score and min length requirements"
       << "\n"
-      << "Try again with a lower Phred threshold (-P) or lower min length (-m)"
-
+      << "Try again with a lower Phred threshold or lower min length"
       << std::endl;
     exit(1);
   }
