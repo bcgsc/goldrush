@@ -177,7 +177,8 @@ fill_bit_vector(const std::string& input_file,
     std::cerr
       << "Error: no reads passed the Phred score and min length requirements"
       << "\n"
-      << "Try again with a lower Phred score (-P) or lower min length (-m)"
+      << "Try again with a lower Phred threshold (-P) or lower min length (-m)"
+
       << std::endl;
     exit(1);
   }
