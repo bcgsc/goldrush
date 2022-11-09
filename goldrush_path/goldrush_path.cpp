@@ -138,8 +138,12 @@ fill_bit_vector(const std::string& input_file,
     std::cerr << "Gold Path requires fastq format" << std::endl;
     exit(1);
   }
+  size_t num_reads = 0;
+  size_t num_passed_reads = 0;
 #pragma omp parallel
   for (const auto record : reader) {
+#pragma omp atomic
+    ++num_reads;
     if (record.seq.size() < min_seq_len) {
       continue;
     }
@@ -152,8 +156,30 @@ fill_bit_vector(const std::string& input_file,
       }
       continue;
     }
+#pragma omp atomic
+    ++num_passed_reads;
     multiLensfrHashIterator itr(record.seq, spaced_seeds);
     miBFCS.insertBV(itr);
+  }
+
+  if (verbose) {
+    std::cerr << "num_passed_reads: " << num_passed_reads << "\n"
+              << "num_reads: " << num_reads << "\n"
+              << "num_reads - num_passed_reads: "
+              << num_reads - num_passed_reads << "\n"
+              << "num_reads - num_passed_reads / num_reads: "
+              << "\n"
+              << (double)(num_reads - num_passed_reads) / num_reads
+              << std::endl;
+  }
+
+  if (num_passed_reads == 0) {
+    std::cerr
+      << "Error: no reads passed the Phred score and min length requirements"
+      << "\n"
+      << "Try again with a lower Phred score (-P) or lower min length (-m)"
+      << std::endl;
+    exit(1);
   }
 
   std::cerr << "finished inserting bit vector" << std::endl;
@@ -180,9 +206,9 @@ eval_flanks(ssize_t longest_start_idx,
   }
   size_t trim_end_idx = longest_end_idx + 1;
 
-  static const uint8_t  SMALL_READ_THRESHOLD = 15;
-  static const uint8_t  MAX_TILES_TO_CHECK = 5;
-  static const uint8_t  MIN_IDS_IN_FLANK = 2;
+  static const uint8_t SMALL_READ_THRESHOLD = 15;
+  static const uint8_t MAX_TILES_TO_CHECK = 5;
+  static const uint8_t MIN_IDS_IN_FLANK = 2;
 
   bool good_flank = false;
   if (num_tiles < SMALL_READ_THRESHOLD) {
@@ -211,9 +237,12 @@ eval_flanks(ssize_t longest_start_idx,
           trim_start_idx = longest_start_idx;
         }
         good_left_flank = true;
-        // Requirement to consider a flank is good is increased when the tiles are not the same. Instead of requiring the same amount of the previous, it requires a + 1
+        // Requirement to consider a flank is good is increased when the tiles
+        // are not the same. Instead of requiring the same amount of the
+        // previous, it requires a + 1
       } else if (left_flank_vec.size() >= 2 &&
-                 (left_flank_vec[0].second + left_flank_vec[1].second > MIN_IDS_IN_FLANK + 1 &&
+                 (left_flank_vec[0].second + left_flank_vec[1].second >
+                    MIN_IDS_IN_FLANK + 1 &&
                   (left_flank_vec[0].first - left_flank_vec[1].first == 1 ||
                    left_flank_vec[1].first - left_flank_vec[0].first == 1))) {
         if (longest_start_idx != 0) {
@@ -244,9 +273,12 @@ eval_flanks(ssize_t longest_start_idx,
       if (right_flank_vec[0].second >= MIN_IDS_IN_FLANK) {
         trim_end_idx = longest_end_idx + 1;
         good_right_flank = true;
-        // Requirement to consider a flank is good is increased when the tiles are not the same. Instead of requiring the same amount of the previous, it requires a + 1
+        // Requirement to consider a flank is good is increased when the tiles
+        // are not the same. Instead of requiring the same amount of the
+        // previous, it requires a + 1
       } else if (right_flank_vec.size() >= 2 &&
-                 (right_flank_vec[0].second + right_flank_vec[1].second > MIN_IDS_IN_FLANK + 1 &&
+                 (right_flank_vec[0].second + right_flank_vec[1].second >
+                    MIN_IDS_IN_FLANK + 1 &&
                   (right_flank_vec[0].first - right_flank_vec[1].first == 1 ||
                    right_flank_vec[1].first - right_flank_vec[0].first == 1))) {
         trim_end_idx = longest_end_idx + 1;
@@ -264,7 +296,9 @@ eval_flanks(ssize_t longest_start_idx,
   } else {
 
     if (longest_start_idx - MAX_TILES_TO_CHECK >= 1) {
-      for (ssize_t i = longest_start_idx - MAX_TILES_TO_CHECK; i < longest_start_idx; ++i) {
+      for (ssize_t i = longest_start_idx - MAX_TILES_TO_CHECK;
+           i < longest_start_idx;
+           ++i) {
         if (left_flank.find(tiles_assigned_id_vec[i]) != left_flank.end()) {
           ++left_flank[tiles_assigned_id_vec[i]];
         } else {
@@ -285,8 +319,11 @@ eval_flanks(ssize_t longest_start_idx,
           trim_start_idx = longest_start_idx;
         }
         good_flank = true;
-      // Requirement to consider a flank is good is increased when the tiles are not the same. Instead of requiring the same amount of the previous, it requires a + 1
-      } else if (left_flank_vec[0].second + left_flank_vec[1].second > MIN_IDS_IN_FLANK + 1 &&
+        // Requirement to consider a flank is good is increased when the tiles
+        // are not the same. Instead of requiring the same amount of the
+        // previous, it requires a + 1
+      } else if (left_flank_vec[0].second + left_flank_vec[1].second >
+                   MIN_IDS_IN_FLANK + 1 &&
                  (left_flank_vec[0].first - left_flank_vec[1].first == 1 ||
                   left_flank_vec[1].first - left_flank_vec[0].first == 1)) {
         if (longest_start_idx != 0) {
@@ -304,7 +341,9 @@ eval_flanks(ssize_t longest_start_idx,
     }
 
     if (longest_end_idx + MAX_TILES_TO_CHECK < (ssize_t)num_tiles - 1) {
-      for (ssize_t i = longest_end_idx + MAX_TILES_TO_CHECK; i > longest_end_idx; --i) {
+      for (ssize_t i = longest_end_idx + MAX_TILES_TO_CHECK;
+           i > longest_end_idx;
+           --i) {
         if (right_flank.find(tiles_assigned_id_vec[i]) != right_flank.end()) {
           ++right_flank[tiles_assigned_id_vec[i]];
         } else {
@@ -320,8 +359,11 @@ eval_flanks(ssize_t longest_start_idx,
       if (right_flank_vec[0].second >= MIN_IDS_IN_FLANK) {
         trim_end_idx = longest_end_idx + 1;
         good_flank = true;
-      // Requirement to consider a flank is good is increased when the tiles are not the same. Instead of requiring the same amount of the previous, it requires a + 1
-      } else if (right_flank_vec[0].second + right_flank_vec[1].second > MIN_IDS_IN_FLANK + 1 &&
+        // Requirement to consider a flank is good is increased when the tiles
+        // are not the same. Instead of requiring the same amount of the
+        // previous, it requires a + 1
+      } else if (right_flank_vec[0].second + right_flank_vec[1].second >
+                   MIN_IDS_IN_FLANK + 1 &&
                  (right_flank_vec[0].first - right_flank_vec[1].first == 1 ||
                   right_flank_vec[1].first - right_flank_vec[0].first == 1)) {
         trim_end_idx = longest_end_idx + 1;
@@ -883,7 +925,9 @@ main(int argc, char** argv)
       static const uint8_t BASES = 4;
       static const float HASH_UNIVERSE_COEFFICIENT = 0.5;
       static const uint8_t GENOME_SIZE_MULTIPLIER = 2;
-      size_t hash_universe_base = std::min((uint64_t)(pow(BASES, opt::weight)), GENOME_SIZE_MULTIPLIER * opt::genome_size);
+      size_t hash_universe_base =
+        std::min((uint64_t)(pow(BASES, opt::weight)),
+                 GENOME_SIZE_MULTIPLIER * opt::genome_size);
       opt::hash_universe =
         hash_universe_base * HASH_UNIVERSE_COEFFICIENT * opt::hash_num;
     }
@@ -895,21 +939,35 @@ main(int argc, char** argv)
     num_and_type_path_log = "the golden path";
   }
 
-  std::cerr << "Calculating " << num_and_type_path_log << "\n"
-            << "Using:"
-            << "\n"
-            << "\t" << "tile length: " << opt::tile_length << "\n"
-            << "\t" << "block size: " << opt::block_size << "\n"
-            << "\t" << "seed patterns: " << opt::hash_num << "\n"
-            << "\t" << "threshold: " << opt::threshold << "\n"
-            << "\t" << "base seed pattern: " << seed_string_vec[0] << "\n"
-            << "\t" << "minimum unassigned tiles: " << opt::unassigned_min << "\n"
-            << "\t" << "maximum assigned tiles: " << opt::assigned_max << "\n"
-            << "\t" << "expected hash space: " << opt::hash_universe << "\n"
-            << "\t" << "minimum average phred quality score: " << opt::phred_min << "\n"
-            << "\t" << "maximum average phred delta between first and second half of read: " << opt::phred_delta << "\n"
-            << "\t" << "occupancy: " << opt::occupancy << "\n"
-            << "\t" << "jobs: " << opt::jobs << std::endl;
+  std::cerr
+    << "Calculating " << num_and_type_path_log << "\n"
+    << "Using:"
+    << "\n"
+    << "\t"
+    << "tile length: " << opt::tile_length << "\n"
+    << "\t"
+    << "block size: " << opt::block_size << "\n"
+    << "\t"
+    << "seed patterns: " << opt::hash_num << "\n"
+    << "\t"
+    << "threshold: " << opt::threshold << "\n"
+    << "\t"
+    << "base seed pattern: " << seed_string_vec[0] << "\n"
+    << "\t"
+    << "minimum unassigned tiles: " << opt::unassigned_min << "\n"
+    << "\t"
+    << "maximum assigned tiles: " << opt::assigned_max << "\n"
+    << "\t"
+    << "expected hash space: " << opt::hash_universe << "\n"
+    << "\t"
+    << "minimum average phred quality score: " << opt::phred_min << "\n"
+    << "\t"
+    << "maximum average phred delta between first and second half of read: "
+    << opt::phred_delta << "\n"
+    << "\t"
+    << "occupancy: " << opt::occupancy << "\n"
+    << "\t"
+    << "jobs: " << opt::jobs << std::endl;
 
   std::unordered_set<std::string> filter_out_reads;
   if (opt::filter_file != "") {
