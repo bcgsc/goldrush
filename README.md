@@ -38,7 +38,7 @@ We're looking for C++ bioinformatics developers to work on GoldRush and other ex
 ## Usage
 ```
 GoldRush
-v1.0.1
+v1.0.2
 
 Usage: goldrush [COMMAND] [OPTION=VALUE]…
 
