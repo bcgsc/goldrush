@@ -137,8 +137,7 @@ The runtimes and RAM usage below are generated using a server-class system (144 
 
 ### OS Requirements
 
-All package development version is tested on *Linux* operating systems. The developmental version of the package has been tested on the following systems:
-Linux: centOS7
+GoldRush has been tested on *Linux* operating systems (centOS7, ubuntu-20.04)
 
 ### Dependencies
  * [GCC 7+](https://gcc.gnu.org/) with [OpenMP](https://www.openmp.org/)
