@@ -183,6 +183,8 @@ conda install -c bioconda goldrush
   cd build
   ninja install
  ```
+Compiling GoldRush from the source code takes ~2.5min on a typical machine.
+
 ### Testing Installation
 
  ```
