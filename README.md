@@ -1,4 +1,5 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/bcgsc/goldrush)
+[![Downloads](https://img.shields.io/github/downloads/bcgsc/goldrush/total?logo=github)](https://github.com/bcgsc/goldrush/releases)
 ![Conda](https://img.shields.io/conda/dn/bioconda/goldrush?label=Conda)
 
 ![Logo](https://github.com/bcgsc/GoldRush/blob/main/img/GoldRush-logo.png)
@@ -118,6 +119,42 @@ goldrush run reads=long_reads G=3e9
 
 **For more information about the GoldRush algorithm and tips for running GoldRush see our [wiki](https://github.com/bcgsc/goldrush/wiki)** 
 
+# System Requirements
+
+## Hardware Requirements
+
+GoldRush does not require any specialized hardware. For the assembly of a human genome with ~60-fold coverage, GoldRush requires a computer with at least 64 GB of RAM. We recommend running GoldRush with at least 48 threads.
+
+The runtime and RAM usage benchmarks below were generated using a server-class system (144 Intel(R) Xeon(R) Gold 6254 CPU @ 3.1 GHz with 2.9 TB RAM) with 48 threads specified on three different *H. sapiens* Oxford Nanopore Technology genomic long read datasets.
+
+| Coverage       | Time (h)    | RAM (GB)    |
+| ----------- | ----------- | ----------- |
+| 67X  | 16.6       | 51.9        |
+| 63X  | 20.8       | 53.9        |
+| 71X  | 20.8       | 54.5        |
+
+## Software Requirements
+
+### OS Requirements
+
+GoldRush has been tested on *Linux* operating systems (centOS7, ubuntu-20.04)
+
+### Dependencies
+ * [GCC 7+](https://gcc.gnu.org/) with [OpenMP](https://www.openmp.org/)
+ * [python 3.9+](https://www.python.org/)
+ * [zlib](https://zlib.net/)
+ * [meson](https://mesonbuild.com/Getting-meson.html)
+ * [ninja](https://github.com/ninja-build/ninja/)
+ * [tcmalloc](https://google.github.io/tcmalloc/quickstart.html)
+ * [sdsl-lite](https://github.com/simongog/sdsl-lite)
+ * [boost](https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
+ * [libdivsufsort](https://github.com/y-256/libdivsufsort)
+ * [sparsehash](https://github.com/sparsehash/sparsehash)
+ * [btllib](https://github.com/bcgsc/btllib)
+ * [Tigmint](https://github.com/bcgsc/tigmint)
+ * [ntLink 1.3.3+](https://github.com/bcgsc/ntlink)
+ * [minimap2](https://github.com/lh3/minimap2)
+
 ## Installation
 ### Installing using conda:
 ```
@@ -145,6 +182,8 @@ conda install -c bioconda goldrush
   cd build
   ninja install
  ```
+Compiling GoldRush from the source code takes ~2.5min on a typical machine.
+
 ### Testing Installation
 
  ```
@@ -152,22 +191,9 @@ conda install -c bioconda goldrush
  cd tests
  ./goldrush_test_demo.sh
  ```
- 
-## Dependencies
- * [GCC 7+](https://gcc.gnu.org/) with [OpenMP](https://www.openmp.org/)
- * [python 3.9+](https://www.python.org/)
- * [zlib](https://zlib.net/)
- * [meson](https://mesonbuild.com/Getting-meson.html)
- * [ninja](https://github.com/ninja-build/ninja/)
- * [tcmalloc](https://google.github.io/tcmalloc/quickstart.html)
- * [sdsl-lite](https://github.com/simongog/sdsl-lite)
- * [boost](https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
- * [libdivsufsort](https://github.com/y-256/libdivsufsort)
- * [sparsehash](https://github.com/sparsehash/sparsehash)
- * [btllib](https://github.com/bcgsc/btllib)
- * [Tigmint](https://github.com/bcgsc/tigmint)
- * [ntLink 1.3.3+](https://github.com/bcgsc/ntlink)
- * [minimap2](https://github.com/lh3/minimap2)
+Running the above `goldrush_test_demo.sh` script will automatically download a small set of long reads from a ~1Mbp segment of *C. elegans* chromosome 3, and run GoldRush. It will also check that the final assembly file has an L50 of 1, as expected (ie. at least half of the assembly is in a single piece). The test should run in <2min on a typical machine.
+
+The final assembly file for the test demo can be found in: `goldrush_test_golden_path.goldrush-edit-polished.span2.dist500.tigmint.fa.k40.w250.ntLink-5rounds.fa`
 
 ## Citation
 If you use GoldRush in your research, please cite:
