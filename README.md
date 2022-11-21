@@ -135,8 +135,8 @@ The runtimes and RAM usage below are generated using a server-class system (144 
 
 | Data        | Time (h)    | RAM (GB)    |
 | ----------- | ----------- | ----------- |
-| 67X *H. sapiens*     | 16.6       | 51.9       |
-| 63X *H. sapiens* | 20.8        | 53.9        |
+| 67X *H. sapiens*  | 16.6       | 51.9        |
+| 63X *H. sapiens*  | 20.8       | 53.9        |
 | 71X *H. sapiens*  | 20.8       | 54.5        |
 
 ## Software Requirements
