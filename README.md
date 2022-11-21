@@ -123,9 +123,9 @@ goldrush run reads=long_reads G=3e9
 
 ## Hardware Requirements
 
-GoldRush does not require any specialized hardware. For the assembly of a human genome with a ~60X coverage, GoldRush requires a computer with at least 64 GB of RAM and recommends running with 48 threads.
+GoldRush does not require any specialized hardware. For the assembly of a human genome with ~60-fold coverage, GoldRush requires a computer with at least 64 GB of RAM. We recommend running GoldRush with at least 48 threads.
 
-The runtimes and RAM usage below are generated using a server-class system (144 Intel(R) Xeon(R) Gold 6254 CPU @ 3.1 GHz with 2.9 TB RAM) with 48 threads specified on three different *H. sapiens* Oxford Nanopore Technology genomic long read datasets.
+The runtime and RAM usage benchmarks below were generated using a server-class system (144 Intel(R) Xeon(R) Gold 6254 CPU @ 3.1 GHz with 2.9 TB RAM) with 48 threads specified on three different *H. sapiens* Oxford Nanopore Technology genomic long read datasets.
 
 | Coverage       | Time (h)    | RAM (GB)    |
 | ----------- | ----------- | ----------- |
