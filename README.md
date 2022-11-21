@@ -196,7 +196,7 @@ conda install -c bioconda goldrush
  cd tests
  ./goldrush_test_demo.sh
  ```
-Running the above `goldrush_test_demo.sh` script will automatically download a small set of long reads from a ~1Mbp segment of *C. elegans* chromosome 3, and run GoldRush. It will also check that the final assembly file has an L50 of 1, as expected (ie. at least half of the assembly is in a single piece).
+Running the above `goldrush_test_demo.sh` script will automatically download a small set of long reads from a ~1Mbp segment of *C. elegans* chromosome 3, and run GoldRush. It will also check that the final assembly file has an L50 of 1, as expected (ie. at least half of the assembly is in a single piece). The test should run in <2min on a typical machine.
 
 The final assembly file for the test demo can be found in: `goldrush_test_golden_path.goldrush-edit-polished.span2.dist500.tigmint.fa.k40.w250.ntLink-5rounds.fa`
 
