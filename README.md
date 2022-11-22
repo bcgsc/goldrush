@@ -39,7 +39,7 @@ We're looking for C++ bioinformatics developers to work on GoldRush and other ex
 ## Usage
 ```
 GoldRush
-v1.0.2
+v1.0.0
 
 Usage: goldrush [COMMAND] [OPTION=VALUE]…
 
@@ -161,6 +161,19 @@ GoldRush has been tested on *Linux* operating systems (centOS7, ubuntu-20.04)
 conda install -c bioconda goldrush
 ```
 
+### Installing dependencies with Conda to compile GoldRush source code
+We highly encourage users to install GoldRush via Conda instead of compiling the source code
+
+We recommend creating a fresh environment
+```
+conda create --name goldrush
+```
+
+Installing the dependencies
+```
+conda install -c conda-forge -c bioconda --file requirements.txt
+```
+
 ### Installing from source code:
 
 #### Github repository main branch
@@ -184,7 +197,7 @@ conda install -c bioconda goldrush
  ```
 Compiling GoldRush from the source code takes ~2.5min on a typical machine.
 
-### Testing Installation
+### Running a test demo
 
  ```
  goldrush help
