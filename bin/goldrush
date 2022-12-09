@@ -11,6 +11,9 @@ polished_infix=$(polisher)-polished
 # ntlink or minimap2
 polisher_mapper=minimap2
 
+# Shared memory location for GoldRush-Edit
+shared_mem=/dev/shm
+
 # ntlink mapping parameter (used if polisher_mapper=ntlink)
 polish_k=32
 polish_w=100
@@ -175,6 +178,7 @@ help:
 	@echo ""
 	@echo "	GoldRush-Edit options:"
 	@echo "	polisher_mapper		Whether to use ntlink or minimap2 for mappings [$(polisher_mapper)]"
+	@echo "	shared_mem		Shared memory path where polishing occurs [/dev/shm] "
 	@echo ""
 	@echo "Notes:"
 	@echo "	- GoldRush-Path generates silver paths before generating the golden path"
@@ -223,7 +227,7 @@ $(p1)_$(M).fq: $(long_reads)
 	echo "Done GoldRush-Path + $(polisher_logs)! $(polisher_logs) polished golden path can be found in: $@"
 
 %.goldrush-edit-polished.fa: %.fa $(long_reads)
-	$(time) goldrush-edit $(goldrush_edit_opts) -t$(t) $< $(long_reads) $@
+	$(time) goldrush-edit $(goldrush_edit_opts) -t$(t) -m$(shared_mem) $< $(long_reads) $@
 	echo "Done GoldRush-Path + $(polisher_logs)! $(polisher_logs) polished golden path can be found in: $@"
 
 # Run racon
