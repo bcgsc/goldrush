@@ -93,6 +93,7 @@ default 5 rounds)
 
         GoldRush-Edit options:
         polisher_mapper         Whether to use ntlink or minimap2 for mappings [minimap2]
+        shared_mem		Shared memory path where polishing occurs [/dev/shm]
 
 Notes:
         - GoldRush-Path generates silver paths before generating the golden path
