@@ -25,13 +25,6 @@ Design and implementation: Johnathan Wong, Vladimir Nikolic, and Lauren Coombe
 
 Logo Design: Rene L. Warren
 
-## Presentations
-Wong, J., Nikolic, V., Coombe, L., Zhang, E., Warren, R., & Birol, I. (2022, July 10–14). GoldRush-Path: A de novo assembler for long reads with linear time complexity [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States.  
-
-Nikolic, V., Coombe, L., Wong, J., Birol, I., & Warren, R. (2022, July 10–14). GoldRush-Edit : A targeted, alignment-free polishing & finishing pipeline for long read assembly, using long read k-mers [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States. 
-
-Coombe, L., Warren, R., Nikolic, V., Wong, J., & Birol, I. (2022, July 10–14). GoldRush-Link: Integrating minimizer-based overlap detection and gap-filling to the ntLink long read scaffolder [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States. 
-
 ## News
 #### October 31, 2022
 We're looking for C++ bioinformatics developers to work on GoldRush and other exciting bioinformatics tools with the Bioinformatics Technology Lab in Vancouver, BC! For more information, check out the [BCGSC website](https://bcgsc.ca/careers/research-programmer-birol-labbioinformatics-technology-lab) and our [Birol Lab website](http://www.birollab.ca/jobs/2022/08/29/ProgrammerJob.html).   
@@ -152,14 +145,14 @@ GoldRush has been tested on *Linux* operating systems (centOS7, ubuntu-20.04)
  * [libdivsufsort](https://github.com/y-256/libdivsufsort)
  * [sparsehash](https://github.com/sparsehash/sparsehash)
  * [btllib](https://github.com/bcgsc/btllib)
- * [Tigmint](https://github.com/bcgsc/tigmint)
+ * [Tigmint 1.2.6+](https://github.com/bcgsc/tigmint)
  * [ntLink 1.3.3+](https://github.com/bcgsc/ntlink)
  * [minimap2](https://github.com/lh3/minimap2)
 
 ## Installation
 ### Installing using conda:
 ```
-conda install -c bioconda goldrush
+conda install -c bioconda -c conda-forge goldrush
 ```
 
 ### Installing from source code:
@@ -203,6 +196,13 @@ Johnathan Wong, Lauren Coombe, Vladimir Nikolić, Emily Zhang, Ka Ming Nip, Pune
 
 
 [![link](https://img.shields.io/badge/GoldRush-manuscript-brightgreen)](https://doi.org/10.1101/2022.10.25.513734)
+
+## Presentations
+Wong, J., Nikolic, V., Coombe, L., Zhang, E., Warren, R., & Birol, I. (2022, July 10–14). GoldRush-Path: A de novo assembler for long reads with linear time complexity [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States.  
+
+Nikolic, V., Coombe, L., Wong, J., Birol, I., & Warren, R. (2022, July 10–14). GoldRush-Edit : A targeted, alignment-free polishing & finishing pipeline for long read assembly, using long read k-mers [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States. 
+
+Coombe, L., Warren, R., Nikolic, V., Wong, J., & Birol, I. (2022, July 10–14). GoldRush-Link: Integrating minimizer-based overlap detection and gap-filling to the ntLink long read scaffolder [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States. 
 
 ## License
 GoldRush Copyright (c) 2022 British Columbia Cancer Agency Branch. All rights reserved.
