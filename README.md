@@ -25,10 +25,6 @@ Design and implementation: Johnathan Wong, Vladimir Nikolic, and Lauren Coombe
 
 Logo Design: Rene L. Warren
 
-## News
-#### October 31, 2022
-We're looking for C++ bioinformatics developers to work on GoldRush and other exciting bioinformatics tools with the Bioinformatics Technology Lab in Vancouver, BC! For more information, check out the [BCGSC website](https://bcgsc.ca/careers/research-programmer-birol-labbioinformatics-technology-lab) and our [Birol Lab website](http://www.birollab.ca/jobs/2022/08/29/ProgrammerJob.html).   
-
 ## Usage
 ```
 GoldRush
