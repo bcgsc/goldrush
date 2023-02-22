@@ -1,1 +1,2 @@
-install_data('goldrush', install_dir : 'bin')
+scripts = ['goldrush', 'goldrush-ulimit']
+install_data(scripts, install_dir : 'bin')

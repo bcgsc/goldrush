@@ -12,6 +12,6 @@ max_processes=$(ulimit -Hu)
 ulimit -Su ${max_processes}
 max_processes=$(ulimit -u)
 
-echo "Running with ${stack} max processes: $*" >&2
+echo "Running with ${max_processes} max processes: $*" >&2
 exec /bin/sh -c "$*"
 
