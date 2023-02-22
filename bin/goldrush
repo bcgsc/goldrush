@@ -19,8 +19,7 @@ polish_k=32
 polish_w=100
 
 # Set max number of user processes
-max_processes=$(shell ulimit -Hu)
-set_ulimit=ulimit -u $(max_processes)
+set_ulimit=goldrush-ulimit
 
 ifeq ($(polisher), goldrush-edit)
 polisher_logs=GoldRush-Edit
@@ -231,7 +230,7 @@ $(p1)_$(M).fq: $(long_reads)
 	echo "Done GoldRush-Path + $(polisher_logs)! $(polisher_logs) polished golden path can be found in: $@"
 
 %.goldrush-edit-polished.fa: %.fa $(long_reads)
-	$(set_ulimit); $(time) goldrush-edit $(goldrush_edit_opts) -t$(t) -m$(shared_mem) $< $(long_reads) $@
+	$(time) $(set_ulimit) goldrush-edit $(goldrush_edit_opts) -t$(t) -m$(shared_mem) $< $(long_reads) $@
 	echo "Done GoldRush-Path + $(polisher_logs)! $(polisher_logs) polished golden path can be found in: $@"
 
 # Run racon

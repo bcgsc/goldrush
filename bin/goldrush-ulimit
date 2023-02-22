@@ -1,0 +1,17 @@
+#!/bin/sh
+
+if [ $# -lt 1 ]; then
+	echo "Usage: $(basename $0) <COMMAND>" >&2
+	echo "Run COMMAND in a shell with max available max processes" >&2
+	exit 1
+fi
+
+set -eux -o pipefail
+
+max_processes=$(ulimit -Hu)
+ulimit -u ${max_processes}
+max_processes=$(ulimit -u)
+
+echo "Running with ${stack} max processes: $*" >&2
+exec /bin/sh -c "$*"
+
