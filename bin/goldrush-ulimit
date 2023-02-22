@@ -9,7 +9,7 @@ fi
 set -eux -o pipefail
 
 max_processes=$(ulimit -Hu)
-ulimit -u ${max_processes}
+ulimit -Su ${max_processes}
 max_processes=$(ulimit -u)
 
 echo "Running with ${stack} max processes: $*" >&2
