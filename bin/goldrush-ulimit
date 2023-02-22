@@ -6,8 +6,6 @@ if [ $# -lt 1 ]; then
 	exit 1
 fi
 
-set -eux -o pipefail
-
 max_processes=$(ulimit -Hu)
 ulimit -Su ${max_processes}
 max_processes=$(ulimit -u)
