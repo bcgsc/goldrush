@@ -19,7 +19,7 @@ polish_k=32
 polish_w=100
 
 # Set max number of user processes
-max_processes=256000
+max_processes=$(shell ulimit -Hu)
 set_ulimit=ulimit -u $(max_processes)
 
 ifeq ($(polisher), goldrush-edit)
