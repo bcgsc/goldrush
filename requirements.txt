@@ -5,7 +5,7 @@ sdsl-lite
 boost-cpp
 libdivsufsort
 sparsehash
-btllib
+btllib <=1.4.10
 python
 minimap2
 tigmint
