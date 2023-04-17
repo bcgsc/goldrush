@@ -3,8 +3,6 @@ project('goldrush', 'cpp',
         license : 'GPL-3',
         default_options : [ 'cpp_std=c++17', 'warning_level=3', 'werror=true' ])
 
-btllib_dep = declare_dependency(include_directories : 'external/btllib/include')
-
 threads_dep = dependency('threads')
 openmp_dep = dependency('openmp')
 
@@ -13,6 +11,7 @@ tcmalloc_dep = compiler.find_library('tcmalloc')
 divsufsort_dep = compiler.find_library('divsufsort')
 divsufsort64_dep = compiler.find_library('divsufsort64')
 sdsl_dep = compiler.find_library('sdsl')
+btllib_dep = compiler.find_library('btllib')
 
 subdir('goldrush_path')
 subdir('bin')
