@@ -1,7 +1,7 @@
 #!/usr/bin/make -rRf
 # Pipeline for the Goldrush program
 # Written by Puneet Sidhu, Johnathan Wong, Lauren Coombe, and Vladimir Nikolic
-# GoldRush v1.0.2
+# GoldRush v1.0.3
 
 # Input files
 reads=reads
@@ -122,12 +122,12 @@ endif
 .SECONDARY:
 
 version:
-	@echo "goldrush v1.0.2"
+	@echo "goldrush v1.0.3"
 
 # Help
 help:
 	@echo "GoldRush"
-	@echo "v1.0.2"
+	@echo "v1.0.3"
 	@echo ""
 	@echo "Usage: goldrush [COMMAND] [OPTION=VALUE]…"
 	@echo ""

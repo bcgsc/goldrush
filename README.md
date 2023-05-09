@@ -28,7 +28,7 @@ Logo Design: Rene L. Warren
 ## Usage
 ```
 GoldRush
-v1.0.2
+v1.0.3
 
 Usage: goldrush [COMMAND] [OPTION=VALUE]…
 
