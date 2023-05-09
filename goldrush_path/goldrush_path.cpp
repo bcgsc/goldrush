@@ -765,9 +765,7 @@ process_read(const btllib::SeqReader::Record& record,
       return;
     }
   }
-  if (id % 10000 == 0) {
-    std::cerr << "processed " << id << " reads" << std::endl;
-  }
+
   size_t len = record.seq.size();
   size_t num_tiles = len / opt::tile_length;
 
@@ -836,10 +834,11 @@ process_read(const btllib::SeqReader::Record& record,
     }
   } else {
     if (num_assigned_tiles == num_tiles) {
+
+      ++id;
       if (verbose) {
         std::cerr << "complete assignment" << std::endl;
       }
-      ++id;
       return;
     }
 
@@ -905,6 +904,9 @@ process_read(const btllib::SeqReader::Record& record,
     // output read to wood path
   }
   ++id;
+  if (id % 10000 == 0) {
+    std::cerr << "processed " << id << " reads" << std::endl;
+  }
 }
 
 int
