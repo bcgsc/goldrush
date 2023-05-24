@@ -11,10 +11,10 @@ GoldRush iterates through the input long reads to produce a "golden path" of rea
 
 
 ### General steps in the algorithm:
-1. GoldRush-Path: selecting the golden path reads
-2. GoldRush-Edit: polishing the genome
-3. Tigmint-long: correcting the genome
-4. GoldRush-Link: scaffolding the genome
+1. **GoldPath** (aka GoldRush-Path): selecting the golden path reads
+2. **GoldPolish** (aka GoldRush-Edit): polishing the genome
+3. **Tigmint-long**: correcting the genome
+4. **GoldChain** (aka GoldRush-Link): scaffolding the genome
 
 
 
@@ -140,7 +140,7 @@ GoldRush has been tested on *Linux* operating systems (centOS7, ubuntu-20.04)
  * [boost](https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
  * [libdivsufsort](https://github.com/y-256/libdivsufsort)
  * [sparsehash](https://github.com/sparsehash/sparsehash)
- * [btllib 1.4.10 or lower](https://github.com/bcgsc/btllib)
+ * [btllib](https://github.com/bcgsc/btllib)
  * [Tigmint 1.2.6+](https://github.com/bcgsc/tigmint)
  * [ntLink 1.3.3+](https://github.com/bcgsc/ntlink)
  * [minimap2](https://github.com/lh3/minimap2)
@@ -188,10 +188,9 @@ The final assembly file for the test demo can be found in: `goldrush_test_golden
 ## Citation
 If you use GoldRush in your research, please cite:
 
-Johnathan Wong, Lauren Coombe, Vladimir Nikolić, Emily Zhang, Ka Ming Nip, Puneet Sidhu, René L Warren, and Inanç Birol. 2022. ‘GoldRush: A *de novo* Long Read Genome Assembler with Linear Time Complexity’. BioRxiv. https://doi.org/10.1101/2022.10.25.513734.
+Wong J, Coombe L, Nikolić V, Zhang E, Nip KM, Sidhu P, Warren RL and Birol I (2023). Linear time complexity de novo long read genome assembly with GoldRush. Nature Communications, 14(1), 2906. https://doi.org/10.1038/s41467-023-38716-x
 
-
-[![link](https://img.shields.io/badge/GoldRush-manuscript-brightgreen)](https://doi.org/10.1101/2022.10.25.513734)
+[![link](https://img.shields.io/badge/GoldRush-manuscript-brightgreen)](https://doi.org/10.1038/s41467-023-38716-x)
 
 ## Presentations
 Wong, J., Nikolic, V., Coombe, L., Zhang, E., Warren, R., & Birol, I. (2022, July 10–14). GoldRush-Path: A de novo assembler for long reads with linear time complexity [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States.  
