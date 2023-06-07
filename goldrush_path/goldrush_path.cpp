@@ -292,7 +292,6 @@ eval_flanks(ssize_t longest_start_idx,
     if (good_left_flank && good_right_flank) {
       good_flank = true;
     }
-
   } else {
 
     if (longest_start_idx - MAX_TILES_TO_CHECK >= 1) {
@@ -333,7 +332,6 @@ eval_flanks(ssize_t longest_start_idx,
         }
         good_flank = true;
       }
-
     } else {
 
       good_flank = true;
@@ -369,7 +367,6 @@ eval_flanks(ssize_t longest_start_idx,
         trim_end_idx = longest_end_idx + 1;
         good_flank = true;
       }
-
     } else {
       good_flank = true;
       trim_end_idx = (ssize_t)num_tiles - 1;
@@ -749,6 +746,9 @@ process_read(const btllib::SeqReader::Record& record,
     }
 
     ++id;
+    if (id % 10000 == 0) {
+      std::cerr << "processed " << id << " reads" << std::endl;
+    }
     return;
   }
   if (!filter_out_reads.empty()) {
@@ -759,12 +759,13 @@ process_read(const btllib::SeqReader::Record& record,
       }
 
       ++id;
+      if (id % 10000 == 0) {
+        std::cerr << "processed " << id << " reads" << std::endl;
+      }
       return;
     }
   }
-  if (id % 10000 == 0) {
-    std::cerr << "processed " << id << " reads" << std::endl;
-  }
+
   size_t len = record.seq.size();
   size_t num_tiles = len / opt::tile_length;
 
@@ -831,11 +832,14 @@ process_read(const btllib::SeqReader::Record& record,
                         ids_inserted,
                         miBFCS);
     }
-
   } else {
     if (num_assigned_tiles == num_tiles) {
+      ++id;
       if (verbose) {
         std::cerr << "complete assignment" << std::endl;
+      }
+      if (id % 10000 == 0) {
+        std::cerr << "processed " << id << " reads" << std::endl;
       }
       return;
     }
@@ -902,6 +906,9 @@ process_read(const btllib::SeqReader::Record& record,
     // output read to wood path
   }
   ++id;
+  if (id % 10000 == 0) {
+    std::cerr << "processed " << id << " reads" << std::endl;
+  }
 }
 
 int
