@@ -834,7 +834,6 @@ process_read(const btllib::SeqReader::Record& record,
     }
   } else {
     if (num_assigned_tiles == num_tiles) {
-
       ++id;
       if (verbose) {
         std::cerr << "complete assignment" << std::endl;
