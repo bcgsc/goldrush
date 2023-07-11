@@ -11,7 +11,7 @@
 
 #ifndef MULTI_LENGTH_STHASHITERATOR_HPP_
 #define MULTI_LENGTH_STHASHITERATOR_HPP_
-#include <btllib/nthash.hpp>
+#include "nthash.hpp"
 #include <assert.h>
 #include <vector>
 
@@ -28,7 +28,7 @@ public:
 
   multiLensfrHashIterator(const std::string& seq,
                           const std::vector<std::string>& seedVec)
-    : m_itrVec(std::vector<btllib::SeedNtHash>())
+    : m_itrVec(std::vector<SeedNtHash>())
     , m_seed(seedVec.size())
     , m_hash(m_seed)
     , m_hVec(new uint64_t[m_hash])
@@ -36,7 +36,7 @@ public:
   {
     for (size_t i = 0; i < m_seed; ++i) {
       std::vector<std::string> seed{ seedVec[i] };
-      m_itrVec.push_back(btllib::SeedNtHash(seq, seed, 1, seedVec[i].size()));
+      m_itrVec.push_back(SeedNtHash(seq, seed, 1, seedVec[i].size()));
       m_itrVec[i].roll();
       m_hVec[i] = m_itrVec[i].hashes()[0];
     }
@@ -92,7 +92,7 @@ public:
   }
 
 private:
-  std::vector<btllib::SeedNtHash> m_itrVec;
+  std::vector<SeedNtHash> m_itrVec;
   unsigned m_seed;
   unsigned m_hash;
   uint64_t* m_hVec;
