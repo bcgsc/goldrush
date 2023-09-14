@@ -6,12 +6,12 @@
 # Input files
 reads=reads
 
-polisher=goldrush-edit
+polisher=goldpolish
 polished_infix=$(polisher)-polished
 # ntlink or minimap2
 polisher_mapper=minimap2
 
-# Shared memory location for GoldRush-Edit
+# Shared memory location for goldpolish
 shared_mem=/dev/shm
 
 # ntlink mapping parameter (used if polisher_mapper=ntlink)
@@ -21,8 +21,8 @@ polish_w=100
 # Set max number of user processes
 set_ulimit=goldrush-ulimit
 
-ifeq ($(polisher), goldrush-edit)
-polisher_logs=GoldRush-Edit
+ifeq ($(polisher), goldpolish)
+polisher_logs=goldpolish
 else
 polisher_logs=$(polisher)
 endif
@@ -117,7 +117,7 @@ time=command memusg -t -o $@.time
 endif
 endif
 
-.PHONY: help run version clean path-tigmint-ntlink path-polish goldrush-path racon goldrush-edit path-tigmint tigmint ntLink-with-tigmint check-G check-reads
+.PHONY: help run version clean path-tigmint-ntlink path-polish goldrush-path racon goldpolish path-tigmint tigmint ntLink-with-tigmint check-G check-reads
 .DELETE_ON_ERROR:
 .SECONDARY:
 
@@ -136,7 +136,7 @@ help:
 	@echo ""
 	@echo "	Commands:"
 	@echo ""
-	@echo "	run			run default GoldRush pipeline: GoldRush-Path + Polisher (GoldRush-Edit by default) + Tigmint-long + ntLink (default 5 rounds)"
+	@echo "	run			run default GoldRush pipeline: GoldRush-Path + Polisher (goldpolish by default) + Tigmint-long + ntLink (default 5 rounds)"
 	@echo ""
 	@echo "	goldrush-path		run GoldRush-Path"
 	@echo "	path-polish		run GoldRush-Path, then $(polisher_logs)"
@@ -179,7 +179,7 @@ help:
 	@echo "	w_ntLink		window size for minimizers [$(w_ntLink)]"
 	@echo "	rounds			number of rounds of ntLink [$(rounds)]"
 	@echo ""
-	@echo "	GoldRush-Edit options:"
+	@echo "	goldpolish options:"
 	@echo "	polisher_mapper		Whether to use ntlink or minimap2 for mappings [$(polisher_mapper)]"
 	@echo "	shared_mem		Shared memory path where polishing occurs [/dev/shm] "
 	@echo ""
@@ -229,14 +229,14 @@ $(p1)_$(M).fq: $(long_reads)
 	$(time) racon -u -t$(t) $(long_reads) $^ > $@
 	echo "Done GoldRush-Path + $(polisher_logs)! $(polisher_logs) polished golden path can be found in: $@"
 
-%.goldrush-edit-polished.fa: %.fa $(long_reads)
-	$(time) $(set_ulimit) goldrush-edit $(goldrush_edit_opts) -t$(t) -m$(shared_mem) $< $(long_reads) $@
+%.goldpolish-polished.fa: %.fa $(long_reads)
+	$(time) $(set_ulimit) goldpolish $(goldrush_edit_opts) -t$(t) -m$(shared_mem) $< $(long_reads) $@
 	echo "Done GoldRush-Path + $(polisher_logs)! $(polisher_logs) polished golden path can be found in: $@"
 
 # Run racon
 racon: $(p2).racon-polished.fa check-G check-reads
 
-goldrush-edit: $(p2).goldrush-edit-polished.fa check-G check-reads
+goldpolish: $(p2).goldpolish-polished.fa check-G check-reads
 
 $(p2).fa.$(long_reads).sam: $(p2).fa $(long_reads)
 	$(time) minimap2 -t $(t) -a -x map-ont  $< $(long_reads) > $@

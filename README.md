@@ -12,7 +12,7 @@ GoldRush iterates through the input long reads to produce a "golden path" of rea
 
 ### General steps in the algorithm:
 1. **GoldPath** (aka GoldRush-Path): selecting the golden path reads
-2. **[GoldPolish](https://github.com/bcgsc/goldpolish)** (aka GoldRush-Edit): polishing the genome
+2. **[GoldPolish](https://github.com/bcgsc/goldpolish)** (aka goldpolish): polishing the genome
 3. **[Tigmint-long](https://github.com/bcgsc/tigmint)**: correcting the genome
 4. **[GoldChain](https://github.com/bcgsc/ntlink)** (aka GoldRush-Link): scaffolding the genome
 
@@ -37,12 +37,12 @@ goldrush run reads=reads G=gsize
 
         Commands:
 
-        run                     run default GoldRush pipeline: GoldRush-Path + Polisher (GoldRush-Edit by default) + Tigmint-long + ntLink (
+        run                     run default GoldRush pipeline: GoldRush-Path + Polisher (goldpolish by default) + Tigmint-long + ntLink (
 default 5 rounds)
         goldrush-path           run GoldRush-Path
-        path-polish             run GoldRush-Path, then GoldRush-Edit
-        path-tigmint            run GoldRush-Path, then GoldRush-Edit, then Tigmint-long
-        path-tigmint-ntLink     run GoldRush-Path, then GoldRush-Edit, then Tigmint-long, then ntLink (default 5 rounds)
+        path-polish             run GoldRush-Path, then goldpolish
+        path-tigmint            run GoldRush-Path, then goldpolish, then Tigmint-long
+        path-tigmint-ntLink     run GoldRush-Path, then goldpolish, then Tigmint-long, then ntLink (default 5 rounds)
 
         General options (required):
         reads                   read name [reads]. File must have .fq or .fastq extension, but do not include the suffix in the supplied read name
@@ -80,7 +80,7 @@ default 5 rounds)
         w_ntLink                window size for minimizers [250]
         rounds                  number of rounds of ntLink [5]
 
-        GoldRush-Edit options:
+        goldpolish options:
         polisher_mapper         Whether to use ntlink or minimap2 for mappings [minimap2]
         shared_mem		Shared memory path where polishing occurs [/dev/shm]
 
@@ -183,7 +183,7 @@ Compiling GoldRush from the source code takes ~2.5min on a typical machine.
  ```
 Running the above `goldrush_test_demo.sh` script will automatically download a small set of long reads from a ~1Mbp segment of *C. elegans* chromosome 3, and run GoldRush. It will also check that the final assembly file has an L50 of 1, as expected (ie. at least half of the assembly is in a single piece). The test should run in <2min on a typical machine.
 
-The final assembly file for the test demo can be found in: `goldrush_test_golden_path.goldrush-edit-polished.span2.dist500.tigmint.fa.k40.w250.ntLink-5rounds.fa`
+The final assembly file for the test demo can be found in: `goldrush_test_golden_path.goldpolish-polished.span2.dist500.tigmint.fa.k40.w250.ntLink-5rounds.fa`
 
 ## Citation
 If you use GoldRush in your research, please cite:
@@ -195,7 +195,7 @@ Wong J, Coombe L, Nikolić V, Zhang E, Nip KM, Sidhu P, Warren RL and Birol I (2
 ## Presentations
 Wong, J., Nikolic, V., Coombe, L., Zhang, E., Warren, R., & Birol, I. (2022, July 10–14). GoldRush-Path: A de novo assembler for long reads with linear time complexity [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States.  
 
-Nikolic, V., Coombe, L., Wong, J., Birol, I., & Warren, R. (2022, July 10–14). GoldRush-Edit : A targeted, alignment-free polishing & finishing pipeline for long read assembly, using long read k-mers [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States. 
+Nikolic, V., Coombe, L., Wong, J., Birol, I., & Warren, R. (2022, July 10–14). goldpolish : A targeted, alignment-free polishing & finishing pipeline for long read assembly, using long read k-mers [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States. 
 
 Coombe, L., Warren, R., Nikolic, V., Wong, J., & Birol, I. (2022, July 10–14). GoldRush-Link: Integrating minimizer-based overlap detection and gap-filling to the ntLink long read scaffolder [Conference presentation]. Intelligent Systems for Molecular Biology 2022, Madison, WI, United States. 
 
