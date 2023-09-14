@@ -11,7 +11,7 @@ polished_infix=$(polisher)-polished
 # ntlink or minimap2
 polisher_mapper=minimap2
 
-# Shared memory location for goldpolish
+# Shared memory location for GoldPolish
 shared_mem=/dev/shm
 
 # ntlink mapping parameter (used if polisher_mapper=ntlink)
@@ -22,7 +22,7 @@ polish_w=100
 set_ulimit=goldrush-ulimit
 
 ifeq ($(polisher), goldpolish)
-polisher_logs=goldpolish
+polisher_logs=GoldPolish
 else
 polisher_logs=$(polisher)
 endif
@@ -136,7 +136,7 @@ help:
 	@echo ""
 	@echo "	Commands:"
 	@echo ""
-	@echo "	run			run default GoldRush pipeline: GoldRush-Path + Polisher (goldpolish by default) + Tigmint-long + ntLink (default 5 rounds)"
+	@echo "	run			run default GoldRush pipeline: GoldRush-Path + Polisher (GoldPolish by default) + Tigmint-long + ntLink (default 5 rounds)"
 	@echo ""
 	@echo "	goldrush-path		run GoldRush-Path"
 	@echo "	path-polish		run GoldRush-Path, then $(polisher_logs)"
@@ -179,7 +179,7 @@ help:
 	@echo "	w_ntLink		window size for minimizers [$(w_ntLink)]"
 	@echo "	rounds			number of rounds of ntLink [$(rounds)]"
 	@echo ""
-	@echo "	goldpolish options:"
+	@echo "	GoldPolish options:"
 	@echo "	polisher_mapper		Whether to use ntlink or minimap2 for mappings [$(polisher_mapper)]"
 	@echo "	shared_mem		Shared memory path where polishing occurs [/dev/shm] "
 	@echo ""
