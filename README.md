@@ -37,7 +37,7 @@ goldrush run reads=reads G=gsize
 
         Commands:
 
-        run                     run default GoldRush pipeline: GoldRush-Path + Polisher (goldpolish by default) + Tigmint-long + ntLink (
+        run                     run default GoldRush pipeline: GoldRush-Path + Polisher (GoldPolish by default) + Tigmint-long + ntLink (
 default 5 rounds)
         goldrush-path           run GoldRush-Path
         path-polish             run GoldRush-Path, then GoldPolish
