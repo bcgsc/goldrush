@@ -12,7 +12,7 @@ GoldRush iterates through the input long reads to produce a "golden path" of rea
 
 ### General steps in the algorithm:
 1. **GoldPath** (aka GoldRush-Path): selecting the golden path reads
-2. **[GoldPolish](https://github.com/bcgsc/goldpolish)**: polishing the genome
+2. **[GoldPolish](https://github.com/bcgsc/goldpolish)** (aka GoldRush-Edit): polishing the genome
 3. **[Tigmint-long](https://github.com/bcgsc/tigmint)**: correcting the genome
 4. **[GoldChain](https://github.com/bcgsc/ntlink)** (aka GoldRush-Link): scaffolding the genome
 
