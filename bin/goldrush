@@ -28,9 +28,9 @@ polisher_logs=$(polisher)
 endif
 
 ifeq ($(polisher_mapper),ntlink)
-goldrush_edit_opts=--ntlink --k-ntlink $(polish_k) --w-ntlink $(polish_w)
+goldpolish_opts=--ntlink --k-ntlink $(polish_k) --w-ntlink $(polish_w)
 else ifeq ($(polisher_mapper),minimap2)
-goldrush_edit_opts=--minimap2
+goldpolish_opts=--minimap2
 else
 $(error "Unknown mapper: $(polisher_mapper)")
 endif
@@ -230,7 +230,7 @@ $(p1)_$(M).fq: $(long_reads)
 	echo "Done GoldRush-Path + $(polisher_logs)! $(polisher_logs) polished golden path can be found in: $@"
 
 %.goldpolish-polished.fa: %.fa $(long_reads)
-	$(time) $(set_ulimit) goldpolish $(goldrush_edit_opts) -t$(t) -m$(shared_mem) $< $(long_reads) $@
+	$(time) $(set_ulimit) goldpolish $(goldpolish_opts) -t$(t) -m$(shared_mem) $< $(long_reads) $@
 	echo "Done GoldRush-Path + $(polisher_logs)! $(polisher_logs) polished golden path can be found in: $@"
 
 # Run racon
