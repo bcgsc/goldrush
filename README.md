@@ -37,12 +37,12 @@ goldrush run reads=reads G=gsize
 
         Commands:
 
-        run                     run default GoldRush pipeline: GoldRush-Path + Polisher (GoldRush-Edit by default) + Tigmint-long + ntLink (
+        run                     run default GoldRush pipeline: GoldRush-Path + Polisher (GoldPolish by default) + Tigmint-long + ntLink (
 default 5 rounds)
         goldrush-path           run GoldRush-Path
-        path-polish             run GoldRush-Path, then GoldRush-Edit
-        path-tigmint            run GoldRush-Path, then GoldRush-Edit, then Tigmint-long
-        path-tigmint-ntLink     run GoldRush-Path, then GoldRush-Edit, then Tigmint-long, then ntLink (default 5 rounds)
+        path-polish             run GoldRush-Path, then GoldPolish
+        path-tigmint            run GoldRush-Path, then GoldPolish, then Tigmint-long
+        path-tigmint-ntLink     run GoldRush-Path, then GoldPolish, then Tigmint-long, then ntLink (default 5 rounds)
 
         General options (required):
         reads                   read name [reads]. File must have .fq or .fastq extension, but do not include the suffix in the supplied read name
@@ -80,7 +80,7 @@ default 5 rounds)
         w_ntLink                window size for minimizers [250]
         rounds                  number of rounds of ntLink [5]
 
-        GoldRush-Edit options:
+        GoldPolish options:
         polisher_mapper         Whether to use ntlink or minimap2 for mappings [minimap2]
         shared_mem		Shared memory path where polishing occurs [/dev/shm]
 
@@ -140,7 +140,7 @@ GoldRush has been tested on *Linux* operating systems (centOS7, ubuntu-20.04)
  * [boost](https://www.boost.org/doc/libs/1_61_0/more/getting_started/unix-variants.html)
  * [libdivsufsort](https://github.com/y-256/libdivsufsort)
  * [sparsehash](https://github.com/sparsehash/sparsehash)
- * [btllib](https://github.com/bcgsc/btllib)
+ * [btllib 1.6.2+](https://github.com/bcgsc/btllib)
  * [Tigmint 1.2.6+](https://github.com/bcgsc/tigmint)
  * [ntLink 1.3.3+](https://github.com/bcgsc/ntlink)
  * [minimap2](https://github.com/lh3/minimap2)
@@ -183,7 +183,7 @@ Compiling GoldRush from the source code takes ~2.5min on a typical machine.
  ```
 Running the above `goldrush_test_demo.sh` script will automatically download a small set of long reads from a ~1Mbp segment of *C. elegans* chromosome 3, and run GoldRush. It will also check that the final assembly file has an L50 of 1, as expected (ie. at least half of the assembly is in a single piece). The test should run in <2min on a typical machine.
 
-The final assembly file for the test demo can be found in: `goldrush_test_golden_path.goldrush-edit-polished.span2.dist500.tigmint.fa.k40.w250.ntLink-5rounds.fa`
+The final assembly file for the test demo can be found in: `goldrush_test_golden_path.goldpolish-polished.span2.dist500.tigmint.fa.k40.w250.ntLink-5rounds.fa`
 
 ## Citation
 If you use GoldRush in your research, please cite:

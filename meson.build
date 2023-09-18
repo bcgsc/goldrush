@@ -15,7 +15,7 @@ btllib_dep = compiler.find_library('btllib')
 
 subdir('goldrush_path')
 subdir('bin')
-subproject('goldrush-edit')
+subproject('goldpolish')
 
 rootpath = meson.source_root()
 
