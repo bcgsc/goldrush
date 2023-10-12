@@ -18,6 +18,9 @@ shared_mem=/dev/shm
 polish_k=32
 polish_w=100
 
+# intermediate files directory
+prefix=goldrush_intermediate_files
+
 # Set max number of user processes
 set_ulimit=goldrush-ulimit
 
@@ -194,7 +197,17 @@ endif
 	@echo "Clean Done"
 
 # Set-up pipelines
-run: path-tigmint-ntLink check-G check-reads clean
+run: 
+	mkdir -p $(prefix)
+	cd $(prefix) && ln -sf ../$(long_reads) && goldrush run-in-dir reads=$(reads) G=$(G) t=$(t) z=$(z) track_time=$(track_time) k=$(k) w=$(w) tile=$(tile) b=$(b) u=$(u) a=$(a) o=$(o) x=$(x) h=$(h) s=$(s) m=$(m) M=$(M) r=$(r) P=$(P) d=$(d) span=$(span) dist=$(dist) k_ntLink=$(k_ntLink) w_ntLink=$(w_ntLink) rounds=$(rounds) polisher=$(polisher) polisher_mapper=$(polisher_mapper) shared_mem=$(shared_mem)
+	ln -sf $(prefix)/$(p2).fa
+	ln -sf $(prefix)/$(p2).$(polished_infix).fa
+	ln -sf $(prefix)/$(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa
+	ln -sf $(prefix)/$(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa
+	echo "You can find intermediate files and the outputs for each GoldRush stage within the $(prefix) subdirectory."
+	echo "A soft link to your final assembly is available at: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa"
+
+run-in-dir: path-tigmint-ntLink check-G check-reads clean
 path-polish: $(polisher) check-G check-reads clean
 path-tigmint: tigmint check-G check-reads clean
 
