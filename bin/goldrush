@@ -204,8 +204,8 @@ run:
 	ln -sf $(prefix)/$(p2).$(polished_infix).fa
 	ln -sf $(prefix)/$(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa
 	ln -sf $(prefix)/$(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa
-	echo "A soft link to your final assembly is available at: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa"
 	echo "You can find intermediate files and the outputs for each GoldRush stage within the $(prefix) subdirectory."
+	echo "A soft link to your final assembly is available at: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa"
 
 run-in-dir: path-tigmint-ntLink check-G check-reads clean
 path-polish: $(polisher) check-G check-reads clean
