@@ -756,7 +756,7 @@ process_read(const btllib::SeqReader::Record& record,
              const std::unordered_set<std::string>& filter_out_reads)
 {
   if (record.seq.size() < min_seq_len) {
-    if (opt::verbose) {
+    if (opt::debug) {
       std::cerr << "too short" << std::endl;
       std::cerr << "skipping: " << record.id << std::endl;
     }
@@ -769,7 +769,7 @@ process_read(const btllib::SeqReader::Record& record,
   }
   if (!filter_out_reads.empty()) {
     if (filter_out_reads.find(record.id) != filter_out_reads.end()) {
-      if (opt::verbose) {
+      if (opt::debug) {
         std::cerr << "hairpin or quality too low" << std::endl;
         std::cerr << "skipping: " << record.id << std::endl;
       }
@@ -785,7 +785,7 @@ process_read(const btllib::SeqReader::Record& record,
   size_t len = record.seq.size();
   size_t num_tiles = len / opt::tile_length;
 
-  if (opt::verbose) {
+  if (opt::debug) {
     std::cerr << "name: " << record.id << std::endl;
     std::cerr << "num tiles: " << num_tiles << std::endl;
   }
@@ -798,11 +798,11 @@ process_read(const btllib::SeqReader::Record& record,
   std::vector<uint8_t> tiles_assigned_bool_vec(num_tiles, 0);
   const size_t num_assigned_tiles = calc_num_assigned_tiles(
     *miBF, hashed_values, tiles_assigned_id_vec, tiles_assigned_bool_vec);
-  if (opt::verbose) {
+  if (opt::debug) {
     std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl;
   }
   const size_t num_unassigned_tiles = num_tiles - num_assigned_tiles;
-  if (opt::verbose) {
+  if (opt::debug) {
     std::cerr << "num unassigned tiles: " << num_unassigned_tiles << std::endl;
   }
 
