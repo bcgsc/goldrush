@@ -157,7 +157,7 @@ fill_bit_vector(const std::string& input_file,
 #pragma omp atomic
           ++size_num_reads_skipped_by_phred;
         }
-        if (phred_stat.first < opt::phred_min) {
+        if (phred_stat.second >= opt::phred_delta) {
 #pragma omp atomic
           ++size_num_reads_skipped_by_delta;
         }
