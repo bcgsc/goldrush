@@ -21,7 +21,6 @@ FilteringMode mode = STD;
 
 bool minHitOnly = false;
 unsigned maxGroupSize = std::numeric_limits<unsigned>::max();
-int debug = 0;
 double multiThresh = 1;
 bool inverse = false;
 

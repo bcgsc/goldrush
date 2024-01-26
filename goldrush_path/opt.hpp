@@ -31,17 +31,19 @@ extern std::string filter_file;
 extern int help;
 extern int ntcard;
 extern int silver_path;
+extern int verbose;
+extern int debug;
 
 }
 
 static const struct option longopts[] = {
+  { "debug", no_argument, &opt::debug, 1 },
+  { "verbose", no_argument, &opt::verbose, 1 },
   { "silver_path", no_argument, &opt::silver_path, 1 },
   { "help", no_argument, &opt::help, 1 },
   { "ntcard", no_argument, &opt::ntcard, 1 },
   { nullptr, 0, nullptr, 0 }
 };
-
-static constexpr bool verbose = false;
 
 void
 process_options(int argc, char** argv);

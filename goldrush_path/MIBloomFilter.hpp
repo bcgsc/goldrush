@@ -637,11 +637,12 @@ public:
     return satProp;
   }
 
-  void reset_ID_vector() {
+  void reset_ID_vector()
+  {
     memset(&m_data[0], 0, m_data.size() * sizeof m_data[0]);
   }
 
-  ~MIBloomFilter() { }
+  ~MIBloomFilter() {}
 
 private:
   // Driver function to sort the vector elements
