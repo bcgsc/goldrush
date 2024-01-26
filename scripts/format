@@ -9,7 +9,7 @@ set -e
 
 cd "${MESON_SOURCE_ROOT}"
 
-files=$(find workpackage2 -type f | grep "\(.*\.h$\)\|\(.*\.hpp$\)\|\(.*\.cpp$\)\|\(.*\.cxx$\)")
+files=$(find goldrush_path -type f | grep "\(.*\.h$\)\|\(.*\.hpp$\)\|\(.*\.cpp$\)\|\(.*\.cxx$\)")
 for file in $files; do
   clang-format -i -style=mozilla $file
 done

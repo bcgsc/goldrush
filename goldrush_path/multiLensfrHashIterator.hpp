@@ -11,8 +11,8 @@
 
 #ifndef MULTI_LENGTH_STHASHITERATOR_HPP_
 #define MULTI_LENGTH_STHASHITERATOR_HPP_
-#include <btllib/nthash.hpp>
 #include <assert.h>
+#include <btllib/nthash.hpp>
 #include <vector>
 
 class multiLensfrHashIterator

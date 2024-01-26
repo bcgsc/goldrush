@@ -140,6 +140,8 @@ fill_bit_vector(const std::string& input_file,
   }
   size_t num_reads = 0;
   size_t num_passed_reads = 0;
+  size_t size_num_reads_skipped_by_phred = 0;
+  size_t size_num_reads_skipped_by_delta = 0;
 #pragma omp parallel
   for (const auto record : reader) {
 #pragma omp atomic
@@ -150,6 +152,16 @@ fill_bit_vector(const std::string& input_file,
     const auto phred_stat = calc_phred_average(record.qual);
     if (phred_stat.first < opt::phred_min ||
         phred_stat.second >= opt::phred_delta) {
+      if (opt::verbose) {
+        if (phred_stat.first < opt::phred_min) {
+#pragma omp atomic
+          ++size_num_reads_skipped_by_phred;
+        }
+        if (phred_stat.first < opt::phred_min) {
+#pragma omp atomic
+          ++size_num_reads_skipped_by_delta;
+        }
+      }
 #pragma omp critical
       {
         filter_out_reads.insert(record.id);
@@ -162,14 +174,18 @@ fill_bit_vector(const std::string& input_file,
     miBFCS.insertBV(itr);
   }
 
-  if (verbose) {
+  if (opt::verbose) {
     std::cerr << "num_passed_reads: " << num_passed_reads << "\n"
               << "num_reads: " << num_reads << "\n"
               << "num_reads - num_passed_reads: "
               << num_reads - num_passed_reads << "\n"
               << "num_reads - num_passed_reads / num_reads: "
-              << "\n"
               << floor((double)(num_reads - num_passed_reads) / num_reads)
+              << "\n"
+              << "num_reads_skipped_by_phred: "
+              << size_num_reads_skipped_by_phred << "\n"
+              << "num_reads_skipped_by_delta: "
+              << size_num_reads_skipped_by_delta << "\n"
               << std::endl;
   }
 
@@ -469,7 +485,7 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
     }
   }
   if (num_tiles >= 3) {
-    if (verbose) {
+    if (opt::debug) {
       log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
     }
     num_assigned_tiles = 0;
@@ -496,7 +512,7 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
       }
     }
 
-    if (verbose) {
+    if (opt::debug) {
       log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
     }
 
@@ -517,7 +533,7 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
       }
     }
 
-    if (verbose) {
+    if (opt::debug) {
       log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
     }
 
@@ -569,7 +585,7 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
       }
     }
 
-    if (verbose) {
+    if (opt::debug) {
       log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
     }
     size_t start_idx = 0;
@@ -601,7 +617,7 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
       }
     }
 
-    if (verbose) {
+    if (opt::debug) {
       log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
     }
     if (num_tiles >= 3) {
@@ -628,7 +644,7 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
       }
     }
 
-    if (verbose) {
+    if (opt::debug) {
       log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
     }
 
@@ -656,7 +672,7 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
         }
       }
     }
-    if (verbose) {
+    if (opt::debug) {
       log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
     }
 
@@ -685,7 +701,7 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
       }
     }
 
-    if (verbose) {
+    if (opt::debug) {
       log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
     }
 
@@ -712,7 +728,7 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
       }
     }
 
-    if (verbose) {
+    if (opt::debug) {
       log_tile_states(tiles_assigned_id_vec, tiles_assigned_bool_vec);
     }
   }
@@ -740,7 +756,7 @@ process_read(const btllib::SeqReader::Record& record,
              const std::unordered_set<std::string>& filter_out_reads)
 {
   if (record.seq.size() < min_seq_len) {
-    if (verbose) {
+    if (opt::verbose) {
       std::cerr << "too short" << std::endl;
       std::cerr << "skipping: " << record.id << std::endl;
     }
@@ -753,7 +769,7 @@ process_read(const btllib::SeqReader::Record& record,
   }
   if (!filter_out_reads.empty()) {
     if (filter_out_reads.find(record.id) != filter_out_reads.end()) {
-      if (verbose) {
+      if (opt::verbose) {
         std::cerr << "hairpin or quality too low" << std::endl;
         std::cerr << "skipping: " << record.id << std::endl;
       }
@@ -769,7 +785,7 @@ process_read(const btllib::SeqReader::Record& record,
   size_t len = record.seq.size();
   size_t num_tiles = len / opt::tile_length;
 
-  if (verbose) {
+  if (opt::verbose) {
     std::cerr << "name: " << record.id << std::endl;
     std::cerr << "num tiles: " << num_tiles << std::endl;
   }
@@ -782,11 +798,11 @@ process_read(const btllib::SeqReader::Record& record,
   std::vector<uint8_t> tiles_assigned_bool_vec(num_tiles, 0);
   const size_t num_assigned_tiles = calc_num_assigned_tiles(
     *miBF, hashed_values, tiles_assigned_id_vec, tiles_assigned_bool_vec);
-  if (verbose) {
+  if (opt::verbose) {
     std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl;
   }
   const size_t num_unassigned_tiles = num_tiles - num_assigned_tiles;
-  if (verbose) {
+  if (opt::verbose) {
     std::cerr << "num unassigned tiles: " << num_unassigned_tiles << std::endl;
   }
 
@@ -802,7 +818,7 @@ process_read(const btllib::SeqReader::Record& record,
   }
 
   if (!assigned) {
-    if (verbose) {
+    if (opt::debug) {
       std::cerr << "unassigned" << std::endl;
     }
     ++ids_inserted;
@@ -835,7 +851,7 @@ process_read(const btllib::SeqReader::Record& record,
   } else {
     if (num_assigned_tiles == num_tiles) {
       ++id;
-      if (verbose) {
+      if (opt::debug) {
         std::cerr << "complete assignment" << std::endl;
       }
       if (id % 10000 == 0) {
@@ -856,7 +872,7 @@ process_read(const btllib::SeqReader::Record& record,
 
     if (good_flank) {
       assigned = false;
-      if (verbose) {
+      if (opt::debug) {
         std::cerr << "trimmed" << std::endl;
       }
       ++ids_inserted;
@@ -900,7 +916,7 @@ process_read(const btllib::SeqReader::Record& record,
   }
 
   if (assigned) {
-    if (verbose) {
+    if (opt::debug) {
       std::cerr << "assigned" << std::endl;
     }
     // output read to wood path
