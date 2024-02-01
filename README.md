@@ -87,7 +87,7 @@ default 5 rounds)
 Notes:
         - GoldRush-Path generates silver paths before generating the golden path
         - Ensure that all input files are in the current working directory, making soft-links if needed
-
+        - The input reads must be in random order. If they are sorted by chromosome position, shuffle them prior to GoldRush assembly.
 ```
 
 Running `goldrush help` prints the help documentation.
