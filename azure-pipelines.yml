@@ -28,6 +28,7 @@ jobs:
       source activate goldrush_CI
       export PATH=$(pwd)/test_build/bin:$PATH
       cd tests
+      mkdir tmp
       ./goldrush_test_demo.sh
     displayName: Test run for GoldRush
 
