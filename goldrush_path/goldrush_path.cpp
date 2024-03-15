@@ -1086,7 +1086,7 @@ main(int argc, char** argv)
 
   }
   if (opt::silver_path && opt::max_paths > curr_path) {
-    std::cerr << "WARNING: Expected" << std::to_string(opt::max_paths) 
+    std::cerr << "WARNING: Expected " << std::to_string(opt::max_paths) 
               << " silver paths, but only " << std::to_string(curr_path)
               <<" generated.\n" << "Possible reasons include:\n"
               << "\t- Input reads sorted by chromosome/position\n"
