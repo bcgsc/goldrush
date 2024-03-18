@@ -14,8 +14,8 @@ jobs:
     displayName: Create Anaconda environment
   - script: |
       source activate goldrush_CI
-      conda install --yes -c conda-forge mamba python=3.10
-      mamba install --yes -c conda-forge -c bioconda compilers meson gperftools sdsl-lite boost-cpp sparsehash btllib libdivsufsort minimap2 tigmint ntlink miller  libstdcxx-ng=13.2.0=h7e041cc_4 
+      conda install --yes -c conda-forge mamba python=3.10 libstdcxx-ng=13.2.0=h7e041cc_4 
+      mamba install --yes -c conda-forge -c bioconda compilers meson gperftools sdsl-lite boost-cpp sparsehash btllib libdivsufsort minimap2 tigmint ntlink miller  
     displayName: Install dependencies
   - script: |
       source activate goldrush_CI
