@@ -15,7 +15,7 @@ jobs:
   - script: |
       source activate goldrush_CI
       conda install --yes -c conda-forge mamba python=3.10
-      mamba install --yes -c conda-forge -c bioconda compilers meson gperftools sdsl-lite boost-cpp sparsehash btllib libdivsufsort minimap2 tigmint ntlink miller
+      mamba install --yes -c conda-forge -c bioconda compilers meson gperftools sdsl-lite boost-cpp sparsehash btllib libdivsufsort minimap2 tigmint ntlink miller  libstdcxx-ng=13.2.0=h7e041cc_4 
     displayName: Install dependencies
   - script: |
       source activate goldrush_CI
@@ -49,7 +49,7 @@ jobs:
   - script: |
       source activate goldrush_CI
       conda install --yes -c conda-forge mamba python=3.10
-      mamba install --yes -c conda-forge -c bioconda compilers meson gperftools sdsl-lite boost-cpp sparsehash btllib libdivsufsort minimap2 tigmint ntlink miller
+      mamba install --yes -c conda-forge -c bioconda compilers meson gperftools sdsl-lite boost-cpp sparsehash btllib libdivsufsort minimap2 tigmint ntlink miller 
     displayName: Install dependencies
   - script: |
       source activate goldrush_CI
