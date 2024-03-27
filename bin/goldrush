@@ -165,7 +165,6 @@ help:
 	@echo "	o			occupancy of the miBF [$(o)]"
 	@echo "	x			threshold for number of hits in miBF for a given frame to be considered assigned [$(x)]"
 	@echo "	h			number of seed patterns to use [$(h)]"
-	@echo "	s			spaced seed design [$(s)]"
 	@echo "	m			minimum read length [$(m)]"
 	@echo "	M			maximum number of silver paths to generate [$(M)]"
 	@echo "	r			ratio of full genome in golden path [$(r)]"
