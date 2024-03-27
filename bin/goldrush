@@ -170,7 +170,7 @@ help:
 	@echo "	r			ratio of full genome in golden path [$(r)]"
 	@echo "	P			minimum average phred score for each read [$(P)]"
 	@echo "	d			remove reads with greater or equal than d difference between average phred quality of first half and second half of the read [$(d)]"
-	@echo "	p			prefix to use for the output paths [w$(w)_x$(x)]"
+	@echo "	p			prefix to use for the output paths [$(p)]"
 	@echo ""
 	@echo "	Tigmint-long options:"
 	@echo "	span			min number of spanning molecules [$(span)]"
