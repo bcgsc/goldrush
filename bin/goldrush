@@ -171,7 +171,7 @@ help:
 	@echo "	r			ratio of full genome in golden path [$(r)]"
 	@echo "	P			minimum average phred score for each read [$(P)]"
 	@echo "	d			remove reads with greater or equal than d difference between average phred quality of first half and second half of the read [$(d)]"
-	@echo "	p			prefix to use for the output paths [goldrush_asm]"
+	@echo "	p			prefix to use for the output paths [w$(w)_x$(x)]"
 	@echo ""
 	@echo "	Tigmint-long options:"
 	@echo "	span			min number of spanning molecules [$(span)]"
@@ -232,11 +232,11 @@ goldrush-path: $(p2).fa check-G check-reads clean
 
 $(p2).fa: $(p1)_all.fq
 ifneq ($(k), 22)
-		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -s $(s) -g $(G) -b $(b)  -m 0
-else ifneq ($(w), 16)
-		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -s $(s) -g $(G) -b $(b)  -m 0
-else
 		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -g $(G) -b $(b)  -m 0
+else ifneq ($(w), 16)
+		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -g $(G) -b $(b)  -m 0
+else
+		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -s $(s) -g $(G) -b $(b)  -m 0
 endif
 	echo "Done GoldRush-Path! Golden path can be found in: $@"
 
@@ -245,11 +245,11 @@ $(p1)_all.fq: $(p1)_$(M).fq
 
 $(p1)_$(M).fq: $(long_reads)
 ifneq ($(k), 22)
-		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(t) -x$(x) -P $(P) -d $(d) -s $(s) -g $(G) -b $(b) -r $(r) --silver_path -M $(M) -m $(m)
-else ifneq ($(w), 16)
-		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(t) -x$(x) -P $(P) -d $(d) -s $(s) -g $(G) -b $(b) -r $(r) --silver_path -M $(M) -m $(m)
-else
 		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(t) -x$(x) -P $(P) -d $(d) -g $(G) -b $(b) -r $(r) --silver_path -M $(M) -m $(m)
+else ifneq ($(w), 16)
+		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(t) -x$(x) -P $(P) -d $(d) -g $(G) -b $(b) -r $(r) --silver_path -M $(M) -m $(m)
+else
+		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(t) -x$(x) -P $(P) -d $(d) -s $(s) -g $(G) -b $(b) -r $(r) --silver_path -M $(M) -m $(m)
 endif
 
 %.racon-polished.fa: %.fa.$(long_reads).sam %.fa
