@@ -69,7 +69,7 @@ default 5 rounds)
         r                       ratio of full genome in golden path [0.9]
         P                       minimum average phred score for each read [15]
         d                       remove reads with greater or equal than d difference between average phred quality of first half and second half of the read [5]
-        p                       prefix to use for the output paths [w16_x10]
+        p                       prefix to use for the output paths [goldrush_asm]
 
         Tigmint-long options:
         span                    min number of spanning molecules [2]
