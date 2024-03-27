@@ -16,7 +16,7 @@ make_seed_pattern(const std::string& seed_preset,
   std::string right_seed_str;
 
   if (seed_preset == "") {
-    srand(time(NULL));
+    srand(123);
     // seed generation
     std::cerr << "Designing base symmetrical spaced seed"
               << "\n"
