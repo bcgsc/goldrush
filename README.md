@@ -63,7 +63,6 @@ default 5 rounds)
         o                       occupancy of the miBF [0.1]
         x                       threshold for number of hits in miBF for a given frame to be considered assigned [10]
         h                       number of seed patterns to use [3]
-        s                       spaced seed design [1011011110110111101101]
         m                       minimum read length [20000]
         M                       maximum number of silver paths to generate [5]
         r                       ratio of full genome in golden path [0.9]
