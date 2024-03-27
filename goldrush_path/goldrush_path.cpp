@@ -140,16 +140,16 @@ fill_bit_vector(const std::string& input_file,
   }
   size_t num_reads = 0;
   size_t num_passed_reads = 0;
-  size_t size_num_reads_skipped_by_phred = 0;
-  size_t size_num_reads_skipped_by_delta = 0;
-  size_t size_num_reads_skipped_by_length = 0;
+  size_t num_reads_skipped_by_phred = 0;
+  size_t num_reads_skipped_by_delta = 0;
+  size_t num_reads_skipped_by_length = 0;
 #pragma omp parallel
   for (const auto record : reader) {
 #pragma omp atomic
     ++num_reads;
     if (record.seq.size() < min_seq_len) {
 #pragma omp atomic
-      ++size_num_reads_skipped_by_length;
+      ++num_reads_skipped_by_length;
       continue;
     }
     const auto phred_stat = calc_phred_average(record.qual);
@@ -158,11 +158,11 @@ fill_bit_vector(const std::string& input_file,
       if (opt::verbose) {
         if (phred_stat.first < opt::phred_min) {
 #pragma omp atomic
-          ++size_num_reads_skipped_by_phred;
+          ++num_reads_skipped_by_phred;
         }
         if (phred_stat.second >= opt::phred_delta) {
 #pragma omp atomic
-          ++size_num_reads_skipped_by_delta;
+          ++num_reads_skipped_by_delta;
         }
       }
 #pragma omp critical
@@ -186,15 +186,15 @@ fill_bit_vector(const std::string& input_file,
               << floor((double)(num_reads - num_passed_reads) / num_reads)
               << "\n"
               << "num_reads_skipped_by_phred: "
-              << size_num_reads_skipped_by_phred << "\n"
+              << num_reads_skipped_by_phred << "\n"
               << "num_reads_skipped_by_delta: "
-              << size_num_reads_skipped_by_delta << "\n"
+              << num_reads_skipped_by_delta << "\n"
               << "num_reads_skipped_by_length: "
-              << size_num_reads_skipped_by_length << "\n"
+              << num_reads_skipped_by_length << "\n"
               << "Total reads skipped: "
-              << size_num_reads_skipped_by_phred +
-                   size_num_reads_skipped_by_delta +
-                   size_num_reads_skipped_by_length
+              << num_reads_skipped_by_phred +
+                   num_reads_skipped_by_delta +
+                   num_reads_skipped_by_length
               << std::endl;
   }
 
