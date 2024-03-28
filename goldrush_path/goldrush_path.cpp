@@ -140,13 +140,16 @@ fill_bit_vector(const std::string& input_file,
   }
   size_t num_reads = 0;
   size_t num_passed_reads = 0;
-  size_t size_num_reads_skipped_by_phred = 0;
-  size_t size_num_reads_skipped_by_delta = 0;
+  size_t num_reads_skipped_by_phred = 0;
+  size_t num_reads_skipped_by_delta = 0;
+  size_t num_reads_skipped_by_length = 0;
 #pragma omp parallel
   for (const auto record : reader) {
 #pragma omp atomic
     ++num_reads;
     if (record.seq.size() < min_seq_len) {
+#pragma omp atomic
+      ++num_reads_skipped_by_length;
       continue;
     }
     const auto phred_stat = calc_phred_average(record.qual);
@@ -155,11 +158,11 @@ fill_bit_vector(const std::string& input_file,
       if (opt::verbose) {
         if (phred_stat.first < opt::phred_min) {
 #pragma omp atomic
-          ++size_num_reads_skipped_by_phred;
+          ++num_reads_skipped_by_phred;
         }
         if (phred_stat.second >= opt::phred_delta) {
 #pragma omp atomic
-          ++size_num_reads_skipped_by_delta;
+          ++num_reads_skipped_by_delta;
         }
       }
 #pragma omp critical
@@ -183,9 +186,15 @@ fill_bit_vector(const std::string& input_file,
               << floor((double)(num_reads - num_passed_reads) / num_reads)
               << "\n"
               << "num_reads_skipped_by_phred: "
-              << size_num_reads_skipped_by_phred << "\n"
+              << num_reads_skipped_by_phred << "\n"
               << "num_reads_skipped_by_delta: "
-              << size_num_reads_skipped_by_delta << "\n"
+              << num_reads_skipped_by_delta << "\n"
+              << "num_reads_skipped_by_length: "
+              << num_reads_skipped_by_length << "\n"
+              << "Total reads skipped: "
+              << num_reads_skipped_by_phred +
+                   num_reads_skipped_by_delta +
+                   num_reads_skipped_by_length
               << std::endl;
   }
 
@@ -1083,6 +1092,14 @@ main(int argc, char** argv)
                    opt::min_length,
                    filter_out_reads);
     }
+
+  }
+  if (opt::silver_path && opt::max_paths > curr_path) {
+    std::cerr << "WARNING: Expected " << std::to_string(opt::max_paths) 
+              << " silver paths, but only " << std::to_string(curr_path)
+              <<" generated.\n" << "Possible reasons include:\n"
+              << "\t- Input reads sorted by chromosome/position\n"
+              << "\t- Genome size set too large\n";
   }
 
   std::cerr << "assigned" << std::endl;

@@ -68,7 +68,7 @@ h=3
 s=1011011110110111101101
 r=0.9
 M=5
-p=w$(w)_x$(x)
+p=goldrush_asm
 p1=$(p)_silver_path
 p2=$(p)_golden_path
 P=15
@@ -165,13 +165,12 @@ help:
 	@echo "	o			occupancy of the miBF [$(o)]"
 	@echo "	x			threshold for number of hits in miBF for a given frame to be considered assigned [$(x)]"
 	@echo "	h			number of seed patterns to use [$(h)]"
-	@echo "	s			spaced seed design [$(s)]"
 	@echo "	m			minimum read length [$(m)]"
 	@echo "	M			maximum number of silver paths to generate [$(M)]"
 	@echo "	r			ratio of full genome in golden path [$(r)]"
 	@echo "	P			minimum average phred score for each read [$(P)]"
 	@echo "	d			remove reads with greater or equal than d difference between average phred quality of first half and second half of the read [$(d)]"
-	@echo "	p			prefix to use for the output paths [w$(w)_x$(x)]"
+	@echo "	p			prefix to use for the output paths [$(p)]"
 	@echo ""
 	@echo "	Tigmint-long options:"
 	@echo "	span			min number of spanning molecules [$(span)]"
@@ -231,14 +230,26 @@ endif
 goldrush-path: $(p2).fa check-G check-reads clean
 
 $(p2).fa: $(p1)_all.fq
-	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -s $(s) -g $(G) -b $(b)  -m 0
+ifneq ($(k), 22)
+		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -g $(G) -b $(b)  -m 0
+else ifneq ($(w), 16)
+		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -g $(G) -b $(b)  -m 0
+else
+		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -s $(s) -g $(G) -b $(b)  -m 0
+endif
 	echo "Done GoldRush-Path! Golden path can be found in: $@"
 
 $(p1)_all.fq: $(p1)_$(M).fq
 	cat $(p1)_*.fq > $@
 
 $(p1)_$(M).fq: $(long_reads)
-	$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(t) -x$(x) -P $(P) -d $(d) -s $(s) -g $(G) -b $(b) -r $(r) --silver_path -M $(M) -m $(m)
+ifneq ($(k), 22)
+		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(t) -x$(x) -P $(P) -d $(d) -g $(G) -b $(b) -r $(r) --silver_path -M $(M) -m $(m)
+else ifneq ($(w), 16)
+		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(t) -x$(x) -P $(P) -d $(d) -g $(G) -b $(b) -r $(r) --silver_path -M $(M) -m $(m)
+else
+		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(t) -x$(x) -P $(P) -d $(d) -s $(s) -g $(G) -b $(b) -r $(r) --silver_path -M $(M) -m $(m)
+endif
 
 %.racon-polished.fa: %.fa.$(long_reads).sam %.fa
 	$(time) racon -u -t$(t) $(long_reads) $^ > $@
