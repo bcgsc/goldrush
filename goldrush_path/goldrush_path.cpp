@@ -59,9 +59,14 @@ silver_path_check(
   uint64_t& inserted_bases,
   uint64_t& curr_path,
   uint32_t& ids_inserted,
-  MIBFConstructSupport<uint32_t, multiLensfrHashIterator>& miBFCS)
+  MIBFConstructSupport<uint32_t, multiLensfrHashIterator>& miBFCS,
+  uint32_t& valid_reads)
 {
   if (target_bases < inserted_bases) {
+    if (opt::verbose) {
+      std::cerr << "Visited " << valid_reads << " reads " << "to generate " << curr_path << " silver paths" << std::endl;
+
+    }
     ++curr_path;
     if (opt::max_paths < curr_path) {
       exit(0);
@@ -762,7 +767,8 @@ process_read(const btllib::SeqReader::Record& record,
              uint32_t& id,
              uint32_t& ids_inserted,
              const size_t min_seq_len,
-             const std::unordered_set<std::string>& filter_out_reads)
+             const std::unordered_set<std::string>& filter_out_reads,
+             uint32_t& valid_reads)
 {
   if (record.seq.size() < min_seq_len) {
     if (opt::debug) {
@@ -855,11 +861,13 @@ process_read(const btllib::SeqReader::Record& record,
                         inserted_bases,
                         curr_path,
                         ids_inserted,
-                        miBFCS);
+                        miBFCS,
+                        valid_reads);
     }
   } else {
     if (num_assigned_tiles == num_tiles) {
       ++id;
+      ++valid_reads;
       if (opt::debug) {
         std::cerr << "complete assignment" << std::endl;
       }
@@ -919,7 +927,8 @@ process_read(const btllib::SeqReader::Record& record,
                           inserted_bases,
                           curr_path,
                           ids_inserted,
-                          miBFCS);
+                          miBFCS,
+                          valid_reads);
       }
     }
   }
@@ -931,6 +940,7 @@ process_read(const btllib::SeqReader::Record& record,
     // output read to wood path
   }
   ++id;
+  ++valid_reads;
   if (id % 10000 == 0) {
     std::cerr << "processed " << id << " reads" << std::endl;
   }
@@ -1063,6 +1073,7 @@ main(int argc, char** argv)
   uint64_t inserted_bases = 0;
   uint64_t target_bases = opt::ratio * opt::genome_size;
   uint64_t curr_path = 1;
+  uint32_t valid_reads = 0;
   uint32_t id = 1;
   uint32_t ids_inserted = 0;
   // std::unordered_map<uint32_t, uint8_t> id_to_num_tiles_inserted;
@@ -1090,7 +1101,8 @@ main(int argc, char** argv)
                    id,
                    ids_inserted,
                    opt::min_length,
-                   filter_out_reads);
+                   filter_out_reads,
+                   valid_reads);
     }
 
   }
