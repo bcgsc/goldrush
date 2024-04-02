@@ -231,11 +231,11 @@ goldrush-path: $(p2).fa check-G check-reads clean
 
 $(p2).fa: $(p1)_all.fq
 ifneq ($(k), 22)
-		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -g $(G) -b $(b)  -m 0
+		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -g $(G) -b $(b)  -m 0 --verbose
 else ifneq ($(w), 16)
-		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -g $(G) -b $(b)  -m 0
+		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -g $(G) -b $(b)  -m 0 --verbose
 else
-		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -s $(s) -g $(G) -b $(b)  -m 0
+		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p2) -i $< -h $(h) -j $(t) -P $(P) -d $(d) -x$(x) -s $(s) -g $(G) -b $(b)  -m 0 --verbose
 endif
 	echo "Done GoldRush-Path! Golden path can be found in: $@"
 
@@ -244,11 +244,11 @@ $(p1)_all.fq: $(p1)_$(M).fq
 
 $(p1)_$(M).fq: $(long_reads)
 ifneq ($(k), 22)
-		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(t) -x$(x) -P $(P) -d $(d) -g $(G) -b $(b) -r $(r) --silver_path -M $(M) -m $(m)
+		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(t) -x$(x) -P $(P) -d $(d) -g $(G) -b $(b) -r $(r) --silver_path -M $(M) -m $(m) --verbose
 else ifneq ($(w), 16)
-		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(t) -x$(x) -P $(P) -d $(d) -g $(G) -b $(b) -r $(r) --silver_path -M $(M) -m $(m)
+		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(t) -x$(x) -P $(P) -d $(d) -g $(G) -b $(b) -r $(r) --silver_path -M $(M) -m $(m) --verbose
 else
-		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(t) -x$(x) -P $(P) -d $(d) -s $(s) -g $(G) -b $(b) -r $(r) --silver_path -M $(M) -m $(m)
+		$(time) goldrush-path  -k $(k) -w $(w) -t $(tile) -u $(u) -a $(a) -o $(o) -p $(p1) -i $<  -h $(h) -j $(t) -x$(x) -P $(P) -d $(d) -s $(s) -g $(G) -b $(b) -r $(r) --silver_path -M $(M) -m $(m) --verbose
 endif
 
 %.racon-polished.fa: %.fa.$(long_reads).sam %.fa
