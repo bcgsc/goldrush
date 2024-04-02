@@ -64,7 +64,8 @@ silver_path_check(
 {
   if (target_bases < inserted_bases) {
     if (opt::verbose) {
-      std::cerr << "Visited " << valid_reads << " reads" << "to generate " << curr_path << "silver paths" << std::endl;
+      std::cerr << "Visited " << valid_reads << " reads " << "to generate " << curr_path << " silver paths" << std::endl;
+
     }
     ++curr_path;
     if (opt::max_paths < curr_path) {
