@@ -60,12 +60,23 @@ silver_path_check(
   uint64_t& curr_path,
   uint32_t& ids_inserted,
   MIBFConstructSupport<uint32_t, multiLensfrHashIterator>& miBFCS,
-  uint32_t& valid_reads)
+  uint32_t& valid_reads,
+  uint64_t& total_tiles_per_path,
+  uint64_t& total_assigned_tiles_per_path,
+  uint64_t& total_unassigned_tiles_per_path,
+  uint64_t& total_queries_per_path,
+  uint64_t& total_hits_per_path,
+  uint64_t& total_misses_per_path)
 {
   if (target_bases < inserted_bases) {
     if (opt::verbose) {
       std::cerr << "Visited " << valid_reads << " reads " << "to generate " << curr_path << " silver paths" << std::endl;
-
+      std::cerr << "Seen: " << total_tiles_per_path << " tiles to generate " << curr_path << " silver paths" << std::endl;
+      std::cerr << "Assigned: " << total_assigned_tiles_per_path << " tiles to generate " << curr_path << " silver paths" <<  std::endl;
+      std::cerr << "Unassigned: " << total_unassigned_tiles_per_path << " tiles to generate " << curr_path << " silver paths" << std::endl;
+      std::cerr << "Total queries: " << total_queries_per_path << " to generate " << curr_path << " silver paths" << std::endl;
+      std::cerr << "Total hits: " << total_hits_per_path << " to generate " << curr_path << " silver paths" << std::endl;
+      std::cerr << "Total misses: " << total_misses_per_path << " to generate " << curr_path << " silver paths" << std::endl;
     }
     ++curr_path;
     if (opt::max_paths < curr_path) {
@@ -409,7 +420,10 @@ size_t
 calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
                         const std::vector<std::vector<uint64_t>> hashed_values,
                         std::vector<uint32_t>& tiles_assigned_id_vec,
-                        std::vector<uint8_t>& tiles_assigned_bool_vec)
+                        std::vector<uint8_t>& tiles_assigned_bool_vec,
+                        uint64_t& total_queries_per_path,
+                        uint64_t& total_hits_per_path,
+                        uint64_t& total_misses_per_path)
 {
 
   size_t num_assigned_tiles = 0;
@@ -440,6 +454,8 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
         hashes[curr_hash] =
           hashed_values_flat_array[curr_frame * opt::hash_num + curr_hash];
       }
+#pragma omp atomic
+      ++total_queries_per_path;
 
       std::set<uint32_t> unique_ids;
       if (miBF.atRank(hashes, m_rank_pos)) {               // if its a hit
@@ -448,13 +464,21 @@ calc_num_assigned_tiles(const MIBloomFilter<uint32_t>& miBF,
           if (m_data[m] > miBF.s_mask) {                   // if ID is saturated
             uint32_t new_id = m_data[m] & miBF.s_antiMask;
             if (new_id == 0) {
+#pragma omp atomic
+              ++total_misses_per_path;
               continue;
             }
+#pragma omp atomic
+            ++total_hits_per_path;
             unique_ids.insert(new_id);
           } else {
             if (m_data[m] == 0) {
+#pragma omp atomic
+              ++total_misses_per_path;
               continue;
             }
+#pragma omp atomic
+            ++total_hits_per_path;
             unique_ids.insert(m_data[m]);
           }
         }
@@ -768,7 +792,13 @@ process_read(const btllib::SeqReader::Record& record,
              uint32_t& ids_inserted,
              const size_t min_seq_len,
              const std::unordered_set<std::string>& filter_out_reads,
-             uint32_t& valid_reads)
+             uint32_t& valid_reads,
+             uint64_t& total_tiles_per_path,
+             uint64_t& total_assigned_tiles_per_path,
+             uint64_t& total_unassigned_tiles_per_path,
+             uint64_t& total_queries_per_path,
+             uint64_t& total_hits_per_path,
+             uint64_t& total_misses_per_path)
 {
   if (record.seq.size() < min_seq_len) {
     if (opt::debug) {
@@ -799,6 +829,7 @@ process_read(const btllib::SeqReader::Record& record,
 
   size_t len = record.seq.size();
   size_t num_tiles = len / opt::tile_length;
+  total_tiles_per_path += num_tiles;
 
   if (opt::debug) {
     std::cerr << "name: " << record.id << std::endl;
@@ -812,7 +843,7 @@ process_read(const btllib::SeqReader::Record& record,
   std::vector<uint32_t> tiles_assigned_id_vec(num_tiles, 0);
   std::vector<uint8_t> tiles_assigned_bool_vec(num_tiles, 0);
   const size_t num_assigned_tiles = calc_num_assigned_tiles(
-    *miBF, hashed_values, tiles_assigned_id_vec, tiles_assigned_bool_vec);
+    *miBF, hashed_values, tiles_assigned_id_vec, tiles_assigned_bool_vec, total_queries_per_path, total_hits_per_path, total_misses_per_path);
   if (opt::debug) {
     std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl;
   }
@@ -820,6 +851,8 @@ process_read(const btllib::SeqReader::Record& record,
   if (opt::debug) {
     std::cerr << "num unassigned tiles: " << num_unassigned_tiles << std::endl;
   }
+  total_assigned_tiles_per_path += num_assigned_tiles;
+  total_unassigned_tiles_per_path += num_unassigned_tiles;
 
   // assignment logic
   if (num_unassigned_tiles >= opt::unassigned_min &&
@@ -862,7 +895,13 @@ process_read(const btllib::SeqReader::Record& record,
                         curr_path,
                         ids_inserted,
                         miBFCS,
-                        valid_reads);
+                        valid_reads,
+                        total_tiles_per_path,
+                        total_assigned_tiles_per_path,
+                        total_unassigned_tiles_per_path,
+                        total_queries_per_path,
+                        total_hits_per_path,
+                        total_misses_per_path);
     }
   } else {
     if (num_assigned_tiles == num_tiles) {
@@ -928,7 +967,13 @@ process_read(const btllib::SeqReader::Record& record,
                           curr_path,
                           ids_inserted,
                           miBFCS,
-                          valid_reads);
+                          valid_reads,
+                          total_tiles_per_path,
+                          total_assigned_tiles_per_path,
+                          total_unassigned_tiles_per_path,
+                          total_queries_per_path,
+                          total_hits_per_path,
+                          total_misses_per_path);
       }
     }
   }
@@ -1076,6 +1121,12 @@ main(int argc, char** argv)
   uint32_t valid_reads = 0;
   uint32_t id = 1;
   uint32_t ids_inserted = 0;
+  uint64_t total_tiles_per_path = 0;
+  uint64_t total_unassigned_tiles_per_path = 0;
+  uint64_t total_assigned_tiles_per_path = 0;
+  uint64_t total_queries_per_path = 0;
+  uint64_t total_hits_per_path = 0;
+  uint64_t total_misses_per_path = 0;
   // std::unordered_map<uint32_t, uint8_t> id_to_num_tiles_inserted;
   while (true) {
     decltype(precomputed_hash_queue)::Block block(
@@ -1102,7 +1153,13 @@ main(int argc, char** argv)
                    ids_inserted,
                    opt::min_length,
                    filter_out_reads,
-                   valid_reads);
+                   valid_reads,
+                   total_tiles_per_path,
+                   total_unassigned_tiles_per_path,
+                   total_assigned_tiles_per_path,
+                   total_queries_per_path,
+                   total_hits_per_path,
+                   total_misses_per_path);
     }
 
   }
