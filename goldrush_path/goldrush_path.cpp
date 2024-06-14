@@ -159,6 +159,7 @@ fill_bit_vector(const std::string& input_file,
   size_t num_reads_skipped_by_phred = 0;
   size_t num_reads_skipped_by_delta = 0;
   size_t num_reads_skipped_by_length = 0;
+  size_t num_reads_skipped_by_invalid_bases = 0;
 #pragma omp parallel
   for (const auto record : reader) {
 #pragma omp atomic
@@ -187,6 +188,16 @@ fill_bit_vector(const std::string& input_file,
       }
       continue;
     }
+    if (record.seq.find_first_not_of("ACGTacgt") != std::string::npos) {
+#pragma omp atomic
+      ++num_reads_skipped_by_invalid_bases;
+#pragma omp critical
+      {
+        filter_out_reads.insert(record.id);
+      }
+      continue;
+    
+    }
 #pragma omp atomic
     ++num_passed_reads;
     multiLensfrHashIterator itr(record.seq, spaced_seeds);
@@ -207,10 +218,13 @@ fill_bit_vector(const std::string& input_file,
               << num_reads_skipped_by_delta << "\n"
               << "num_reads_skipped_by_length: "
               << num_reads_skipped_by_length << "\n"
+              << "num_reads_skipped_by_invalid_bases: "
+              << num_reads_skipped_by_invalid_bases << "\n"
               << "Total reads skipped: "
               << num_reads_skipped_by_phred +
                    num_reads_skipped_by_delta +
-                   num_reads_skipped_by_length
+                   num_reads_skipped_by_length +
+                   num_reads_skipped_by_invalid_bases
               << std::endl;
   }
 
@@ -815,7 +829,7 @@ process_read(const btllib::SeqReader::Record& record,
   if (!filter_out_reads.empty()) {
     if (filter_out_reads.find(record.id) != filter_out_reads.end()) {
       if (opt::debug) {
-        std::cerr << "hairpin or quality too low" << std::endl;
+        std::cerr << "hairpin or quality too low or invalid bases" << std::endl;
         std::cerr << "skipping: " << record.id << std::endl;
       }
 
