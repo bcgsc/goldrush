@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <getopt.h>
 #include <string>
+#include <cstdint>
 
 namespace opt {
 
