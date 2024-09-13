@@ -1,7 +1,6 @@
 #include "opt.hpp"
 #include <cmath>
 #include <iostream>
-#include <cstdint>
 
 namespace opt {
 
