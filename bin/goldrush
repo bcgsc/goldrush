@@ -87,6 +87,12 @@ cut=250
 k_ntLink=40
 w_ntLink=250
 rounds=5
+soft_mask=True
+
+# Default GoldPolish-Target parameters
+target_flank_length=64
+target_k_ntlink=88
+target_w_ntlink=1000
 
 # Development mode - retains intermediate files. Specify dev=True to enable.
 dev=False
@@ -139,12 +145,13 @@ help:
 	@echo ""
 	@echo "	Commands:"
 	@echo ""
-	@echo "	run			run default GoldRush pipeline: GoldRush-Path + Polisher (GoldPolish by default) + Tigmint-long + ntLink (default 5 rounds)"
+	@echo "	run			run default GoldRush pipeline: GoldRush-Path + Polisher (GoldPolish by default) + Tigmint-long + ntLink (default 5 rounds) + GoldPolish-Target"
 	@echo ""
 	@echo "	goldrush-path		run GoldRush-Path"
 	@echo "	path-polish		run GoldRush-Path, then $(polisher_logs)"
 	@echo "	path-tigmint		run GoldRush-Path, then $(polisher_logs), then Tigmint-long"
 	@echo "	path-tigmint-ntLink	run GoldRush-Path, then $(polisher_logs), then Tigmint-long, then ntLink (default 5 rounds)"
+	@echo "	path-tigmint-ntLink	run GoldRush-Path, then $(polisher_logs), then Tigmint-long, then ntLink (default 5 rounds), then GoldPolish-Target"
 	@echo ""
 	@echo "	General options (required):"
 	@echo "	reads			read name [reads]. File must have .fq or .fastq extension, but do not include the suffix in the supplied read name"
@@ -185,6 +192,11 @@ help:
 	@echo "	polisher_mapper		Whether to use ntlink or minimap2 for mappings [$(polisher_mapper)]"
 	@echo "	shared_mem		Shared memory path where polishing occurs [/dev/shm] "
 	@echo ""
+	@echo " GoldPolish-Target options:"
+	@echo " l			flank length [$(target_flank_length)]"
+	@echo " target_k_ntlink			k-mer size for minimizers for targeted polishing [$(target_k_ntlink)]"
+	@echo " target_w_ntlink			window size for minimizers for targeted polishing [$(target_k_ntlink)]"
+	@echo ""
 	@echo "Notes:"
 	@echo "	- GoldRush-Path generates silver paths before generating the golden path"
 	@echo "	- Ensure that all input files are in the current working directory, making soft-links if needed"
@@ -205,14 +217,15 @@ run:
 	ln -sf $(prefix)/$(p2).$(polished_infix).fa
 	ln -sf $(prefix)/$(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa
 	ln -sf $(prefix)/$(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa
+	ln -sf $(prefix)/$(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.polished.fa
 	echo "You can find intermediate files and the outputs for each GoldRush stage within the $(prefix) subdirectory."
-	echo "A soft link to your final assembly is available at: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa"
+	echo "A soft link to your final assembly is available at: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.polished.fa"
 
-run-in-dir: path-tigmint-ntLink check-G check-reads clean
+run-in-dir: path-tigmint-ntLink-GoldPolish_Target check-G check-reads clean
 path-polish: $(polisher) check-G check-reads clean
 path-tigmint: tigmint check-G check-reads clean
-
 path-tigmint-ntLink: ntLink_all_rounds ntLink_softlink clean
+path-tigmint-ntLink-GoldPolish_Target: goldpolish_target clean
 
 check-G:
 ifndef G
@@ -224,7 +237,6 @@ check-reads:
 ifeq ($(long_reads),)
 	$(error $(ERROR_MESSAGE))
 endif
-
 
 # Run GoldRush-Path
 goldrush-path: $(p2).fa check-G check-reads clean
@@ -282,13 +294,19 @@ $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa: $(p2).$(polished_inf
 ntLink_all_rounds: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa check-G check-reads
 
 %.fa.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa: %.fa $(long_reads)
-	$(time) ntLink_rounds run_rounds_gaps target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z rounds=$(rounds) reads=$(long_reads)
+	$(time) ntLink_rounds run_rounds_gaps target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z soft_mask=$(soft_mask) rounds=$(rounds) reads=$(long_reads)
 ifneq ($(dev), True)
-	ntLink_rounds clean target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z rounds=$(rounds) reads=$(long_reads)
+	ntLink_rounds clean target=$< t=$t k=$(k_ntLink) w=$(w_ntLink) z=$z soft_mask=$(soft_mask) rounds=$(rounds) reads=$(long_reads)
 endif
 
 ntLink_softlink: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa check-G check-reads
 
 %.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa: %.k$(k_ntLink).w$(w_ntLink).z$z.ntLink.gap_fill.$(rounds)rounds.fa
 	ln -sf $(lastword $^) $@
-	echo "Done GoldRush-Path + $(polisher_logs) + Tigmint-long + $(rounds) ntLink rounds! Your final assembly can be found in: $@"
+	echo "Done GoldRush-Path + $(polisher_logs) + Tigmint-long + $(rounds) ntLink rounds! Your post-ntLink assembly can be found in: $@"
+
+# Run GoldPolish-Target after ntLink rounds
+goldpolish_target: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.polished.fa check-G check-reads
+%.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.polished.fa: %.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa
+	$(time) goldpolish --target --k-ntlink $(target_k_ntlink) --w-ntlink $(target_w_ntlink) -l $(target_flank_length) $< $(long_reads) $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds
+	echo "Done GoldRush-Path + $(polisher_logs) + Tigmint-long + $(rounds) ntLink rounds + GoldPolish-Target! Your final assembly can be found in: $@"
