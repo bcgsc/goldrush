@@ -308,5 +308,5 @@ ntLink_softlink: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k
 # Run GoldPolish-Target after ntLink rounds
 goldpolish_target: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.polished.fa check-G check-reads
 %.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.polished.fa: %.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.fa
-	$(time) goldpolish --target --k-ntlink $(target_k_ntlink) --w-ntlink $(target_w_ntlink) -l $(target_flank_length) $< $@
+	$(time) goldpolish --target --k-ntlink $(target_k_ntlink) --w-ntlink $(target_w_ntlink) -l $(target_flank_length) $< $(long_reads) $@
 	echo "Done GoldRush-Path + $(polisher_logs) + Tigmint-long + $(rounds) ntLink rounds + GoldPolish-Target! Your final assembly can be found in: $@"
