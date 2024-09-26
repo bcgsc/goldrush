@@ -151,7 +151,7 @@ help:
 	@echo "	path-polish		run GoldRush-Path, then $(polisher_logs)"
 	@echo "	path-tigmint		run GoldRush-Path, then $(polisher_logs), then Tigmint-long"
 	@echo "	path-tigmint-ntLink	run GoldRush-Path, then $(polisher_logs), then Tigmint-long, then ntLink (default 5 rounds)"
-	@echo "	path-tigmint-ntLink	run GoldRush-Path, then $(polisher_logs), then Tigmint-long, then ntLink (default 5 rounds), then GoldPolish-Target"
+	@echo "	path-tigmint-ntLink-goldpolish_target	run GoldRush-Path, then $(polisher_logs), then Tigmint-long, then ntLink (default 5 rounds), then GoldPolish-Target"
 	@echo ""
 	@echo "	General options (required):"
 	@echo "	reads			read name [reads]. File must have .fq or .fastq extension, but do not include the suffix in the supplied read name"
@@ -189,13 +189,7 @@ help:
 	@echo "	rounds			number of rounds of ntLink [$(rounds)]"
 	@echo ""
 	@echo "	GoldPolish options:"
-	@echo "	polisher_mapper		Whether to use ntlink or minimap2 for mappings [$(polisher_mapper)]"
 	@echo "	shared_mem		Shared memory path where polishing occurs [/dev/shm] "
-	@echo ""
-	@echo " GoldPolish-Target options:"
-	@echo " l			flank length [$(target_flank_length)]"
-	@echo " target_k_ntlink			k-mer size for minimizers for targeted polishing [$(target_k_ntlink)]"
-	@echo " target_w_ntlink			window size for minimizers for targeted polishing [$(target_k_ntlink)]"
 	@echo ""
 	@echo "Notes:"
 	@echo "	- GoldRush-Path generates silver paths before generating the golden path"
@@ -221,11 +215,11 @@ run:
 	echo "You can find intermediate files and the outputs for each GoldRush stage within the $(prefix) subdirectory."
 	echo "A soft link to your final assembly is available at: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.polished.fa"
 
-run-in-dir: path-tigmint-ntLink-GoldPolish_Target check-G check-reads clean
+run-in-dir: path-tigmint-ntLink-goldpolish_target check-G check-reads clean
 path-polish: $(polisher) check-G check-reads clean
 path-tigmint: tigmint check-G check-reads clean
 path-tigmint-ntLink: ntLink_all_rounds ntLink_softlink clean
-path-tigmint-ntLink-GoldPolish_Target: goldpolish_target clean
+path-tigmint-ntLink-goldpolish_target: goldpolish_target clean
 
 check-G:
 ifndef G

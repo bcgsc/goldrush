@@ -15,7 +15,7 @@ GoldRush iterates through the input long reads to produce a "golden path" of rea
 2. **[GoldPolish](https://github.com/bcgsc/goldpolish)** (aka GoldRush-Edit): polishing the genome
 3. **[Tigmint-long](https://github.com/bcgsc/tigmint)**: correcting the genome
 4. **[GoldChain](https://github.com/bcgsc/ntlink)** (aka GoldRush-Link): scaffolding the genome
-
+5. **[GoldPolish-Target](https://github.com/bcgsc/goldpolish)**: targeted polishing the genome
 
 
 ## Credits
@@ -37,12 +37,12 @@ goldrush run reads=reads G=gsize
 
         Commands:
 
-        run                     run default GoldRush pipeline: GoldRush-Path + Polisher (GoldPolish by default) + Tigmint-long + ntLink (
-default 5 rounds)
+        run                     run default GoldRush pipeline: GoldRush-Path + Polisher (GoldPolish by default) + Tigmint-long + ntLink (default 5 rounds) + GoldPolish-Target
         goldrush-path           run GoldRush-Path
         path-polish             run GoldRush-Path, then GoldPolish
         path-tigmint            run GoldRush-Path, then GoldPolish, then Tigmint-long
         path-tigmint-ntLink     run GoldRush-Path, then GoldPolish, then Tigmint-long, then ntLink (default 5 rounds)
+        path-tigmint-ntLink-goldpolish_target   run GoldRush-Path, then GoldPolish, then Tigmint-long, then ntLink (default 5 rounds), then GoldPolish-Target
 
         General options (required):
         reads                   read name [reads]. File must have .fq or .fastq extension, but do not include the suffix in the supplied read name
@@ -80,7 +80,6 @@ default 5 rounds)
         rounds                  number of rounds of ntLink [5]
 
         GoldPolish options:
-        polisher_mapper         Whether to use ntlink or minimap2 for mappings [minimap2]
         shared_mem		Shared memory path where polishing occurs [/dev/shm]
 
 Notes:
@@ -143,6 +142,8 @@ GoldRush has been tested on *Linux* operating systems (centOS7, ubuntu-20.04)
  * [Tigmint 1.2.6+](https://github.com/bcgsc/tigmint)
  * [ntLink 1.3.3+](https://github.com/bcgsc/ntlink)
  * [minimap2](https://github.com/lh3/minimap2)
+ * [snakemake](https://github.com/snakemake/snakemake)
+* [intervaltree](https://github.com/chaimleib/intervaltree) 
 
 ## Installation
 ### Installing using conda:
