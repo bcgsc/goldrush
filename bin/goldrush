@@ -189,7 +189,7 @@ help:
 	@echo "	rounds			number of rounds of ntLink [$(rounds)]"
 	@echo ""
 	@echo "	GoldPolish options:"
-	@echo "	shared_mem			Shared memory path where polishing occurs [/dev/shm] "
+	@echo "	shared_mem		Shared memory path where polishing occurs [/dev/shm] "
 	@echo ""
 	@echo "Notes:"
 	@echo "	- GoldRush-Path generates silver paths before generating the golden path"
