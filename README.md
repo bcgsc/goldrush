@@ -37,50 +37,50 @@ goldrush run reads=reads G=gsize
 
         Commands:
 
-        run                     run default GoldRush pipeline: GoldRush-Path + Polisher (GoldPolish by default) + Tigmint-long + ntLink (default 5 rounds) + GoldPolish-Target
-        goldrush-path           run GoldRush-Path
-        path-polish             run GoldRush-Path, then GoldPolish
-        path-tigmint            run GoldRush-Path, then GoldPolish, then Tigmint-long
-        path-tigmint-ntLink     run GoldRush-Path, then GoldPolish, then Tigmint-long, then ntLink (default 5 rounds)
-        path-tigmint-ntLink-goldpolish_target   run GoldRush-Path, then GoldPolish, then Tigmint-long, then ntLink (default 5 rounds), then GoldPolish-Target
+        run                             run default GoldRush pipeline: GoldRush-Path + Polisher (GoldPolish by default) + Tigmint-long + ntLink (default 5 rounds) + GoldPolish-Target
+        goldrush-path                   run GoldRush-Path
+        path-polish                     run GoldRush-Path, then GoldPolish
+        path-tigmint                    run GoldRush-Path, then GoldPolish, then Tigmint-long
+        path-tigmint-ntLink             run GoldRush-Path, then GoldPolish, then Tigmint-long, then ntLink (default 5 rounds)
+        path-tigmint-ntLink-target      run GoldRush-Path, then GoldPolish, then Tigmint-long, then ntLink (default 5 rounds), then GoldPolish-Target
 
         General options (required):
-        reads                   read name [reads]. File must have .fq or .fastq extension, but do not include the suffix in the supplied read name
-        G                       haploid genome size (bp) (e.g. '3e9' for human genome)
+        reads                           read name [reads]. File must have .fq or .fastq extension, but do not include the suffix in the supplied read name
+        G                               haploid genome size (bp) (e.g. '3e9' for human genome)
 
         General options (optional):
-        t                       number of threads [48]
-        z                       minimum size of contig (bp) to scaffold [1000]
-        track_time              If 1 then track the run time and memory usage, if 0 then don't [0]
+        t                               number of threads [48]
+        z                               minimum size of contig (bp) to scaffold [1000]
+        track_time                      If 1 then track the run time and memory usage, if 0 then don't [0]
 
         GoldRush-Path options:
-        k                       base k value to generate hash [22]
-        w                       weight of spaced seed (number of 1's) [16]
-        tile                    tile size [1000]
-        b                       during insertion, number of consecutive tiles to be inserted with the same ID [10]
-        u                       minimum number of unassigned tiles for the read to be considered unassigned [5]
-        a                       maximum number of tiles that can be assigned, minimum number of overlapping tiles kept after trimming [1]
-        o                       occupancy of the miBF [0.1]
-        x                       threshold for number of hits in miBF for a given frame to be considered assigned [10]
-        h                       number of seed patterns to use [3]
-        m                       minimum read length [20000]
-        M                       maximum number of silver paths to generate [5]
-        r                       ratio of full genome in golden path [0.9]
-        P                       minimum average phred score for each read [15]
-        d                       remove reads with greater or equal than d difference between average phred quality of first half and second half of the read [5]
-        p                       prefix to use for the output paths [goldrush_asm]
+        k                               base k value to generate hash [22]
+        w                               weight of spaced seed (number of 1's) [16]
+        tile                            tile size [1000]
+        b                               during insertion, number of consecutive tiles to be inserted with the same ID [10]
+        u                               minimum number of unassigned tiles for the read to be considered unassigned [5]
+        a                               maximum number of tiles that can be assigned, minimum number of overlapping tiles kept after trimming [1]
+        o                               occupancy of the miBF [0.1]
+        x                               threshold for number of hits in miBF for a given frame to be considered assigned [10]
+        h                               number of seed patterns to use [3]
+        m                               minimum read length [20000]
+        M                               maximum number of silver paths to generate [5]
+        r                               ratio of full genome in golden path [0.9]
+        P                               minimum average phred score for each read [15]
+        d                               remove reads with greater or equal than d difference between average phred quality of first half and second half of the read [5]
+        p                               prefix to use for the output paths [goldrush_asm]
 
         Tigmint-long options:
-        span                    min number of spanning molecules [2]
-        dist                    maximum distance between alignments to be considered the same molecule [500]
+        span                            min number of spanning molecules [2]
+        dist                            maximum distance between alignments to be considered the same molecule [500]
 
         ntLink options:
-        k_ntLink                k-mer size for minimizers [40]
-        w_ntLink                window size for minimizers [250]
-        rounds                  number of rounds of ntLink [5]
+        k_ntLink                        k-mer size for minimizers [40]
+        w_ntLink                        window size for minimizers [250]
+        rounds                          number of rounds of ntLink [5]
 
         GoldPolish options:
-        shared_mem		Shared memory path where polishing occurs [/dev/shm]
+        shared_mem		        Shared memory path where polishing occurs [/dev/shm]
 
 Notes:
         - GoldRush-Path generates silver paths before generating the golden path
@@ -143,7 +143,7 @@ GoldRush has been tested on *Linux* operating systems (centOS7, ubuntu-20.04)
  * [ntLink 1.3.3+](https://github.com/bcgsc/ntlink)
  * [minimap2](https://github.com/lh3/minimap2)
  * [snakemake](https://github.com/snakemake/snakemake)
-* [intervaltree](https://github.com/chaimleib/intervaltree) 
+ * [intervaltree](https://github.com/chaimleib/intervaltree) 
 
 ## Installation
 ### Installing using conda:
