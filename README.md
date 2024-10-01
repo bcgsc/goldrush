@@ -15,7 +15,7 @@ GoldRush iterates through the input long reads to produce a "golden path" of rea
 2. **[GoldPolish](https://github.com/bcgsc/goldpolish)** (aka GoldRush-Edit): polishing the genome
 3. **[Tigmint-long](https://github.com/bcgsc/tigmint)**: correcting the genome
 4. **[GoldChain](https://github.com/bcgsc/ntlink)** (aka GoldRush-Link): scaffolding the genome
-5. **[GoldPolish-Target](https://github.com/bcgsc/goldpolish)**: targeted polishing the genome
+5. **[GoldPolish-Target](https://github.com/bcgsc/goldpolish)**: targeted polishing of the genome
 
 
 ## Credits
