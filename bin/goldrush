@@ -150,7 +150,7 @@ help:
 	@echo "	goldrush-path			run GoldRush-Path"
 	@echo "	path-polish			run GoldRush-Path, then $(polisher_logs)"
 	@echo "	path-tigmint			run GoldRush-Path, then $(polisher_logs), then Tigmint-long"
-	@echo "	path-tigmint-ntLin		run GoldRush-Path, then $(polisher_logs), then Tigmint-long, then ntLink (default 5 rounds)"
+	@echo "	path-tigmint-ntLink		run GoldRush-Path, then $(polisher_logs), then Tigmint-long, then ntLink (default 5 rounds)"
 	@echo "	path-tigmint-ntLink-target	run GoldRush-Path, then $(polisher_logs), then Tigmint-long, then ntLink (default 5 rounds), then GoldPolish-Target"
 	@echo ""
 	@echo "	General options (required):"
