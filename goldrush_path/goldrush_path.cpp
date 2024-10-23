@@ -34,8 +34,7 @@
 #include <tuple>
 #include <vector>
 
-uint64_t
-sum_phred(const std::string& qual)
+uint64_t sum_phred(const std::string& qual)
 {
   uint64_t phred_sum = 0;
   for (const auto& phred : qual) {
@@ -61,38 +60,28 @@ log_tile_states(std::vector<uint32_t>& tiles_assigned_id_vec,
   std::cerr << std::endl;
 }
 
-void
-log_path_stat(const uint64_t curr_path,
-              const uint64_t valid_reads,
-              const uint64_t total_tiles_per_path,
-              const uint64_t total_assigned_tiles_per_path,
-              const uint64_t total_unassigned_tiles_per_path,
-              const uint64_t total_queries_per_path,
-              const uint64_t total_hits_per_path,
-              const uint64_t total_misses_per_path,
-              const uint64_t num_reads_in_path,
-              const uint64_t phred_sum_in_path)
+void log_path_stat(
+  const uint64_t curr_path,
+  const uint64_t valid_reads,
+  const uint64_t total_tiles_per_path,
+  const uint64_t total_assigned_tiles_per_path,
+  const uint64_t total_unassigned_tiles_per_path,
+  const uint64_t total_queries_per_path,
+  const uint64_t total_hits_per_path,
+  const uint64_t total_misses_per_path,
+  const uint64_t num_reads_in_path,
+  const uint64_t phred_sum_in_path, 
+  const uint64_t inserted_bases)
 {
-  std::cerr << "Visited " << valid_reads << " reads to generate " << curr_path
-            << " silver paths" << std::endl;
-  std::cerr << "Seen: " << total_tiles_per_path << " tiles to generate "
-            << curr_path << " silver paths" << std::endl;
-  std::cerr << "Assigned: " << total_assigned_tiles_per_path
-            << " tiles to generate " << curr_path << " silver paths"
-            << std::endl;
-  std::cerr << "Unassigned: " << total_unassigned_tiles_per_path
-            << " tiles to generate " << curr_path << " silver paths"
-            << std::endl;
-  std::cerr << "Total queries: " << total_queries_per_path << " to generate "
-            << curr_path << " silver paths" << std::endl;
-  std::cerr << "Total hits: " << total_hits_per_path << " to generate "
-            << curr_path << " silver paths" << std::endl;
-  std::cerr << "Total misses: " << total_misses_per_path << " to generate "
-            << curr_path << " silver paths" << std::endl;
-  std::cerr << "Num reads: " << num_reads_in_path << " in silver path "
-            << curr_path << std::endl;
-  std::cerr << "Average Phred: " << phred_sum_in_path / num_reads_in_path
-            << " in silver path " << curr_path << std::endl;
+  std::cerr << "Visited " << valid_reads << " reads to generate " << curr_path << " silver paths" << std::endl;
+  std::cerr << "Seen: " << total_tiles_per_path << " tiles to generate " << curr_path << " silver paths" << std::endl;
+  std::cerr << "Assigned: " << total_assigned_tiles_per_path << " tiles to generate " << curr_path << " silver paths" << std::endl;
+  std::cerr << "Unassigned: " << total_unassigned_tiles_per_path << " tiles to generate " << curr_path << " silver paths" << std::endl;
+  std::cerr << "Total queries: " << total_queries_per_path << " to generate " << curr_path << " silver paths" << std::endl;
+  std::cerr << "Total hits: " << total_hits_per_path << " to generate " << curr_path << " silver paths" << std::endl;
+  std::cerr << "Total misses: " << total_misses_per_path << " to generate " << curr_path << " silver paths" << std::endl;
+  std::cerr << "Num reads: " << num_reads_in_path << " in silver path " << curr_path << std::endl;
+  std::cerr << "Average Phred: " << phred_sum_in_path / inserted_bases << " in silver path " << curr_path << std::endl;
 }
 
 void
@@ -116,16 +105,18 @@ silver_path_check(
 {
   if (target_bases < inserted_bases) {
     if (opt::verbose) {
-      log_path_stat(curr_path,
-                    valid_reads,
-                    total_tiles_per_path,
-                    total_assigned_tiles_per_path,
-                    total_unassigned_tiles_per_path,
-                    total_queries_per_path,
-                    total_hits_per_path,
-                    total_misses_per_path,
-                    num_reads_in_path,
-                    phred_sum_in_path);
+      log_path_stat(
+        curr_path,
+        valid_reads,
+        total_tiles_per_path,
+        total_assigned_tiles_per_path,
+        total_unassigned_tiles_per_path,
+        total_queries_per_path,
+        total_hits_per_path,
+        total_misses_per_path,
+        num_reads_in_path,
+        phred_sum_in_path,
+        inserted_bases);
     }
     ++curr_path;
     if (opt::max_paths < curr_path) {
@@ -221,14 +212,14 @@ fill_bit_vector(const std::string& input_file,
       continue;
     }
     const auto phred_stat = calc_phred_average(record.qual);
-    if (opt::debug) {
+      if (opt::debug) {
 #pragma omp critical
-      {
+    {
         std::cerr << "phred avg: " << phred_stat.first << "\n"
                   << "phred delta: " << phred_stat.second << std::endl;
-      }
     }
-
+      }
+    
     if (phred_stat.first < opt::phred_min ||
         phred_stat.second >= opt::phred_delta) {
       if (opt::verbose) {
@@ -255,6 +246,7 @@ fill_bit_vector(const std::string& input_file,
         filter_out_reads.insert(record.id);
       }
       continue;
+    
     }
 #pragma omp atomic
     ++num_passed_reads;
@@ -263,22 +255,27 @@ fill_bit_vector(const std::string& input_file,
   }
 
   if (opt::verbose) {
-    std::cerr
-      << "num_passed_reads: " << num_passed_reads << "\n"
-      << "num_reads: " << num_reads << "\n"
-      << "num_reads - num_passed_reads: " << num_reads - num_passed_reads
-      << "\n"
-      << "num_reads - num_passed_reads / num_reads: "
-      << floor((double)(num_reads - num_passed_reads) / num_reads) << "\n"
-      << "num_reads_skipped_by_phred: " << num_reads_skipped_by_phred << "\n"
-      << "num_reads_skipped_by_delta: " << num_reads_skipped_by_delta << "\n"
-      << "num_reads_skipped_by_length: " << num_reads_skipped_by_length << "\n"
-      << "num_reads_skipped_by_invalid_bases: "
-      << num_reads_skipped_by_invalid_bases << "\n"
-      << "Total reads skipped: "
-      << num_reads_skipped_by_phred + num_reads_skipped_by_delta +
-           num_reads_skipped_by_length + num_reads_skipped_by_invalid_bases
-      << std::endl;
+    std::cerr << "num_passed_reads: " << num_passed_reads << "\n"
+              << "num_reads: " << num_reads << "\n"
+              << "num_reads - num_passed_reads: "
+              << num_reads - num_passed_reads << "\n"
+              << "num_reads - num_passed_reads / num_reads: "
+              << floor((double)(num_reads - num_passed_reads) / num_reads)
+              << "\n"
+              << "num_reads_skipped_by_phred: "
+              << num_reads_skipped_by_phred << "\n"
+              << "num_reads_skipped_by_delta: "
+              << num_reads_skipped_by_delta << "\n"
+              << "num_reads_skipped_by_length: "
+              << num_reads_skipped_by_length << "\n"
+              << "num_reads_skipped_by_invalid_bases: "
+              << num_reads_skipped_by_invalid_bases << "\n"
+              << "Total reads skipped: "
+              << num_reads_skipped_by_phred +
+                   num_reads_skipped_by_delta +
+                   num_reads_skipped_by_length +
+                   num_reads_skipped_by_invalid_bases
+              << std::endl;
   }
 
   if (num_passed_reads == 0) {
@@ -911,14 +908,8 @@ process_read(const btllib::SeqReader::Record& record,
 
   std::vector<uint32_t> tiles_assigned_id_vec(num_tiles, 0);
   std::vector<uint8_t> tiles_assigned_bool_vec(num_tiles, 0);
-  const size_t num_assigned_tiles =
-    calc_num_assigned_tiles(*miBF,
-                            hashed_values,
-                            tiles_assigned_id_vec,
-                            tiles_assigned_bool_vec,
-                            total_queries_per_path,
-                            total_hits_per_path,
-                            total_misses_per_path);
+  const size_t num_assigned_tiles = calc_num_assigned_tiles(
+    *miBF, hashed_values, tiles_assigned_id_vec, tiles_assigned_bool_vec, total_queries_per_path, total_hits_per_path, total_misses_per_path);
   if (opt::debug) {
     std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl;
   }
@@ -1173,10 +1164,12 @@ main(int argc, char** argv)
   std::cerr << "in " << setprecision(4) << fixed << omp_get_wtime() - sTime
             << "\n";
 
+
   std::cerr << "opening: " << opt::input << std::endl;
 
   fill_bit_vector(
     opt::input, miBFCS, opt::min_length, seed_string_vec, filter_out_reads);
+
 
   // setting up MIBF
   miBFCS.setup();
@@ -1248,28 +1241,31 @@ main(int argc, char** argv)
                    num_reads_in_path,
                    phred_sum_in_path);
     }
+
   }
   if (opt::silver_path && opt::max_paths > curr_path) {
-    std::cerr << "WARNING: Expected " << std::to_string(opt::max_paths)
+    std::cerr << "WARNING: Expected " << std::to_string(opt::max_paths) 
               << " silver paths, but only " << std::to_string(curr_path)
-              << " generated.\n"
-              << "Possible reasons include:\n"
+              <<" generated.\n" << "Possible reasons include:\n"
               << "\t- Input reads sorted by chromosome/position\n"
               << "\t- Genome size set too large\n";
   }
 
   if (opt::verbose) {
-    log_path_stat(curr_path,
-                  valid_reads,
-                  total_tiles_per_path,
-                  total_assigned_tiles_per_path,
-                  total_unassigned_tiles_per_path,
-                  total_queries_per_path,
-                  total_hits_per_path,
-                  total_misses_per_path,
-                  num_reads_in_path,
-                  phred_sum_in_path);
-  }
+  log_path_stat(
+    curr_path,
+    valid_reads,
+    total_tiles_per_path,
+    total_assigned_tiles_per_path,
+    total_unassigned_tiles_per_path,
+    total_queries_per_path,
+    total_hits_per_path,
+    total_misses_per_path,
+    num_reads_in_path,
+    phred_sum_in_path,
+    inserted_bases
+  );
+}
 
   std::cerr << "assigned" << std::endl;
   std::cerr << "in " << setprecision(4) << fixed << omp_get_wtime() - sTime
