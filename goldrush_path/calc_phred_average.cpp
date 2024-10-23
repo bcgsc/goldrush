@@ -41,3 +41,4 @@ calc_phred_average(const std::string qual)
                         (uint32_t)abs((int32_t)(-10 * log10(first_avg)) -
                                       (int32_t)(-10 * log10(second_avg))));
 }
+
