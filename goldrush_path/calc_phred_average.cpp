@@ -15,7 +15,7 @@ calc_phred_average(const std::string qual)
 
   for (size_t i = 0; i < qual_size; ++i) {
     // Convert ASCII character to Phred score
-    int phred_score = (int)qual.at(i) - 33;
+    uint32_t phred_score = (uint32_t)(qual.at(i) - 33);
 
     // Delog the Phred score: 10^(-Q/10)
     double delog_phred = pow(10.0, -phred_score / 10.0);
