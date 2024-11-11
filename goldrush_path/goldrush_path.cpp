@@ -106,7 +106,7 @@ silver_path_check(
   uint64_t& total_hits_per_path,
   uint64_t& total_misses_per_path,
   uint64_t& num_reads_in_path,
-  uint64_t& phred_sum_in_path)
+  double& phred_sum_in_path)
 {
   if (target_bases < inserted_bases) {
     if (opt::verbose) {
@@ -1209,7 +1209,7 @@ main(int argc, char** argv)
   uint64_t total_hits_per_path = 0;
   uint64_t total_misses_per_path = 0;
   uint64_t num_reads_in_path = 0;
-  uint64_t phred_sum_in_path = 0;
+  double phred_sum_in_path = 0;
   // std::unordered_map<uint32_t, uint8_t> id_to_num_tiles_inserted;
   while (true) {
     decltype(precomputed_hash_queue)::Block block(
