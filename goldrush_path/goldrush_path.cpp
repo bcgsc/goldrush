@@ -34,11 +34,16 @@
 #include <tuple>
 #include <vector>
 
-uint64_t sum_phred(const std::string& qual)
+double sum_phred(const std::string& qual)
 {
-  uint64_t phred_sum = 0;
+  double phred_sum = 0;
   for (const auto& phred : qual) {
-    phred_sum += (uint64_t)phred - 33;
+    int phred_score = (int)(phred - 33);
+
+    // Delog the Phred score: 10^(-Q/10)
+    double delog_phred = pow(10.0, -phred_score / 10.0);
+
+    phred_sum += delog_phred;
   }
   return phred_sum;
 }
