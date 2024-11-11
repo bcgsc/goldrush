@@ -19,6 +19,7 @@
 #endif
 
 #include <algorithm>
+#include <atomic>
 #include <cstdio>
 #include <fstream>
 #include <functional>
@@ -48,6 +49,14 @@ double sum_phred(const std::string& qual)
   return phred_sum;
 }
 
+uint32_t calc_median(const std::vector<uint32_t>& vec)
+{
+  std::vector<uint32_t> vec_copy = vec;
+  size_t n = vec_copy.size() / 2;
+  std::nth_element(vec_copy.begin(), vec_copy.begin() + n, vec_copy.end());
+  return vec_copy[n];
+}
+
 void
 log_tile_states(std::vector<uint32_t>& tiles_assigned_id_vec,
                 std::vector<uint8_t>& tiles_assigned_bool_vec)
@@ -75,7 +84,7 @@ void log_path_stat(
   const uint64_t total_hits_per_path,
   const uint64_t total_misses_per_path,
   const uint64_t num_reads_in_path,
-  const uint64_t phred_sum_in_path, 
+  const double phred_sum_in_path, 
   const uint64_t inserted_bases)
 {
   std::cerr << "Visited " << valid_reads << " reads to generate " << curr_path << " silver paths" << std::endl;
@@ -869,7 +878,7 @@ process_read(const btllib::SeqReader::Record& record,
              uint64_t& total_hits_per_path,
              uint64_t& total_misses_per_path,
              uint64_t& num_reads_in_path,
-             uint64_t& phred_sum)
+             double& phred_sum)
 {
   if (record.seq.size() < min_seq_len) {
     if (opt::debug) {
@@ -1104,6 +1113,34 @@ main(int argc, char** argv)
   } else {
     num_and_type_path_log = "the golden path";
   }
+
+  constexpr size_t MEDIAN_SAMPLES_NEEDED = 50000;
+
+  if (opt::phred_min == 0) {
+    std::cerr << "Calculating minimum phred score via median" << std::endl;
+    std::atomic<size_t> num_reads{0};
+    std::vector<uint32_t> phred_scores(MEDIAN_SAMPLES_NEEDED, 0);
+    btllib::SeqReader reader(opt::input, btllib::SeqReader::Flag::LONG_MODE);
+#pragma omp parallel
+  for (const auto record : reader) {
+    size_t current_index = num_reads.fetch_add(1, std::memory_order_relaxed);
+    if (current_index >= MEDIAN_SAMPLES_NEEDED) {
+      break;
+    }
+
+    if (record.seq.size() < opt::min_length) {
+      continue;
+    }
+    const auto phred_stat = calc_phred_average(record.qual);
+    phred_scores[current_index] = phred_stat.first;
+
+  }
+  opt::phred_min = calc_median(phred_scores);
+  if (opt::verbose){
+  std::cerr << "Minimum phred score calculated with median: " << opt::phred_min << std::endl;}
+
+  }
+
 
   std::cerr
     << "Calculating " << num_and_type_path_log << "\n"
