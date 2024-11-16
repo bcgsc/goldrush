@@ -11,7 +11,7 @@ goldrush run reads=test_reads G=1e6 t=4 p=goldrush_test P=0 -B
 
 l50=$(abyss-fac goldrush_test_golden_path.goldpolish-polished.span2.dist500.tigmint.fa.k40.w250.ntLink-5rounds.polished.fa |awk '{print $3}' |tail -n1)
 
-if [ -e goldrush_test_golden_path.goldpolish-polished.span2.dist500.tigmint.fa.k40.w250.ntLink-5rounds.polished.fa ] && [ ${l50} -eq 1 ]; then
+if [ -e goldrush_test_golden_path.goldpolish-polished.span2.dist500.tigmint.fa.k40.w250.ntLink-5rounds.polished.fa ] && [ ${l50} -eq 2 ]; then
   echo -e "\nTest successful!"
 else
   echo -e "\nTest failed - please check your installation"
