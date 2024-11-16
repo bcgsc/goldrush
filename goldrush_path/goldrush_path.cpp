@@ -49,12 +49,11 @@ double sum_phred(const std::string& qual)
   return phred_sum;
 }
 
-uint32_t calc_median(const std::vector<uint32_t>& vec)
+uint32_t calc_median(std::vector<uint32_t>& vec, const size_t n)
 {
-  std::vector<uint32_t> vec_copy = vec;
-  size_t n = vec_copy.size() / 2;
-  std::nth_element(vec_copy.begin(), vec_copy.begin() + n, vec_copy.end());
-  return vec_copy[n];
+  // sort vector in descending order
+  std::sort(vec.begin(), vec.end(), std::greater<uint32_t>());
+  return vec[n / 2];
 }
 
 void
@@ -1123,19 +1122,30 @@ main(int argc, char** argv)
     btllib::SeqReader reader(opt::input, btllib::SeqReader::Flag::LONG_MODE);
 #pragma omp parallel
   for (const auto record : reader) {
+    if (record.seq.size() < opt::min_length) {
+      continue;
+    }
     size_t current_index = num_reads.fetch_add(1, std::memory_order_relaxed);
     if (current_index >= MEDIAN_SAMPLES_NEEDED) {
       break;
     }
 
-    if (record.seq.size() < opt::min_length) {
-      continue;
-    }
+
     const auto phred_stat = calc_phred_average(record.qual);
     phred_scores[current_index] = phred_stat.first;
 
   }
-  opt::phred_min = calc_median(phred_scores);
+  opt::phred_min = calc_median(phred_scores, num_reads);
+  if (opt::debug) {
+    // print out number of reads used to calculate median
+    std::cerr << "Number of reads used to calculate median: " << num_reads << std::endl;
+    // print out median array
+    std::cerr << "Median array: ";
+    for (const auto& phred_score : phred_scores) {
+      std::cerr << phred_score << " ";
+    }
+    std::cerr << std::endl;
+  }
   if (opt::verbose){
   std::cerr << "Minimum phred score calculated with median: " << opt::phred_min << std::endl;}
 
