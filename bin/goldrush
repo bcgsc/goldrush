@@ -71,7 +71,7 @@ M=5
 p=goldrush_asm
 p1=$(p)_silver_path
 p2=$(p)_golden_path
-P=15
+P=0
 d=5
 m=20000
 # Common parameters for scaffolding and correction tools
@@ -175,7 +175,7 @@ help:
 	@echo "	m			minimum read length [$(m)]"
 	@echo "	M			maximum number of silver paths to generate [$(M)]"
 	@echo "	r			ratio of full genome in golden path [$(r)]"
-	@echo "	P			minimum average phred score for each read [$(P)]"
+	@echo "	P			minimum average phred score for each read [$(P) (calculates average phred score threshold automatically)]"
 	@echo "	d			remove reads with greater or equal than d difference between average phred quality of first half and second half of the read [$(d)]"
 	@echo "	p			prefix to use for the output paths [$(p)]"
 	@echo ""
