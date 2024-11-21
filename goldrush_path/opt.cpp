@@ -19,7 +19,7 @@ size_t jobs = 48;
 size_t block_size = 10;
 size_t max_paths = 1;
 size_t threshold = 10;
-uint32_t phred_min = 15;
+uint32_t phred_min = 0;
 uint32_t phred_delta = 5;
 std::string prefix_file = "goldrush_out";
 std::string input = "";
@@ -66,7 +66,7 @@ print_usage(const std::string& progname)
        "  -p prefix               write output to files with prefix "
        "[goldrush_out]\n"
        "  -P PHRED_AVG            minimum average phred score for each read "
-       "[15]\n"
+       "[0 (calculates phred score minimum automatically)]\n"
        "  -j J                    number of threads [48]\n"
        "  -s S                    use S seed preset. Must be consistent with k "
        "and w [n/a, "

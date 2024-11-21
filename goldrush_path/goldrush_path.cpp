@@ -94,7 +94,8 @@ void log_path_stat(
   std::cerr << "Total hits: " << total_hits_per_path << " to generate " << curr_path << " silver paths" << std::endl;
   std::cerr << "Total misses: " << total_misses_per_path << " to generate " << curr_path << " silver paths" << std::endl;
   std::cerr << "Num reads: " << num_reads_in_path << " in silver path " << curr_path << std::endl;
-  std::cerr << "Average Phred: " << phred_sum_in_path / inserted_bases << " in silver path " << curr_path << std::endl;
+  uint32_t avg_phred = (uint32_t)(-10 * log10(phred_sum_in_path / inserted_bases));
+  std::cerr << "Average Phred: " << avg_phred << " in silver path " << curr_path << std::endl;
 }
 
 void
