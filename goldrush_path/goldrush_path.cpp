@@ -87,7 +87,8 @@ void log_path_stat(
   const uint64_t inserted_bases)
 {
   std::cerr << "Visited " << valid_reads << " reads to generate " << curr_path << " silver paths" << std::endl;
-  std::cerr << "Seen: " << total_tiles_per_path << " tiles to generate " << curr_path << " silver paths" << std::endl;
+  std::cerr << "Saw: " << total_tiles_per_path << " tiles to generate " << curr_path << " silver paths" << std::endl;
+
   std::cerr << "Assigned: " << total_assigned_tiles_per_path << " tiles to generate " << curr_path << " silver paths" << std::endl;
   std::cerr << "Unassigned: " << total_unassigned_tiles_per_path << " tiles to generate " << curr_path << " silver paths" << std::endl;
   std::cerr << "Total queries: " << total_queries_per_path << " to generate " << curr_path << " silver paths" << std::endl;
