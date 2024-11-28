@@ -35,7 +35,8 @@
 #include <tuple>
 #include <vector>
 
-double sum_phred(const std::string& qual)
+double
+sum_phred(const std::string& qual)
 {
   double phred_sum = 0;
   for (const auto& phred : qual) {
@@ -49,11 +50,62 @@ double sum_phred(const std::string& qual)
   return phred_sum;
 }
 
-uint32_t calc_median(std::vector<uint32_t>& vec, const size_t n)
+uint32_t
+calc_median(std::vector<uint32_t>& vec, const size_t n)
 {
   // sort vector in descending order
   std::sort(vec.begin(), vec.end(), std::greater<uint32_t>());
   return vec[n / 2];
+}
+
+void
+log_phred_calculations(size_t num_reads, std::vector<uint32_t>& phred_scores)
+{
+  if (opt::debug) {
+    std::cerr << "Number of reads used to calculate median: " << num_reads
+              << std::endl;
+    std::cerr << "Median array: ";
+    for (const auto& phred_score : phred_scores) {
+      std::cerr << phred_score << " ";
+    }
+    std::cerr << std::endl;
+  }
+  if (opt::verbose) {
+    std::cerr << "Minimum phred score calculated with median: "
+              << opt::phred_min << std::endl;
+  }
+}
+
+void
+calc_min_phred_threshold()
+{
+  constexpr size_t MEDIAN_SAMPLES_NEEDED = 50000;
+
+  if (opt::phred_min == 0) {
+    std::cerr << "Calculating minimum phred score via median" << std::endl;
+    std::atomic<size_t> num_reads{ 0 };
+    std::vector<uint32_t> phred_scores(MEDIAN_SAMPLES_NEEDED, 0);
+    btllib::SeqReader reader(opt::input, btllib::SeqReader::Flag::LONG_MODE);
+#pragma omp parallel
+    for (const auto record : reader) {
+      if (record.seq.size() < opt::min_length) {
+        continue;
+      }
+      size_t current_index = num_reads.fetch_add(1, std::memory_order_relaxed);
+      if (current_index >= MEDIAN_SAMPLES_NEEDED) {
+        break;
+      }
+
+      const auto phred_stat = calc_phred_average(record.qual);
+      phred_scores[current_index] = phred_stat.first;
+    }
+
+    constexpr uint32_t MINIMUM_PHRED_THRESHOLD = 10;
+    opt::phred_min =
+      std::max(MINIMUM_PHRED_THRESHOLD, calc_median(phred_scores, num_reads));
+    log_phred_calculations(num_reads, phred_scores);
+    return;
+  }
 }
 
 void
@@ -73,30 +125,42 @@ log_tile_states(std::vector<uint32_t>& tiles_assigned_id_vec,
   std::cerr << std::endl;
 }
 
-void log_path_stat(
-  const uint64_t curr_path,
-  const uint64_t valid_reads,
-  const uint64_t total_tiles_per_path,
-  const uint64_t total_assigned_tiles_per_path,
-  const uint64_t total_unassigned_tiles_per_path,
-  const uint64_t total_queries_per_path,
-  const uint64_t total_hits_per_path,
-  const uint64_t total_misses_per_path,
-  const uint64_t num_reads_in_path,
-  const double phred_sum_in_path, 
-  const uint64_t inserted_bases)
+void
+log_path_stat(const uint64_t curr_path,
+              const uint64_t valid_reads,
+              const uint64_t total_tiles_per_path,
+              const uint64_t total_assigned_tiles_per_path,
+              const uint64_t total_unassigned_tiles_per_path,
+              const uint64_t total_queries_per_path,
+              const uint64_t total_hits_per_path,
+              const uint64_t total_misses_per_path,
+              const uint64_t num_reads_in_path,
+              const double phred_sum_in_path,
+              const uint64_t inserted_bases)
 {
-  std::cerr << "Visited " << valid_reads << " reads to generate " << curr_path << " silver paths" << std::endl;
-  std::cerr << "Saw: " << total_tiles_per_path << " tiles to generate " << curr_path << " silver paths" << std::endl;
+  std::cerr << "Visited " << valid_reads << " reads to generate " << curr_path
+            << " silver paths" << std::endl;
+  std::cerr << "Saw: " << total_tiles_per_path << " tiles to generate "
+            << curr_path << " silver paths" << std::endl;
 
-  std::cerr << "Assigned: " << total_assigned_tiles_per_path << " tiles to generate " << curr_path << " silver paths" << std::endl;
-  std::cerr << "Unassigned: " << total_unassigned_tiles_per_path << " tiles to generate " << curr_path << " silver paths" << std::endl;
-  std::cerr << "Total queries: " << total_queries_per_path << " to generate " << curr_path << " silver paths" << std::endl;
-  std::cerr << "Total hits: " << total_hits_per_path << " to generate " << curr_path << " silver paths" << std::endl;
-  std::cerr << "Total misses: " << total_misses_per_path << " to generate " << curr_path << " silver paths" << std::endl;
-  std::cerr << "Num reads: " << num_reads_in_path << " in silver path " << curr_path << std::endl;
-  uint32_t avg_phred = (uint32_t)(-10 * log10(phred_sum_in_path / inserted_bases));
-  std::cerr << "Average Phred: " << avg_phred << " in silver path " << curr_path << std::endl;
+  std::cerr << "Assigned: " << total_assigned_tiles_per_path
+            << " tiles to generate " << curr_path << " silver paths"
+            << std::endl;
+  std::cerr << "Unassigned: " << total_unassigned_tiles_per_path
+            << " tiles to generate " << curr_path << " silver paths"
+            << std::endl;
+  std::cerr << "Total queries: " << total_queries_per_path << " to generate "
+            << curr_path << " silver paths" << std::endl;
+  std::cerr << "Total hits: " << total_hits_per_path << " to generate "
+            << curr_path << " silver paths" << std::endl;
+  std::cerr << "Total misses: " << total_misses_per_path << " to generate "
+            << curr_path << " silver paths" << std::endl;
+  std::cerr << "Num reads: " << num_reads_in_path << " in silver path "
+            << curr_path << std::endl;
+  uint32_t avg_phred =
+    (uint32_t)(-10 * log10(phred_sum_in_path / inserted_bases));
+  std::cerr << "Average Phred: " << avg_phred << " in silver path " << curr_path
+            << std::endl;
 }
 
 void
@@ -120,18 +184,17 @@ silver_path_check(
 {
   if (target_bases < inserted_bases) {
     if (opt::verbose) {
-      log_path_stat(
-        curr_path,
-        valid_reads,
-        total_tiles_per_path,
-        total_assigned_tiles_per_path,
-        total_unassigned_tiles_per_path,
-        total_queries_per_path,
-        total_hits_per_path,
-        total_misses_per_path,
-        num_reads_in_path,
-        phred_sum_in_path,
-        inserted_bases);
+      log_path_stat(curr_path,
+                    valid_reads,
+                    total_tiles_per_path,
+                    total_assigned_tiles_per_path,
+                    total_unassigned_tiles_per_path,
+                    total_queries_per_path,
+                    total_hits_per_path,
+                    total_misses_per_path,
+                    num_reads_in_path,
+                    phred_sum_in_path,
+                    inserted_bases);
     }
     ++curr_path;
     if (opt::max_paths < curr_path) {
@@ -227,14 +290,14 @@ fill_bit_vector(const std::string& input_file,
       continue;
     }
     const auto phred_stat = calc_phred_average(record.qual);
-      if (opt::debug) {
+    if (opt::debug) {
 #pragma omp critical
-    {
+      {
         std::cerr << "phred avg: " << phred_stat.first << "\n"
                   << "phred delta: " << phred_stat.second << std::endl;
-    }
       }
-    
+    }
+
     if (phred_stat.first < opt::phred_min ||
         phred_stat.second >= opt::phred_delta) {
       if (opt::verbose) {
@@ -261,7 +324,6 @@ fill_bit_vector(const std::string& input_file,
         filter_out_reads.insert(record.id);
       }
       continue;
-    
     }
 #pragma omp atomic
     ++num_passed_reads;
@@ -270,27 +332,22 @@ fill_bit_vector(const std::string& input_file,
   }
 
   if (opt::verbose) {
-    std::cerr << "num_passed_reads: " << num_passed_reads << "\n"
-              << "num_reads: " << num_reads << "\n"
-              << "num_reads - num_passed_reads: "
-              << num_reads - num_passed_reads << "\n"
-              << "num_reads - num_passed_reads / num_reads: "
-              << floor((double)(num_reads - num_passed_reads) / num_reads)
-              << "\n"
-              << "num_reads_skipped_by_phred: "
-              << num_reads_skipped_by_phred << "\n"
-              << "num_reads_skipped_by_delta: "
-              << num_reads_skipped_by_delta << "\n"
-              << "num_reads_skipped_by_length: "
-              << num_reads_skipped_by_length << "\n"
-              << "num_reads_skipped_by_invalid_bases: "
-              << num_reads_skipped_by_invalid_bases << "\n"
-              << "Total reads skipped: "
-              << num_reads_skipped_by_phred +
-                   num_reads_skipped_by_delta +
-                   num_reads_skipped_by_length +
-                   num_reads_skipped_by_invalid_bases
-              << std::endl;
+    std::cerr
+      << "num_passed_reads: " << num_passed_reads << "\n"
+      << "num_reads: " << num_reads << "\n"
+      << "num_reads - num_passed_reads: " << num_reads - num_passed_reads
+      << "\n"
+      << "num_reads - num_passed_reads / num_reads: "
+      << floor((double)(num_reads - num_passed_reads) / num_reads) << "\n"
+      << "num_reads_skipped_by_phred: " << num_reads_skipped_by_phred << "\n"
+      << "num_reads_skipped_by_delta: " << num_reads_skipped_by_delta << "\n"
+      << "num_reads_skipped_by_length: " << num_reads_skipped_by_length << "\n"
+      << "num_reads_skipped_by_invalid_bases: "
+      << num_reads_skipped_by_invalid_bases << "\n"
+      << "Total reads skipped: "
+      << num_reads_skipped_by_phred + num_reads_skipped_by_delta +
+           num_reads_skipped_by_length + num_reads_skipped_by_invalid_bases
+      << std::endl;
   }
 
   if (num_passed_reads == 0) {
@@ -923,8 +980,14 @@ process_read(const btllib::SeqReader::Record& record,
 
   std::vector<uint32_t> tiles_assigned_id_vec(num_tiles, 0);
   std::vector<uint8_t> tiles_assigned_bool_vec(num_tiles, 0);
-  const size_t num_assigned_tiles = calc_num_assigned_tiles(
-    *miBF, hashed_values, tiles_assigned_id_vec, tiles_assigned_bool_vec, total_queries_per_path, total_hits_per_path, total_misses_per_path);
+  const size_t num_assigned_tiles =
+    calc_num_assigned_tiles(*miBF,
+                            hashed_values,
+                            tiles_assigned_id_vec,
+                            tiles_assigned_bool_vec,
+                            total_queries_per_path,
+                            total_hits_per_path,
+                            total_misses_per_path);
   if (opt::debug) {
     std::cerr << "num assigned tiles: " << num_assigned_tiles << std::endl;
   }
@@ -1115,44 +1178,7 @@ main(int argc, char** argv)
     num_and_type_path_log = "the golden path";
   }
 
-  constexpr size_t MEDIAN_SAMPLES_NEEDED = 50000;
-
-  if (opt::phred_min == 0) {
-    std::cerr << "Calculating minimum phred score via median" << std::endl;
-    std::atomic<size_t> num_reads{0};
-    std::vector<uint32_t> phred_scores(MEDIAN_SAMPLES_NEEDED, 0);
-    btllib::SeqReader reader(opt::input, btllib::SeqReader::Flag::LONG_MODE);
-#pragma omp parallel
-  for (const auto record : reader) {
-    if (record.seq.size() < opt::min_length) {
-      continue;
-    }
-    size_t current_index = num_reads.fetch_add(1, std::memory_order_relaxed);
-    if (current_index >= MEDIAN_SAMPLES_NEEDED) {
-      break;
-    }
-
-
-    const auto phred_stat = calc_phred_average(record.qual);
-    phred_scores[current_index] = phred_stat.first;
-
-  }
-  opt::phred_min = calc_median(phred_scores, num_reads);
-  if (opt::debug) {
-    // print out number of reads used to calculate median
-    std::cerr << "Number of reads used to calculate median: " << num_reads << std::endl;
-    // print out median array
-    std::cerr << "Median array: ";
-    for (const auto& phred_score : phred_scores) {
-      std::cerr << phred_score << " ";
-    }
-    std::cerr << std::endl;
-  }
-  if (opt::verbose){
-  std::cerr << "Minimum phred score calculated with median: " << opt::phred_min << std::endl;}
-
-  }
-
+  calc_min_phred_threshold();
 
   std::cerr
     << "Calculating " << num_and_type_path_log << "\n"
@@ -1218,12 +1244,10 @@ main(int argc, char** argv)
   std::cerr << "in " << setprecision(4) << fixed << omp_get_wtime() - sTime
             << "\n";
 
-
   std::cerr << "opening: " << opt::input << std::endl;
 
   fill_bit_vector(
     opt::input, miBFCS, opt::min_length, seed_string_vec, filter_out_reads);
-
 
   // setting up MIBF
   miBFCS.setup();
@@ -1295,31 +1319,29 @@ main(int argc, char** argv)
                    num_reads_in_path,
                    phred_sum_in_path);
     }
-
   }
   if (opt::silver_path && opt::max_paths > curr_path) {
-    std::cerr << "WARNING: Expected " << std::to_string(opt::max_paths) 
+    std::cerr << "WARNING: Expected " << std::to_string(opt::max_paths)
               << " silver paths, but only " << std::to_string(curr_path)
-              <<" generated.\n" << "Possible reasons include:\n"
+              << " generated.\n"
+              << "Possible reasons include:\n"
               << "\t- Input reads sorted by chromosome/position\n"
               << "\t- Genome size set too large\n";
   }
 
   if (opt::verbose) {
-  log_path_stat(
-    curr_path,
-    valid_reads,
-    total_tiles_per_path,
-    total_assigned_tiles_per_path,
-    total_unassigned_tiles_per_path,
-    total_queries_per_path,
-    total_hits_per_path,
-    total_misses_per_path,
-    num_reads_in_path,
-    phred_sum_in_path,
-    inserted_bases
-  );
-}
+    log_path_stat(curr_path,
+                  valid_reads,
+                  total_tiles_per_path,
+                  total_assigned_tiles_per_path,
+                  total_unassigned_tiles_per_path,
+                  total_queries_per_path,
+                  total_hits_per_path,
+                  total_misses_per_path,
+                  num_reads_in_path,
+                  phred_sum_in_path,
+                  inserted_bases);
+  }
 
   std::cerr << "assigned" << std::endl;
   std::cerr << "in " << setprecision(4) << fixed << omp_get_wtime() - sTime
