@@ -66,7 +66,7 @@ goldrush run reads=reads G=gsize
         m                               minimum read length [20000]
         M                               maximum number of silver paths to generate [5]
         r                               ratio of full genome in golden path [0.9]
-        P                               minimum average phred score for each read [0  (calculates average phred score threshold automatically)]
+        P                               minimum average phred score for each read, or 0 to calculate threshold automatically [0]
         d                               remove reads with greater or equal than d difference between average phred quality of first half and second half of the read [5]
         p                               prefix to use for the output paths [goldrush_asm]
 
