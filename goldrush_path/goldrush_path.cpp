@@ -35,21 +35,6 @@
 #include <tuple>
 #include <vector>
 
-double
-sum_phred(const std::string& qual)
-{
-  double phred_sum = 0;
-  for (const auto& phred : qual) {
-    int phred_score = (int)(phred - 33);
-
-    // Delog the Phred score: 10^(-Q/10)
-    double delog_phred = pow(10.0, -phred_score / 10.0);
-
-    phred_sum += delog_phred;
-  }
-  return phred_sum;
-}
-
 uint32_t
 calc_median(std::vector<uint32_t>& vec, const size_t n)
 {
