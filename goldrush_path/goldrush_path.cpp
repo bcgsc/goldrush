@@ -39,6 +39,7 @@ constexpr size_t MEDIAN_SAMPLES_NEEDED = 50000;
 constexpr uint32_t MINIMUM_PHRED_THRESHOLD = 10;
 
 struct log_info_struct {
+  uint64_t valid_reads = 0;
   uint64_t total_tiles_per_path = 0;
   uint64_t total_assigned_tiles_per_path = 0;
   uint64_t total_unassigned_tiles_per_path = 0;
@@ -124,11 +125,10 @@ log_tile_states(std::vector<uint32_t>& tiles_assigned_id_vec,
 
 void
 log_path_stat(const uint64_t curr_path,
-              const uint64_t valid_reads,
               const log_info_struct& log_info,
               const uint64_t inserted_bases)
 {
-  std::cerr << "Visited " << valid_reads << " reads to generate " << curr_path
+  std::cerr << "Visited " << log_info.valid_reads << " reads to generate " << curr_path
             << " silver paths" << std::endl;
   std::cerr << "Saw: " << log_info.total_tiles_per_path << " tiles to generate "
             << curr_path << " silver paths" << std::endl;
@@ -162,13 +162,11 @@ silver_path_check(
   uint64_t& curr_path,
   uint32_t& ids_inserted,
   MIBFConstructSupport<uint32_t, multiLensfrHashIterator>& miBFCS,
-  uint32_t& valid_reads,
   log_info_struct& log_info)
 {
   if (target_bases < inserted_bases) {
     if (opt::verbose) {
       log_path_stat(curr_path,
-                    valid_reads,
                     log_info,
                     inserted_bases);
     }
@@ -904,7 +902,6 @@ process_read(const btllib::SeqReader::Record& record,
              uint32_t& ids_inserted,
              const size_t min_seq_len,
              const std::unordered_set<std::string>& filter_out_reads,
-             uint32_t& valid_reads,
              log_info_struct& log_info)
 {
   if (record.seq.size() < min_seq_len) {
@@ -1010,13 +1007,12 @@ process_read(const btllib::SeqReader::Record& record,
                         curr_path,
                         ids_inserted,
                         miBFCS,
-                        valid_reads,
                         log_info);
     }
   } else {
     if (num_assigned_tiles == num_tiles) {
       ++id;
-      ++valid_reads;
+      ++log_info.valid_reads;
       if (opt::debug) {
         std::cerr << "complete assignment" << std::endl;
       }
@@ -1079,7 +1075,6 @@ process_read(const btllib::SeqReader::Record& record,
                           curr_path,
                           ids_inserted,
                           miBFCS,
-                          valid_reads,
                           log_info);
       }
     }
@@ -1092,7 +1087,7 @@ process_read(const btllib::SeqReader::Record& record,
     // output read to wood path
   }
   ++id;
-  ++valid_reads;
+  ++log_info.valid_reads;
   if (id % 10000 == 0) {
     std::cerr << "processed " << id << " reads" << std::endl;
   }
@@ -1227,7 +1222,6 @@ main(int argc, char** argv)
   uint64_t inserted_bases = 0;
   uint64_t target_bases = opt::ratio * opt::genome_size;
   uint64_t curr_path = 1;
-  uint32_t valid_reads = 0;
   uint32_t id = 1;
   uint32_t ids_inserted = 0;
   log_info_struct log_info;
@@ -1257,7 +1251,6 @@ main(int argc, char** argv)
                    ids_inserted,
                    opt::min_length,
                    filter_out_reads,
-                   valid_reads,
                    log_info);
     }
   }
@@ -1272,7 +1265,6 @@ main(int argc, char** argv)
 
   if (opt::verbose) {
     log_path_stat(curr_path,
-                  valid_reads,
                   log_info,
                   inserted_bases);
   }
