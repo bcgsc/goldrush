@@ -1,7 +1,9 @@
 #!/usr/bin/make -rRf
 # Pipeline for the Goldrush program
 # Written by Puneet Sidhu, Johnathan Wong, Lauren Coombe, and Vladimir Nikolic
-# GoldRush v1.2.1
+
+# GoldRush version
+version=1.2.1
 
 # Input files
 reads=reads
@@ -131,12 +133,12 @@ endif
 .SECONDARY:
 
 version:
-	@echo "goldrush v1.2.1"
+	@echo "goldrush version: $(version)"
 
 # Help
 help:
 	@echo "GoldRush"
-	@echo "v1.2.1"
+	@echo "Version: $(version)"
 	@echo ""
 	@echo "Usage: goldrush [COMMAND] [OPTION=VALUE]…"
 	@echo ""
@@ -204,7 +206,7 @@ endif
 	@echo "Clean Done"
 
 # Set-up pipelines
-run: 
+run: version
 	mkdir -p $(prefix)
 	cd $(prefix) && ln -sf ../$(long_reads) && goldrush run-in-dir reads=$(reads) G=$(G) t=$(t) z=$(z) track_time=$(track_time) k=$(k) w=$(w) tile=$(tile) b=$(b) u=$(u) a=$(a) o=$(o) x=$(x) h=$(h) s=$(s) m=$(m) M=$(M) r=$(r) P=$(P) d=$(d) span=$(span) dist=$(dist) k_ntLink=$(k_ntLink) w_ntLink=$(w_ntLink) rounds=$(rounds) polisher=$(polisher) polisher_mapper=$(polisher_mapper) shared_mem=$(shared_mem)
 	ln -sf $(prefix)/$(p2).fa
@@ -215,11 +217,11 @@ run:
 	echo "You can find intermediate files and the outputs for each GoldRush stage within the $(prefix) subdirectory."
 	echo "A soft link to your final assembly is available at: $(p2).$(polished_infix).span$(span).dist$(dist).tigmint.fa.k$(k_ntLink).w$(w_ntLink).ntLink-$(rounds)rounds.polished.fa"
 
-run-in-dir: path-tigmint-ntLink-target check-G check-reads clean
-path-polish: $(polisher) check-G check-reads clean
-path-tigmint: tigmint check-G check-reads clean
-path-tigmint-ntLink: ntLink_all_rounds ntLink_softlink clean
-path-tigmint-ntLink-target: goldpolish_target clean
+run-in-dir: version path-tigmint-ntLink-target check-G check-reads clean
+path-polish: version $(polisher) check-G check-reads clean
+path-tigmint: version tigmint check-G check-reads clean
+path-tigmint-ntLink: version ntLink_all_rounds ntLink_softlink clean
+path-tigmint-ntLink-target: version goldpolish_target clean
 
 check-G:
 ifndef G
