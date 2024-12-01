@@ -35,6 +35,9 @@
 #include <tuple>
 #include <vector>
 
+constexpr size_t MEDIAN_SAMPLES_NEEDED = 50000;
+constexpr uint32_t MINIMUM_PHRED_THRESHOLD = 10;
+
 uint32_t
 calc_median(std::vector<uint32_t>& vec, const size_t n)
 {
@@ -64,7 +67,6 @@ log_phred_calculations(size_t num_reads, std::vector<uint32_t>& phred_scores)
 void
 calc_min_phred_threshold()
 {
-  constexpr size_t MEDIAN_SAMPLES_NEEDED = 50000;
 
   if (opt::phred_min == 0) {
     std::cerr << "Calculating minimum phred score via median" << std::endl;
@@ -85,7 +87,6 @@ calc_min_phred_threshold()
       phred_scores[current_index] = phred_stat.first;
     }
 
-    constexpr uint32_t MINIMUM_PHRED_THRESHOLD = 10;
     opt::phred_min =
       std::max(MINIMUM_PHRED_THRESHOLD, calc_median(phred_scores, num_reads));
     log_phred_calculations(num_reads, phred_scores);
