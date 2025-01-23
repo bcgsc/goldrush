@@ -227,21 +227,20 @@ public:
 #pragma omp parallel for
 #endif
     for (size_t i = 0; i < hash_vec.size(); ++i) {
-      const auto& hash = hash_vec[i];
-    hashSet values;
-    values.set_empty_key(miBF.size());
-    for (size_t i = 0; i < hash_vec.size(); ++i) {
-      values.insert(miBF.getRankPos(hash_vec[i]));
-    }
-    for (hashSet::iterator itr = values.begin(); itr != values.end(); itr++) {
-      uint64_t randomSeed = *itr ^ id;
-      uint64_t rank = *itr;
-      T count = __sync_add_and_fetch(&m_counts[rank], 1);
-      T randomNum = std::hash<T>{}(randomSeed) % count;
-      if (randomNum == count - 1) {
-        miBF.setData(rank, id);
+      hashSet values;
+      values.set_empty_key(miBF.size());
+      for (size_t i = 0; i < hash_vec.size(); ++i) {
+        values.insert(miBF.getRankPos(hash_vec[i]));
       }
-    }
+      for (hashSet::iterator itr = values.begin(); itr != values.end(); itr++) {
+        uint64_t randomSeed = *itr ^ id;
+        uint64_t rank = *itr;
+        T count = __sync_add_and_fetch(&m_counts[rank], 1);
+        T randomNum = std::hash<T>{}(randomSeed) % count;
+        if (randomNum == count - 1) {
+          miBF.setData(rank, id);
+        }
+      }
     }
   }
 
