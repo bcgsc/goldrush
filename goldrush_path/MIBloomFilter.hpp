@@ -124,6 +124,7 @@ public:
 	 * Stores the filter as a binary file to the path specified
 	 * Stores uncompressed because the random data tends to
 	 * compress poorly anyway
+   * FOR DEVELOPMENT PURPOSES ONLY
 	 */
 	void store(string const& filterFilePath) const
 	{
