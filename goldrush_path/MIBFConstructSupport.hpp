@@ -295,16 +295,16 @@ public:
       for (unsigned i = 0; i < m_h; ++i) {
         const std::vector<uint64_t> hash{ (*itr)[i] };
         if (solid_vec[i]->contains(hash)) {
-          values.insert(hash[0]);
+          values.insert(miBF.getRankPos(hash[0]));
         }
       }
       ++itr;
     }
     for (hashSet::iterator itr = values.begin(); itr != values.end(); itr++) {
       uint64_t randomSeed = *itr ^ id;
-      uint64_t rank = miBF.getRankPos(*itr);
+      uint64_t rank = *itr;
       T count = __sync_add_and_fetch(&m_counts[rank], 1);
-      T randomNum = (randomSeed) % count;
+      T randomNum = std::hash<T>{}(randomSeed) % count;
       if (randomNum == count - 1) {
         miBF.setData(rank, id);
       }
