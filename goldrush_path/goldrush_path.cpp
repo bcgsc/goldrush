@@ -178,6 +178,7 @@ silver_path_check(
     log_info.num_reads_in_path = 0;
     log_info.phred_sum_in_path = 0;
     miBFCS.reset_counts();
+    
     mibf_vec[0]->reset_ID_vector();
     golden_path_vec.pop_back();
     golden_path_vec.emplace_back(std::ofstream(

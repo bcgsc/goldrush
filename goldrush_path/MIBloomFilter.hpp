@@ -120,6 +120,44 @@ public:
     return colliCount;
   }
 
+	/*
+	 * Stores the filter as a binary file to the path specified
+	 * Stores uncompressed because the random data tends to
+	 * compress poorly anyway
+	 */
+	void store(string const& filterFilePath) const
+	{
+
+#pragma omp parallel for
+		for (unsigned i = 0; i < 2; ++i) {
+			if (i == 0) {
+				ofstream myFile(filterFilePath.c_str(), ios::out | ios::binary);
+
+				assert(myFile);
+        myFile.write(reinterpret_cast<const char*>(m_data.data()), m_dSize * sizeof(T));
+
+				myFile.close();
+				assert(myFile);
+
+				FILE* file = fopen(filterFilePath.c_str(), "rb");
+				if (file == NULL) {
+					cerr << "file \"" << filterFilePath << "\" could not be read." << endl;
+					exit(1);
+				}
+			} else {
+				string bvFilename = filterFilePath + ".sdsl";
+				//				cerr << "Storing sdsl interleaved bit vector to: " << bvFilename
+				//						<< endl;
+				store_to_file(m_bv, bvFilename);
+				//				cerr << "Number of bit vector buckets is " << m_bv.size()
+				//						<< endl;
+				//				cerr << "Uncompressed bit vector size is "
+				//						<< (m_bv.size() + m_bv.size() * 64 / BLOCKSIZE) / 8
+				//						<< " bytes" << endl;
+			}
+		}
+	}
+
   /*
    * Constructor using a prebuilt bitvector
    */
