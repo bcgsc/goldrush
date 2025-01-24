@@ -3,7 +3,7 @@
 # Written by Puneet Sidhu, Johnathan Wong, Lauren Coombe, and Vladimir Nikolic
 
 # GoldRush version
-version=1.2.1
+version=1.2.2
 
 # Input files
 reads=reads
