@@ -202,13 +202,13 @@ public:
     values.set_empty_key(miBF.size());
     while (itr != itr.end()) {
       for (unsigned i = 0; i < m_h; ++i) {
-        values.insert((*itr)[i]);
+        values.insert(miBF.getRankPos((*itr)[i]));
       }
       ++itr;
     }
     for (hashSet::iterator itr = values.begin(); itr != values.end(); itr++) {
       uint64_t randomSeed = *itr ^ id;
-      uint64_t rank = miBF.getRankPos(*itr);
+      uint64_t rank = *itr;
       T count = __sync_add_and_fetch(&m_counts[rank], 1);
       T randomNum = std::hash<T>{}(randomSeed) % count;
       if (randomNum == count - 1) {
@@ -227,15 +227,19 @@ public:
 #pragma omp parallel for
 #endif
     for (size_t i = 0; i < hash_vec.size(); ++i) {
-      const auto& hash = hash_vec[i];
-      uint64_t randomSeed = hash ^ id;
-      uint64_t rank = miBF.getRankPos(hash);
-      T count = __sync_add_and_fetch(&m_counts[rank], 1);
-      T randomNum = std::hash<T>{}(randomSeed) % count;
-      // std::cerr << "id: " << id << " randomNum: " << randomNum << "
-      // randomSeed: " << randomSeed <<std::endl;
-      if (randomNum == count - 1) {
-        miBF.setData(rank, id);
+      hashSet values;
+      values.set_empty_key(miBF.size());
+      for (size_t i = 0; i < hash_vec.size(); ++i) {
+        values.insert(miBF.getRankPos(hash_vec[i]));
+      }
+      for (hashSet::iterator itr = values.begin(); itr != values.end(); itr++) {
+        uint64_t randomSeed = *itr ^ id;
+        uint64_t rank = *itr;
+        T count = __sync_add_and_fetch(&m_counts[rank], 1);
+        T randomNum = std::hash<T>{}(randomSeed) % count;
+        if (randomNum == count - 1) {
+          miBF.setData(rank, id);
+        }
       }
     }
   }
@@ -248,21 +252,28 @@ public:
   {
     // assert(m_isBVMade & !m_isMIBFMade);
     // get positions
+    hashSet values;
+    values.set_empty_key(miBF.size());
     size_t vec_size = hash_vec[0].size();
     size_t num_elements = 0;
     for (size_t i = start; i < end; ++i) {
       num_elements += hash_vec[i].size();
     }
 
-#if _OPENMP
-#pragma omp parallel for
-#endif
     for (size_t i = 0; i < num_elements; ++i) {
       size_t vec_num = i / vec_size;
       size_t hash_loc = i % vec_size;
       const auto& hash = hash_vec[start + vec_num][hash_loc];
-      uint64_t randomSeed = hash ^ id;
-      uint64_t rank = miBF.getRankPos(hash);
+      values.insert(miBF.getRankPos(hash));
+    }
+
+    std::vector<uint64_t> unique_values(values.begin(), values.end());
+#if _OPENMP
+#pragma omp parallel for
+#endif
+    for (size_t i = 0; i < unique_values.size(); ++i) {
+      const auto& rank = unique_values[i];
+      uint64_t randomSeed = rank ^ id;
       T count = __sync_add_and_fetch(&m_counts[rank], 1);
       T randomNum = std::hash<T>{}(randomSeed) % count;
       if (randomNum == count - 1) {
@@ -283,14 +294,14 @@ public:
       for (unsigned i = 0; i < m_h; ++i) {
         const std::vector<uint64_t> hash{ (*itr)[i] };
         if (solid_vec[i]->contains(hash)) {
-          values.insert(hash[0]);
+          values.insert(miBF.getRankPos(hash[0]));
         }
       }
       ++itr;
     }
     for (hashSet::iterator itr = values.begin(); itr != values.end(); itr++) {
       uint64_t randomSeed = *itr ^ id;
-      uint64_t rank = miBF.getRankPos(*itr);
+      uint64_t rank = *itr;
       T count = __sync_add_and_fetch(&m_counts[rank], 1);
       T randomNum = std::hash<T>{}(randomSeed) % count;
       if (randomNum == count - 1) {
