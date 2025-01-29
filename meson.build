@@ -1,5 +1,5 @@
 project('goldrush', 'cpp',
-        version : '1.2.1',
+        version : '1.2.2',
         license : 'GPL-3',
         default_options : [ 'cpp_std=c++17', 'warning_level=3', 'werror=true' ])
 
