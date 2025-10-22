@@ -102,6 +102,7 @@ Required Parameters:
 
 GoldRush command:
 ```
+# Note: 'reads' is specified without a file suffix (e.g., use 'long_reads' instead of 'long_reads.fq')
 goldrush run reads=long_reads G=3e9
 ```
 
@@ -211,3 +212,4 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/.
 
 For commercial licensing options, please contact Patrick Rebstein (prebstein@bccancer.bc.ca).
+
